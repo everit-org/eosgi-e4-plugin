@@ -1,22 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <lifecycleMappingMetadata>
   <pluginExecutions>
-    <!-- <pluginExecution> -->
-    <!-- <pluginExecutionFilter> -->
-    <!-- <groupId>hu.zsdoma</groupId> -->
-    <!-- <artifactId>simple-maven-plugin</artifactId> -->
-    <!-- <versionRange>[0.0.1-SNAPSHOT,)</versionRange> -->
-    <!-- <goals> -->
-    <!-- <goal>touch</goal> -->
-    <!-- </goals> -->
-    <!-- </pluginExecutionFilter> -->
-    <!-- <action> -->
-    <!-- <configurator> -->
-    <!-- <id>hu.zsdoma.simplem2eplugin.configurator.simpleMavenPluginConfigurator</id> -->
-    <!-- </configurator> -->
-    <!-- </action> -->
-    <!-- </pluginExecution> -->
-
     <pluginExecution>
       <pluginExecutionFilter>
         <groupId>org.everit.osgi.dev</groupId>
@@ -29,25 +13,9 @@
       </pluginExecutionFilter>
       <action>
         <configurator>
-          <id>hu.zsdoma.simplem2eplugin.configurator.simpleMavenPluginConfigurator</id>
+          <id>org.everit.e4.eosgi.plugin.m2e.eosgiProjectConfigurator</id>
         </configurator>
       </action>
     </pluginExecution>
-
-    <!-- <pluginExecution> -->
-    <!-- <pluginExecutionFilter> -->
-    <!-- <groupId>org.apache.maven.plugins</groupId> -->
-    <!-- <artifactId>maven-compiler-plugin</artifactId> -->
-    <!-- <versionRange>[3.0.0,)</versionRange> -->
-    <!-- <goals> -->
-    <!-- <goal>compile</goal> -->
-    <!-- </goals> -->
-    <!-- </pluginExecutionFilter> -->
-    <!-- <action> -->
-    <!-- <configurator> -->
-    <!-- <id>hu.zsdoma.simplem2eplugin.configurator.simpleMavenPluginConfigurator</id> -->
-    <!-- </configurator> -->
-    <!-- </action> -->
-    <!-- </pluginExecution> -->
     </pluginExecutions>
 </lifecycleMappingMetadata>
