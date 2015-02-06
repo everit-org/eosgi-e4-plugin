@@ -11,6 +11,7 @@
   <artifactId>eosgi.plugin</artifactId>
   <version>0.0.1-SNAPSHOT</version>
   <name>EOSGI Eclipse Plugin</name>
+  <packaging>eclipse-plugin</packaging>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

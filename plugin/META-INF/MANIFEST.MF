@@ -1,7 +1,7 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: eosgi-eclipse-plugin
-Bundle-SymbolicName: eosgi-eclipse-plugin;singleton:=true
+Bundle-SymbolicName: eosgi.plugin;singleton:=true
 Bundle-Version: 0.0.1.qualifier
 Bundle-Activator: org.eclipse.e4.eosgi.plugin.ui.Activator
 Require-Bundle: org.eclipse.ui,
