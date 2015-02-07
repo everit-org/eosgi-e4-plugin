@@ -1,6 +1,53 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?eclipse version="3.4"?>
 <plugin>
+    <!-- extend project explorer -->
+    <extension
+          point="org.eclipse.ui.navigator.viewer">
+      <viewerContentBinding
+          viewerId="org.eclipse.ui.navigator.ProjectExplorer">
+            <includes>
+            <contentExtension
+                  pattern="org.everit.e4.eosgi.plugin.ui.navigator">
+            </contentExtension>
+         </includes>
+      </viewerContentBinding>
+    </extension>
+    
+    <!-- define content provider for eosgi IProject -->
+    <extension
+          id="org.everit.e4.eosgi.plugin.ui.navigator"
+          point="org.eclipse.ui.navigator.navigatorContent">
+         <navigatorContent
+            id="org.everit.e4.eosgi.plugin.ui.navigator"
+            name="EosgiNavigatorContent"
+            activeByDefault="true"
+            icon="icons/sample.gif"
+            priority="normal"
+            contentProvider="org.everit.e4.eosgi.plugin.ui.navigator.EosgiEnvironmentContentProvider"
+            labelProvider="org.everit.e4.eosgi.plugin.ui.navigator.EosgiEnvironmentLabelProvider">
+          <triggerPoints>
+                 <or>
+                    <and>
+                       <instanceof
+                             value="org.eclipse.core.resources.IProject">
+                       </instanceof>
+                    </and>
+                    <instanceof
+                          value="org.everit.e4.eosgi.plugin.ui.navigator.model.EosgiNode">
+                    </instanceof>
+                 </or>
+            </triggerPoints>
+            <possibleChildren>
+                 <or>
+                    <instanceof
+                          value="org.everit.e4.eosgi.plugin.ui.navigator.model.EosgiNode">
+                    </instanceof>
+                 </or>
+            </possibleChildren>
+        </navigatorContent>
+    </extension>
+
     <!--m2e staffs -->   
     <extension
         point="org.eclipse.m2e.core.projectConfigurators">

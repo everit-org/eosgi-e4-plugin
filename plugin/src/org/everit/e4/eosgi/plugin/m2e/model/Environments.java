@@ -10,6 +10,14 @@ public class Environments {
         return environments;
     }
 
+    public Environment[] getEnvironmentArray() {
+        if (this.environments != null) {
+            return environments.toArray(new Environment[] {});
+        } else {
+            return new Environment[] {};
+        }
+    }
+
     public void setEnvironments(List<Environment> environments) {
         this.environments = environments;
     }
