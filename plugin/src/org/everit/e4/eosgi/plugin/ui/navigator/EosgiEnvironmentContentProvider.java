@@ -1,12 +1,16 @@
 package org.everit.e4.eosgi.plugin.ui.navigator;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.StructuredViewer;
 import org.eclipse.jface.viewers.Viewer;
+import org.everit.e4.eosgi.plugin.m2e.model.Environment;
+import org.everit.e4.eosgi.plugin.m2e.model.Environments;
 import org.everit.e4.eosgi.plugin.ui.navigator.model.EosgiNode;
 import org.everit.e4.eosgi.plugin.ui.navigator.model.EosgiNodeType;
 
@@ -49,57 +53,72 @@ public class EosgiEnvironmentContentProvider implements ITreeContentProvider {
 
     private Object[] handleIProject(Object parentElement, Object[] children) {
         IProject modelFile = (IProject) parentElement;
-        if (modelFile.getName().startsWith("o")) { // foo project check
+        Environments environments = EosgiProjectController.getInstance().getProject(modelFile);
+        if (environments != null) {
+            cachedModelMap.put(modelFile, convertFromEnvironments(environments));
             children = cachedModelMap.get(modelFile);
-            if ((children == null) && (updateModel(modelFile))) {
-                children = cachedModelMap.get(modelFile);
-            }
         }
         return children;
     }
 
-    private EosgiNode[] createFooNodes() {
-        EosgiNode idNode = new EosgiNode();
-        idNode.setType(EosgiNodeType.KEY_VALUE);
-        idNode.setLabel("id: felixtest");
-
-        EosgiNode frameworkNode = new EosgiNode();
-        frameworkNode.setType(EosgiNodeType.KEY_VALUE);
-        frameworkNode.setLabel("framework: felix");
-
-        EosgiNode portNode = new EosgiNode();
-        portNode.setType(EosgiNodeType.KEY_VALUE);
-        portNode.setLabel("port: 8080");
-
-        EosgiNode testNode = new EosgiNode();
-        testNode.setType(EosgiNodeType.KEY_VALUE);
-        testNode.setLabel("test: true");
-
-        EosgiNode sysPropsNode = new EosgiNode();
-        sysPropsNode.setType(EosgiNodeType.SYSTEM_PROPS);
-        sysPropsNode.setLabel("System properties");
-        sysPropsNode.setChilds(new EosgiNode[] { portNode, testNode });
-
-        EosgiNode environment = new EosgiNode();
-        environment.setType(EosgiNodeType.ENVIRONMENT);
-        environment.setLabel("Environment");
-        environment.setChilds(new EosgiNode[] { idNode, frameworkNode, sysPropsNode });
-
-        EosgiNode environments = new EosgiNode();
-        environments.setType(EosgiNodeType.ENVIRONMENTS);
-        environments.setLabel("Environments");
-        environments.setChilds(new EosgiNode[] { environment });
-
+    private EosgiNode[] convertFromEnvironments(Environments environments) {
         EosgiNode configuration = new EosgiNode();
         configuration.setType(EosgiNodeType.CONFIGURATION);
         configuration.setLabel("EOSGI Configuration");
-        configuration.setChilds(new EosgiNode[] { environments });
+
+        List<Environment> environmentList = environments.getEnvironments();
+        if (!environmentList.isEmpty()) {
+            EosgiNode environmentsNode = new EosgiNode();
+            environmentsNode.setType(EosgiNodeType.ENVIRONMENTS);
+            environmentsNode.setLabel("Environments");
+
+            EosgiNode[] environmentNodeArray = provessEnvironmentList(environmentList);
+            environmentsNode.setChilds(environmentNodeArray);
+
+            configuration.setChilds(new EosgiNode[] { environmentsNode });
+        }
+
         return new EosgiNode[] { configuration };
+
     }
 
-    private boolean updateModel(IProject modelFile) {
-        cachedModelMap.put(modelFile, createFooNodes());
-        return true;
+    private EosgiNode[] provessEnvironmentList(List<Environment> environmentList) {
+        EosgiNode[] environmentNodeArray = new EosgiNode[environmentList.size()];
+        int i = 0;
+        for (Environment environment : environmentList) {
+            EosgiNode environmentNode = new EosgiNode();
+            environmentNode.setType(EosgiNodeType.ENVIRONMENT);
+            environmentNode.setLabel("Environment");
+
+            EosgiNode idNode = new EosgiNode();
+            idNode.setType(EosgiNodeType.KEY_VALUE);
+            idNode.setLabel(environment.getId() + "(" + environment.getFramework() + ")");
+
+            EosgiNode sysPropsNode = new EosgiNode();
+            sysPropsNode.setType(EosgiNodeType.SYSTEM_PROPS);
+            sysPropsNode.setLabel("System Properties");
+
+            EosgiNode[] sysPropsNodeArray = processSystemProperties(environment);
+            sysPropsNode.setChilds(sysPropsNodeArray);
+
+            EosgiNode[] configNodeArray = new EosgiNode[] { idNode, sysPropsNode };
+            environmentNode.setChilds(configNodeArray);
+            environmentNodeArray[i++] = environmentNode;
+        }
+        return environmentNodeArray;
+    }
+
+    private EosgiNode[] processSystemProperties(Environment environment) {
+        Map<String, String> systemProperties = environment.getSystemProperties();
+        EosgiNode[] sysPropsNodeArray = new EosgiNode[systemProperties.size()];
+        int i = 0;
+        for (Entry<String, String> systemProperty : systemProperties.entrySet()) {
+            EosgiNode portNode = new EosgiNode();
+            portNode.setType(EosgiNodeType.KEY_VALUE);
+            portNode.setLabel(systemProperty.getKey() + ": " + systemProperty.getValue());
+            sysPropsNodeArray[i++] = portNode;
+        }
+        return sysPropsNodeArray;
     }
 
     @Override

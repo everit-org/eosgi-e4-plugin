@@ -10,6 +10,7 @@ import org.eclipse.m2e.core.project.configurator.AbstractProjectConfigurator;
 import org.eclipse.m2e.core.project.configurator.ProjectConfigurationRequest;
 import org.everit.e4.eosgi.plugin.m2e.model.Environments;
 import org.everit.e4.eosgi.plugin.m2e.xml.ConfiguratorParser;
+import org.everit.e4.eosgi.plugin.ui.navigator.EosgiProjectController;
 
 public class EOSGIProjectConfigurator extends AbstractProjectConfigurator {
 
@@ -25,6 +26,7 @@ public class EOSGIProjectConfigurator extends AbstractProjectConfigurator {
 
         Environments environments = new ConfiguratorParser().parse(execution.getConfiguration());
         System.out.println(environments);
+        EosgiProjectController.getInstance().addProject(projectFacade.getProject(), environments);
 
         return new EOSGIMojoExecutionBuildParticipant(execution, true);
     }
