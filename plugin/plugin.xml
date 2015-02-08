@@ -22,7 +22,7 @@
             id="org.everit.e4.eosgi.plugin.ui.navigator"
             name="EosgiNavigatorContent"
             activeByDefault="true"
-            icon="icons/sample.gif"
+            icon="icons/everit.gif"
             priority="normal"
             contentProvider="org.everit.e4.eosgi.plugin.ui.navigator.EosgiEnvironmentContentProvider"
             labelProvider="org.everit.e4.eosgi.plugin.ui.navigator.EosgiEnvironmentLabelProvider">
