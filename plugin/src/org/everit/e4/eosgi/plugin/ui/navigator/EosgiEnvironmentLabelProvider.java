@@ -4,9 +4,12 @@ import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.viewers.ILabelProvider;
 import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.ui.ISharedImages;
+import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.navigator.IDescriptionProvider;
 import org.everit.e4.eosgi.plugin.ui.Activator;
 import org.everit.e4.eosgi.plugin.ui.navigator.model.EosgiNode;
+import org.everit.e4.eosgi.plugin.ui.navigator.model.EosgiNodeType;
 
 public class EosgiEnvironmentLabelProvider extends LabelProvider implements ILabelProvider, IDescriptionProvider {
 
@@ -29,7 +32,12 @@ public class EosgiEnvironmentLabelProvider extends LabelProvider implements ILab
     @Override
     public String getText(Object element) {
         if (element instanceof EosgiNode) {
-            return ((EosgiNode) element).getLabel();
+            EosgiNode eosgiNode = (EosgiNode) element;
+            if (eosgiNode.getLabel() != null) {
+                return eosgiNode.getName() + " (" + eosgiNode.getLabel() + ")";
+            } else {
+                return eosgiNode.getName();
+            }
         }
         return super.getText(element);
     }
@@ -37,20 +45,50 @@ public class EosgiEnvironmentLabelProvider extends LabelProvider implements ILab
     @Override
     public Image getImage(Object element) {
         if (element instanceof EosgiNode) {
-            if (everitLogo == null) {
-                everitLogo = Activator.getImageDescriptor("icons/everit.gif");
+            EosgiNode node = (EosgiNode) element;
+            if (EosgiNodeType.ENVIRONMENTS == node.getType()) {
+                return Activator.getImageDescriptor("icons/console_view.gif").createImage();
+            } else if (EosgiNodeType.ENVIRONMENT == node.getType()) {
+                return resolvEnvironmentIcon(node);
+            } else if (EosgiNodeType.CONFIGURATION == node.getType()) {
+                return getEveritLogo().createImage();
+            } else {
+                return PlatformUI.getWorkbench().getSharedImages().getImage(ISharedImages.IMG_OBJ_FILE);
             }
-            return everitLogo.createImage();
         }
         return null;// super.getImage(element);
+    }
+
+    private Image resolvEnvironmentIcon(EosgiNode node) {
+        String environmentLogoName = null;
+        if ("equinox".equals(node.getLabel())) {
+            environmentLogoName = "sample.gif";
+        } else if ("felix".equals(node.getLabel())) {
+            environmentLogoName = "felix-logo.gif";
+        } else {
+            environmentLogoName = "osgi-logo.gif";
+        }
+        return Activator.getImageDescriptor("icons/" + environmentLogoName).createImage();
     }
 
     @Override
     public String getDescription(Object element) {
         if (element instanceof EosgiNode) {
-            return ((EosgiNode) element).getLabel();
+            EosgiNode eosgiNode = (EosgiNode) element;
+            if (eosgiNode.getLabel() != null && EosgiNodeType.ENVIRONMENT == eosgiNode.getType()) {
+                return "id: " + eosgiNode.getName() + ", framework: " + eosgiNode.getLabel();
+            } else {
+                return eosgiNode.getName();
+            }
         }
         return null;
+    }
+
+    public ImageDescriptor getEveritLogo() {
+        if (everitLogo == null) {
+            everitLogo = Activator.getImageDescriptor("icons/everit.gif");
+        }
+        return everitLogo;
     }
 
 }

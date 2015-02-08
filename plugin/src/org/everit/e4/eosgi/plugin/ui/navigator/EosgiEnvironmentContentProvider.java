@@ -64,13 +64,13 @@ public class EosgiEnvironmentContentProvider implements ITreeContentProvider {
     private EosgiNode[] convertFromEnvironments(Environments environments) {
         EosgiNode configuration = new EosgiNode();
         configuration.setType(EosgiNodeType.CONFIGURATION);
-        configuration.setLabel("EOSGI Configuration");
+        configuration.setName("EOSGI Configuration");
 
         List<Environment> environmentList = environments.getEnvironments();
         if (!environmentList.isEmpty()) {
             EosgiNode environmentsNode = new EosgiNode();
             environmentsNode.setType(EosgiNodeType.ENVIRONMENTS);
-            environmentsNode.setLabel("Environments");
+            environmentsNode.setName("Environments");
 
             EosgiNode[] environmentNodeArray = provessEnvironmentList(environmentList);
             environmentsNode.setChilds(environmentNodeArray);
@@ -88,20 +88,17 @@ public class EosgiEnvironmentContentProvider implements ITreeContentProvider {
         for (Environment environment : environmentList) {
             EosgiNode environmentNode = new EosgiNode();
             environmentNode.setType(EosgiNodeType.ENVIRONMENT);
-            environmentNode.setLabel("Environment");
-
-            EosgiNode idNode = new EosgiNode();
-            idNode.setType(EosgiNodeType.KEY_VALUE);
-            idNode.setLabel(environment.getId() + "(" + environment.getFramework() + ")");
+            environmentNode.setName(environment.getId());
+            environmentNode.setLabel(environment.getFramework());
 
             EosgiNode sysPropsNode = new EosgiNode();
             sysPropsNode.setType(EosgiNodeType.SYSTEM_PROPS);
-            sysPropsNode.setLabel("System Properties");
+            sysPropsNode.setName("System Properties");
 
             EosgiNode[] sysPropsNodeArray = processSystemProperties(environment);
             sysPropsNode.setChilds(sysPropsNodeArray);
 
-            EosgiNode[] configNodeArray = new EosgiNode[] { idNode, sysPropsNode };
+            EosgiNode[] configNodeArray = new EosgiNode[] { sysPropsNode };
             environmentNode.setChilds(configNodeArray);
             environmentNodeArray[i++] = environmentNode;
         }
@@ -115,7 +112,7 @@ public class EosgiEnvironmentContentProvider implements ITreeContentProvider {
         for (Entry<String, String> systemProperty : systemProperties.entrySet()) {
             EosgiNode portNode = new EosgiNode();
             portNode.setType(EosgiNodeType.KEY_VALUE);
-            portNode.setLabel(systemProperty.getKey() + ": " + systemProperty.getValue());
+            portNode.setName(systemProperty.getKey() + ": " + systemProperty.getValue());
             sysPropsNodeArray[i++] = portNode;
         }
         return sysPropsNodeArray;
@@ -130,7 +127,7 @@ public class EosgiEnvironmentContentProvider implements ITreeContentProvider {
     public Object getParent(Object element) {
         if (element instanceof EosgiNode) {
             EosgiNode data = (EosgiNode) element;
-            return data.getLabel();
+            return data.getName();
         }
         return null;
     }

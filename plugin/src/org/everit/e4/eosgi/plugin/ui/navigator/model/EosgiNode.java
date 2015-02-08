@@ -1,16 +1,17 @@
 package org.everit.e4.eosgi.plugin.ui.navigator.model;
 
 public class EosgiNode {
+    private String name;
     private String label;
     private EosgiNodeType type;
     private EosgiNode[] childs;
 
-    public String getLabel() {
-        return label;
+    public String getName() {
+        return name;
     }
 
-    public void setLabel(String label) {
-        this.label = label;
+    public void setName(String label) {
+        this.name = label;
     }
 
     public EosgiNodeType getType() {
@@ -27,6 +28,14 @@ public class EosgiNode {
 
     public void setChilds(EosgiNode[] childs) {
         this.childs = childs;
+    }
+
+    public String getLabel() {
+        return label;
+    }
+
+    public void setLabel(String label) {
+        this.label = label;
     }
 
 }
