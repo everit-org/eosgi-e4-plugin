@@ -1,4 +1,6 @@
-package org.everit.e4.eosgi.plugin.ui.navigator.model;
+package org.everit.e4.eosgi.plugin.ui.navigator.nodes;
+
+import java.util.Arrays;
 
 public class EosgiNode {
     private String name;
@@ -36,6 +38,16 @@ public class EosgiNode {
 
     public void setLabel(String label) {
         this.label = label;
+    }
+
+    public boolean hasLabel() {
+        return label != null && !label.isEmpty();
+    }
+
+    @Override
+    public String toString() {
+        return "EosgiNode [name=" + name + ", label=" + label + ", type=" + type + ", childs="
+                + Arrays.toString(childs) + "]";
     }
 
 }

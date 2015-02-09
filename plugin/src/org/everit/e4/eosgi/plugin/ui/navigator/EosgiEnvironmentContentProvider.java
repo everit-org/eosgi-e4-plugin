@@ -11,8 +11,8 @@ import org.eclipse.jface.viewers.StructuredViewer;
 import org.eclipse.jface.viewers.Viewer;
 import org.everit.e4.eosgi.plugin.m2e.model.Environment;
 import org.everit.e4.eosgi.plugin.m2e.model.Environments;
-import org.everit.e4.eosgi.plugin.ui.navigator.model.EosgiNode;
-import org.everit.e4.eosgi.plugin.ui.navigator.model.EosgiNodeType;
+import org.everit.e4.eosgi.plugin.ui.navigator.nodes.EosgiNode;
+import org.everit.e4.eosgi.plugin.ui.navigator.nodes.EosgiNodeType;
 
 public class EosgiEnvironmentContentProvider implements ITreeContentProvider {
 

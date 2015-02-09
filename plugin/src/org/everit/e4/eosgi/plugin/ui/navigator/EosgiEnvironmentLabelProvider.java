@@ -1,49 +1,48 @@
 package org.everit.e4.eosgi.plugin.ui.navigator;
 
 import org.eclipse.jface.resource.ImageDescriptor;
+import org.eclipse.jface.viewers.DelegatingStyledCellLabelProvider.IStyledLabelProvider;
 import org.eclipse.jface.viewers.ILabelProvider;
 import org.eclipse.jface.viewers.LabelProvider;
+import org.eclipse.jface.viewers.StyledString;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.ui.ISharedImages;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.navigator.IDescriptionProvider;
 import org.everit.e4.eosgi.plugin.ui.Activator;
-import org.everit.e4.eosgi.plugin.ui.navigator.model.EosgiNode;
-import org.everit.e4.eosgi.plugin.ui.navigator.model.EosgiNodeType;
+import org.everit.e4.eosgi.plugin.ui.navigator.nodes.EosgiNode;
+import org.everit.e4.eosgi.plugin.ui.navigator.nodes.EosgiNodeType;
 
-public class EosgiEnvironmentLabelProvider extends LabelProvider implements ILabelProvider, IDescriptionProvider {
+public class EosgiEnvironmentLabelProvider extends LabelProvider implements ILabelProvider,
+        IDescriptionProvider,
+        IStyledLabelProvider {
 
-    // @Override
-    // public Image decorateImage(Image image, Object element) {
-    // // TODO Auto-generated method stub
-    // return null;
-    // }
-    //
-    // @Override
-    // public String decorateText(String decoreText, Object element) {
-    // if (element instanceof EosgiNode) {
-    // return "ok";
-    // }
-    // return null;
-    // }
-
+    private static final String UNKNOWN_NODE_OBJECT = "[unknown node object]";
+    private static final int MAX_ALLOWED_LENGTH = 50;
     private ImageDescriptor everitLogo;
 
     @Override
-    public String getText(Object element) {
+    public String getDescription(final Object element) {
         if (element instanceof EosgiNode) {
             EosgiNode eosgiNode = (EosgiNode) element;
-            if (eosgiNode.getLabel() != null) {
-                return eosgiNode.getName() + " (" + eosgiNode.getLabel() + ")";
+            if ((eosgiNode.getLabel() != null) && (EosgiNodeType.ENVIRONMENT == eosgiNode.getType())) {
+                return "id: " + eosgiNode.getName() + ", framework: " + eosgiNode.getLabel();
             } else {
                 return eosgiNode.getName();
             }
         }
-        return super.getText(element);
+        return UNKNOWN_NODE_OBJECT;
+    }
+
+    public ImageDescriptor getEveritLogo() {
+        if (everitLogo == null) {
+            everitLogo = Activator.getImageDescriptor("icons/everit.gif");
+        }
+        return everitLogo;
     }
 
     @Override
-    public Image getImage(Object element) {
+    public Image getImage(final Object element) {
         if (element instanceof EosgiNode) {
             EosgiNode node = (EosgiNode) element;
             if (EosgiNodeType.ENVIRONMENTS == node.getType()) {
@@ -59,7 +58,39 @@ public class EosgiEnvironmentLabelProvider extends LabelProvider implements ILab
         return null;// super.getImage(element);
     }
 
-    private Image resolvEnvironmentIcon(EosgiNode node) {
+    @Override
+    public StyledString getStyledText(final Object element) {
+        if (element instanceof EosgiNode) {
+            StyledString styledString = new StyledString(getText(element));
+            EosgiNode eosgiNode = (EosgiNode) element;
+            if (eosgiNode.hasLabel()) {
+                int startPos = eosgiNode.getName().length();
+                int length = eosgiNode.getLabel().length() + 3;
+                styledString.setStyle(startPos, length,
+                        StyledString.QUALIFIER_STYLER);
+            }
+            return styledString;
+        }
+        return null;
+    }
+
+    @Override
+    public String getText(final Object element) {
+        String resultString = null;
+        if (element instanceof EosgiNode) {
+            EosgiNode eosgiNode = (EosgiNode) element;
+            if (eosgiNode.getLabel() != null) {
+                resultString = eosgiNode.getName() + " (" + eosgiNode.getLabel() + ")";
+            } else {
+                resultString = eosgiNode.getName();
+            }
+        } else {
+            resultString = "-";
+        }
+        return trimLongStrings(resultString, MAX_ALLOWED_LENGTH);
+    }
+
+    private Image resolvEnvironmentIcon(final EosgiNode node) {
         String environmentLogoName = null;
         if ("equinox".equals(node.getLabel())) {
             environmentLogoName = "sample.gif";
@@ -71,24 +102,8 @@ public class EosgiEnvironmentLabelProvider extends LabelProvider implements ILab
         return Activator.getImageDescriptor("icons/" + environmentLogoName).createImage();
     }
 
-    @Override
-    public String getDescription(Object element) {
-        if (element instanceof EosgiNode) {
-            EosgiNode eosgiNode = (EosgiNode) element;
-            if (eosgiNode.getLabel() != null && EosgiNodeType.ENVIRONMENT == eosgiNode.getType()) {
-                return "id: " + eosgiNode.getName() + ", framework: " + eosgiNode.getLabel();
-            } else {
-                return eosgiNode.getName();
-            }
-        }
-        return null;
-    }
-
-    public ImageDescriptor getEveritLogo() {
-        if (everitLogo == null) {
-            everitLogo = Activator.getImageDescriptor("icons/everit.gif");
-        }
-        return everitLogo;
+    private String trimLongStrings(final String resultString, final int maxAllowedLength) {
+        return resultString.substring(0, Math.min(resultString.length(), 50));
     }
 
 }
