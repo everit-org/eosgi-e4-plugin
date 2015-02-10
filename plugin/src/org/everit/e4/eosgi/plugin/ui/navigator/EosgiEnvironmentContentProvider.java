@@ -1,5 +1,6 @@
 package org.everit.e4.eosgi.plugin.ui.navigator;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -9,6 +10,8 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.StructuredViewer;
 import org.eclipse.jface.viewers.Viewer;
+import org.everit.e4.eosgi.plugin.m2e.model.Bundle;
+import org.everit.e4.eosgi.plugin.m2e.model.BundleSettings;
 import org.everit.e4.eosgi.plugin.m2e.model.Environment;
 import org.everit.e4.eosgi.plugin.m2e.model.Environments;
 import org.everit.e4.eosgi.plugin.ui.navigator.nodes.EosgiNode;
@@ -91,29 +94,94 @@ public class EosgiEnvironmentContentProvider implements ITreeContentProvider {
             environmentNode.setName(environment.getId());
             environmentNode.setLabel(environment.getFramework());
 
-            EosgiNode sysPropsNode = new EosgiNode();
-            sysPropsNode.setType(EosgiNodeType.SYSTEM_PROPS);
-            sysPropsNode.setName("System Properties");
+            List<EosgiNode> eosgiNodes = new ArrayList<EosgiNode>();
 
             EosgiNode[] sysPropsNodeArray = processSystemProperties(environment);
-            sysPropsNode.setChilds(sysPropsNodeArray);
+            EosgiNode sysPropsNode;
+            if (sysPropsNodeArray != null) {
+                sysPropsNode = new EosgiNode();
+                sysPropsNode.setType(EosgiNodeType.SYSTEM_PROPS);
+                sysPropsNode.setName("System Properties");
+                sysPropsNode.setChilds(sysPropsNodeArray);
+                eosgiNodes.add(sysPropsNode);
+            }
 
-            EosgiNode[] configNodeArray = new EosgiNode[] { sysPropsNode };
+            BundleSettings bundleSettings = environment.getBundleSettings();
+            EosgiNode[] bundleSettingsArray = processBundleSettings(bundleSettings);
+            EosgiNode bundleSettingsNode;
+            if (bundleSettingsArray != null) {
+                bundleSettingsNode = new EosgiNode();
+                bundleSettingsNode.setType(EosgiNodeType.BUNDLE_SETTINGS);
+                bundleSettingsNode.setName("Bundle Settings");
+                bundleSettingsNode.setChilds(bundleSettingsArray);
+                eosgiNodes.add(bundleSettingsNode);
+            }
+
+            EosgiNode[] vmOptionsArray = processVMOptions(environment);
+            EosgiNode vmOptionsNode;
+            if (vmOptionsArray != null) {
+                vmOptionsNode = new EosgiNode();
+                vmOptionsNode.setType(EosgiNodeType.SYSTEM_PROPS);
+                vmOptionsNode.setName("VM Options");
+                vmOptionsNode.setChilds(vmOptionsArray);
+                eosgiNodes.add(vmOptionsNode);
+            }
+
+            EosgiNode[] configNodeArray = eosgiNodes.toArray(new EosgiNode[] {});
             environmentNode.setChilds(configNodeArray);
             environmentNodeArray[i++] = environmentNode;
         }
         return environmentNodeArray;
     }
 
+    private EosgiNode[] processBundleSettings(BundleSettings bundleSettings) {
+        List<Bundle> bundles = bundleSettings.getBundles();
+        EosgiNode[] bundlesArray = null;
+
+        if (!bundles.isEmpty()) {
+            bundlesArray = new EosgiNode[bundles.size()];
+            int i = 0;
+            for (Bundle bundle : bundles) {
+                Map<String, String> bundlePropertiesMap = bundle.getBundlePropertiesMap();
+                EosgiNode bundleNode = new EosgiNode();
+                bundleNode.setType(EosgiNodeType.BUNDLE);
+                bundleNode.setName(bundlePropertiesMap.get("symbolicName"));
+                bundleNode.setLabel("startLevel: " + bundlePropertiesMap.get("startLevel"));
+                bundlesArray[i++] = bundleNode;
+            }
+        }
+        return bundlesArray;
+    }
+
+    private EosgiNode[] processVMOptions(Environment environment) {
+        List<String> vmOptions = environment.getVmOptions();
+        EosgiNode[] vmOptionsArray = null;
+        if (!vmOptions.isEmpty()) {
+            vmOptionsArray = new EosgiNode[vmOptions.size()];
+            int i = 0;
+            for (String vmOption : vmOptions) {
+                EosgiNode vmOptionNode = new EosgiNode();
+                vmOptionNode.setType(EosgiNodeType.VALUE);
+                vmOptionNode.setName(vmOption);
+                vmOptionsArray[i++] = vmOptionNode;
+            }
+        }
+        return vmOptionsArray;
+    }
+
     private EosgiNode[] processSystemProperties(Environment environment) {
         Map<String, String> systemProperties = environment.getSystemProperties();
-        EosgiNode[] sysPropsNodeArray = new EosgiNode[systemProperties.size()];
-        int i = 0;
-        for (Entry<String, String> systemProperty : systemProperties.entrySet()) {
-            EosgiNode portNode = new EosgiNode();
-            portNode.setType(EosgiNodeType.KEY_VALUE);
-            portNode.setName(systemProperty.getKey() + ": " + systemProperty.getValue());
-            sysPropsNodeArray[i++] = portNode;
+        EosgiNode[] sysPropsNodeArray = null;
+        if (!systemProperties.isEmpty()) {
+            sysPropsNodeArray = new EosgiNode[systemProperties.size()];
+            int i = 0;
+            for (Entry<String, String> systemProperty : systemProperties.entrySet()) {
+                EosgiNode portNode = new EosgiNode();
+                portNode.setType(EosgiNodeType.KEY_VALUE);
+                portNode.setName(systemProperty.getKey());
+                portNode.setValue(systemProperty.getValue());
+                sysPropsNodeArray[i++] = portNode;
+            }
         }
         return sysPropsNodeArray;
     }
@@ -135,7 +203,8 @@ public class EosgiEnvironmentContentProvider implements ITreeContentProvider {
     @Override
     public boolean hasChildren(Object element) {
         if (element instanceof EosgiNode) {
-            return EosgiNodeType.KEY_VALUE != ((EosgiNode) element).getType();
+            EosgiNode eosgiNode = (EosgiNode) element;
+            return EosgiNodeType.KEY_VALUE != eosgiNode.getType() || EosgiNodeType.VALUE != eosgiNode.getType();
         }
         return false;
     }

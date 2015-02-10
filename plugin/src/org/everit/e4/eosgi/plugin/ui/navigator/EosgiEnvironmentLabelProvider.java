@@ -61,13 +61,21 @@ public class EosgiEnvironmentLabelProvider extends LabelProvider implements ILab
     @Override
     public StyledString getStyledText(final Object element) {
         if (element instanceof EosgiNode) {
-            StyledString styledString = new StyledString(getText(element));
+            String fullText = getText(element);
+            StyledString styledString = new StyledString(fullText);
             EosgiNode eosgiNode = (EosgiNode) element;
-            if (eosgiNode.hasLabel()) {
+            if (eosgiNode.hasValue()) {
                 int startPos = eosgiNode.getName().length();
-                int length = eosgiNode.getLabel().length() + 3;
+                int length = eosgiNode.getValue().length() + 3;
+                // length = Math.min(length, fullText.length());
                 styledString.setStyle(startPos, length,
                         StyledString.QUALIFIER_STYLER);
+            } else if (eosgiNode.hasLabel()) {
+                int startPos = eosgiNode.getName().length();
+                int length = eosgiNode.getLabel().length() + 3;
+                // length = Math.min(length, fullText.length());
+                styledString.setStyle(startPos, length,
+                        StyledString.DECORATIONS_STYLER);
             }
             return styledString;
         }
@@ -79,7 +87,9 @@ public class EosgiEnvironmentLabelProvider extends LabelProvider implements ILab
         String resultString = null;
         if (element instanceof EosgiNode) {
             EosgiNode eosgiNode = (EosgiNode) element;
-            if (eosgiNode.getLabel() != null) {
+            if (eosgiNode.hasValue()) {
+                resultString = eosgiNode.getName() + " - " + eosgiNode.getValue();
+            } else if (eosgiNode.hasLabel()) {
                 resultString = eosgiNode.getName() + " (" + eosgiNode.getLabel() + ")";
             } else {
                 resultString = eosgiNode.getName();
@@ -87,7 +97,7 @@ public class EosgiEnvironmentLabelProvider extends LabelProvider implements ILab
         } else {
             resultString = "-";
         }
-        return trimLongStrings(resultString, MAX_ALLOWED_LENGTH);
+        return resultString; // trimLongStrings(resultString, MAX_ALLOWED_LENGTH);
     }
 
     private Image resolvEnvironmentIcon(final EosgiNode node) {
