@@ -56,10 +56,15 @@ public class EosgiEnvironmentContentProvider implements ITreeContentProvider {
 
     private Object[] handleIProject(Object parentElement, Object[] children) {
         IProject modelFile = (IProject) parentElement;
-        Environments environments = EosgiProjectController.getInstance().getProject(modelFile);
-        if (environments != null) {
-            cachedModelMap.put(modelFile, convertFromEnvironments(environments));
-            children = cachedModelMap.get(modelFile);
+        if (modelFile.isOpen()) {
+            Environments environments = EosgiProjectController.getInstance().getProject(modelFile);
+            if (environments != null) {
+                cachedModelMap.put(modelFile, convertFromEnvironments(environments));
+                children = cachedModelMap.get(modelFile);
+            }
+        } else {
+            EosgiProjectController.getInstance().removeProject(modelFile);
+            children = NO_CHILDREN;
         }
         return children;
     }
