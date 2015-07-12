@@ -61,4 +61,25 @@
     <extension
         point="org.eclipse.m2e.core.lifecycleMappingMetadataSource">
     </extension>
+    
+   <extension
+         point="org.eclipse.wst.common.project.facet.core.facets">
+      <category id="org.everit.dev.osgi">
+         <description> Sample Facet Desciption </description>
+      </category>
+      <project-facet id="org.everit.eosgi.facet">
+         <label>EOSGI Maven Facet</label>
+         <description>EOSGI Maven Facet</description>
+      </project-facet>
+      <project-facet-version facet="org.everit.eosgi.facet" version="1.0"/>
+      <action
+            type="install"
+            id="org.everit.eosgi.facet.action.INSTALL"
+            version="1.0"
+            facet="org.everit.eosgi.facet">
+         <delegate
+               class="org.everit.e4.eosgi.plugin.m2e.facet.EosgiDelegate">
+         </delegate>
+      </action>
+   </extension>
 </plugin>
