@@ -15,7 +15,7 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <maven-compiler-plugin-version>3.2</maven-compiler-plugin-version>
-    <tycho-maven-plugin-version>0.22.0</tycho-maven-plugin-version>
+    <tycho-maven-plugin-version>0.23.0</tycho-maven-plugin-version>
   </properties>
 
   <build>
