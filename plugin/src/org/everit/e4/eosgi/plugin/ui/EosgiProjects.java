@@ -13,8 +13,8 @@ public class EosgiProjects {
 
   private Map<IProject, EosgiProject> projects = new ConcurrentHashMap<>();
 
-  public void addProject(final IProject project, final EosgiProject environments) {
-    projects.put(project, environments);
+  public void addProject(final IProject project, final EosgiProject eosgiProject) {
+    projects.put(project, eosgiProject);
   }
 
   public EosgiProject getProject(final IProject project) {

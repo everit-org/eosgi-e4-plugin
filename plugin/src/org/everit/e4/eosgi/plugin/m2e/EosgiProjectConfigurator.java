@@ -9,6 +9,8 @@ import org.eclipse.m2e.core.project.IMavenProjectFacade;
 import org.eclipse.m2e.core.project.configurator.AbstractBuildParticipant;
 import org.eclipse.m2e.core.project.configurator.AbstractProjectConfigurator;
 import org.eclipse.m2e.core.project.configurator.ProjectConfigurationRequest;
+import org.eclipse.m2e.jdt.IClasspathDescriptor;
+import org.eclipse.m2e.jdt.IJavaProjectConfigurator;
 import org.everit.e4.eosgi.plugin.m2e.model.Environments;
 import org.everit.e4.eosgi.plugin.m2e.model.EosgiProject;
 import org.everit.e4.eosgi.plugin.m2e.xml.ConfiguratorParser;
@@ -17,7 +19,8 @@ import org.everit.e4.eosgi.plugin.ui.Activator;
 /**
  * Project configurator for EOSGI projects.
  */
-public class EOSGIProjectConfigurator extends AbstractProjectConfigurator {
+public class EosgiProjectConfigurator extends AbstractProjectConfigurator
+    implements IJavaProjectConfigurator {
 
   @Override
   public void configure(final ProjectConfigurationRequest request, final IProgressMonitor monitor)
@@ -41,11 +44,11 @@ public class EOSGIProjectConfigurator extends AbstractProjectConfigurator {
 
     String executionId = execution.getExecutionId();
     String projectName = project.getName();
+
     if ("dist".equals(execution.getGoal())) {
       Activator.getDefault().info(projectName + " - " + execution.getGoal());
-      return new EOSGIDistBuildParticipant(execution, true, true);
+      return new EosgiDistBuildParticipant(execution, true, true);
     } else {
-      Activator.getDefault().info(projectName + ", skip goal:  " + execution.getGoal());
       return null;
     }
   }
@@ -65,6 +68,20 @@ public class EOSGIProjectConfigurator extends AbstractProjectConfigurator {
       Activator.getDefault().getEosgiProjectController().addProject(project,
           eosgiProject);
     }
+  }
+
+  @Override
+  public void configureClasspath(IMavenProjectFacade arg0, IClasspathDescriptor arg1,
+      IProgressMonitor arg2) throws CoreException {
+    // TODO Auto-generated method stub
+
+  }
+
+  @Override
+  public void configureRawClasspath(ProjectConfigurationRequest arg0, IClasspathDescriptor arg1,
+      IProgressMonitor arg2) throws CoreException {
+    // TODO Auto-generated method stub
+
   }
 
 }

@@ -6,11 +6,11 @@
           point="org.eclipse.ui.navigator.viewer">
       <viewerContentBinding
           viewerId="org.eclipse.ui.navigator.ProjectExplorer">
-            <includes>
+          <includes>
             <contentExtension
                   pattern="org.everit.e4.eosgi.plugin.ui.navigator">
             </contentExtension>
-         </includes>
+          </includes>
       </viewerContentBinding>
     </extension>
     
@@ -52,7 +52,7 @@
     <extension
         point="org.eclipse.m2e.core.projectConfigurators">
         <configurator
-            class="org.everit.e4.eosgi.plugin.m2e.EOSGIProjectConfigurator"
+            class="org.everit.e4.eosgi.plugin.m2e.EosgiProjectConfigurator"
             id="org.everit.e4.eosgi.plugin.m2e.eosgiProjectConfigurator"
             name="eosgiConfigurator">
         </configurator>
@@ -60,5 +60,35 @@
     
     <extension
         point="org.eclipse.m2e.core.lifecycleMappingMetadataSource">
+    </extension>
+    
+    <extension
+      point="org.eclipse.ui.menus"
+      id="org.everit.e4.eosgi.plugin.ui.menus"
+      name="eosgiMenus">
+      <menuContribution
+        locationURI="popup:org.eclipse.ui.popup.any"
+        allPopups="true">
+        <command
+          commandId="org.everit.e4.eosgi.plugin.ui.commands"
+          label="Start">
+          <visibleWhen
+            checkEnabled="false">
+          </visibleWhen>
+        </command>
+      </menuContribution>
+    </extension>
+    
+    <extension
+          id="org.everit.e4.eosgi.plugin.ui.commands"
+          name="Start"
+          point="org.eclipse.ui.commands">
+          <command
+            id="org.everit.e4.eosgi.plugin.ui.command.start"
+            name="startCommand">
+            <defaultHandler
+              class="org.everit.e4.eosgi.plugin.ui.command.StartHandler">
+            </defaultHandler>
+          </command>
     </extension>
 </plugin>
