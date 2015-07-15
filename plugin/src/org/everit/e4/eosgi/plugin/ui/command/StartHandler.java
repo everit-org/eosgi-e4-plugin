@@ -9,8 +9,7 @@ public class StartHandler implements IHandler {
 
   @Override
   public void addHandlerListener(IHandlerListener arg0) {
-    // TODO Auto-generated method stub
-
+    System.out.println("add handler listener");
   }
 
   @Override
@@ -20,7 +19,7 @@ public class StartHandler implements IHandler {
   }
 
   @Override
-  public Object execute(ExecutionEvent arg0) throws ExecutionException {
+  public Object execute(final ExecutionEvent arg0) throws ExecutionException {
     System.out.println("execute command");
     return null;
   }

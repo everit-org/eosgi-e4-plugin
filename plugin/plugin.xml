@@ -68,27 +68,59 @@
       name="eosgiMenus">
       <menuContribution
         locationURI="popup:org.eclipse.ui.popup.any"
-        allPopups="true">
-        <command
-          commandId="org.everit.e4.eosgi.plugin.ui.commands"
-          label="Start">
-          <visibleWhen
-            checkEnabled="false">
-          </visibleWhen>
-        </command>
+        allPopups="false">
+        <menu
+          id="org.everit.e4.eosgi.plugin.ui.menus.eosgi"
+          label="EOSGI Dist">
+          <command
+            commandId="org.everit.e4.eosgi.plugin.ui.command.start"
+            label="Start">
+          </command>
+          <command
+            commandId="org.everit.e4.eosgi.plugin.ui.command.start"
+            label="Stop">
+          </command>
+        </menu>
       </menuContribution>
+    </extension>
+
+    <extension
+      id="org.everit.e4.eosgi.plugin.ui.command"
+      point="org.eclipse.ui.commands">
+      <command
+        id="org.everit.e4.eosgi.plugin.ui.command.start"
+        name="startCommand">
+      </command>
     </extension>
     
     <extension
-          id="org.everit.e4.eosgi.plugin.ui.commands"
-          name="Start"
-          point="org.eclipse.ui.commands">
-          <command
-            id="org.everit.e4.eosgi.plugin.ui.command.start"
-            name="startCommand">
-            <defaultHandler
-              class="org.everit.e4.eosgi.plugin.ui.command.StartHandler">
-            </defaultHandler>
-          </command>
+      point="org.eclipse.ui.handlers">
+      <handler
+        commandId="org.everit.e4.eosgi.plugin.ui.command.start"
+        class="org.everit.e4.eosgi.plugin.ui.command.StartHandler">
+      </handler>
     </extension>
+    
+    <!-- reusable definitions -->
+    <!--
+    <extension
+         point="org.eclipse.core.expressions.definitions">
+      <definition
+        id="org.eclipse.ui.examples.contributions.inGlobalActionSet">
+      </definition>
+    </extension>
+    -->
+    
+    <!--
+    <extension
+      point="org.eclipse.core.expressions.propertyTesters">
+      <propertyTester
+        id="org.everit.e4.eosgi.plugin.propertyTester"
+        type=""
+        namespace="org.everit.e4.eosgi.plugin.properties"
+        properties="property
+        class="org.everit.e4.eosgi.plugin.ui.command.ExamplePropertyTester">
+      </propertyTester>
+    </extension>
+    -->
 </plugin>
