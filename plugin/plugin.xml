@@ -89,7 +89,8 @@
       point="org.eclipse.ui.commands">
       <command
         id="org.everit.e4.eosgi.plugin.ui.command.start"
-        name="startCommand">
+        name="startCommand"
+        defaultHandler="org.everit.e4.eosgi.plugin.ui.command.StartHandler">
       </command>
     </extension>
     
@@ -98,6 +99,13 @@
       <handler
         commandId="org.everit.e4.eosgi.plugin.ui.command.start"
         class="org.everit.e4.eosgi.plugin.ui.command.StartHandler">
+        <activeWhen>
+          <and>
+            <instanceof
+              value="org.eclipse.core.resources.IProject">
+            </instanceof>
+          </and>
+        </activeWhen>
       </handler>
     </extension>
     
