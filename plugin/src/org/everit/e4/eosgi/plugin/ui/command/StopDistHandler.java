@@ -2,21 +2,20 @@ package org.everit.e4.eosgi.plugin.ui.command;
 
 import java.util.logging.Logger;
 
-//import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.core.commands.IHandler;
 import org.eclipse.core.commands.IHandlerListener;
 
 /**
- * Handler implementation for start the current selected dist project.
+ * Handler implementation for stop the current selected dist project.
  */
-public class StartHandler implements IHandler {
+public class StopDistHandler implements IHandler {
 
-  private static final Logger LOGGER = Logger.getLogger(StartHandler.class.getName());
+  private static final Logger LOGGER = Logger.getLogger(StopDistHandler.class.getName());
 
   @Override
-  public void addHandlerListener(final IHandlerListener arg0) {
+  public void addHandlerListener(final IHandlerListener handlerListener) {
   }
 
   @Override
@@ -25,8 +24,8 @@ public class StartHandler implements IHandler {
   }
 
   @Override
-  public Object execute(final ExecutionEvent arg0) throws ExecutionException {
-    LOGGER.info("execute");
+  public Object execute(final ExecutionEvent executionEvent) throws ExecutionException {
+    LOGGER.info("exectuted stop dist handler");
     return null;
   }
 
@@ -41,7 +40,7 @@ public class StartHandler implements IHandler {
   }
 
   @Override
-  public void removeHandlerListener(final IHandlerListener arg0) {
+  public void removeHandlerListener(final IHandlerListener handlerListener) {
   }
 
 }
