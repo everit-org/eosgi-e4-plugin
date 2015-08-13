@@ -1,10 +1,15 @@
 package org.everit.e4.eosgi.plugin.dist;
 
+import java.util.Objects;
+
 import org.everit.e4.eosgi.plugin.dist.DistTask.DistStoppedCallback;
 import org.everit.e4.eosgi.plugin.dist.gogo.GogoClient;
 import org.everit.e4.eosgi.plugin.dist.gogo.GogoClient.DisconnecedCallback;
 import org.everit.e4.eosgi.plugin.dist.gogo.GogoShellCommand;
 
+/**
+ * Dist runner class.
+ */
 public class EosgiDistRunner implements DistRunner, DistStoppedCallback, DisconnecedCallback {
   private static final String LOCALHOST = "localhost";
 
@@ -21,16 +26,21 @@ public class EosgiDistRunner implements DistRunner, DistStoppedCallback, Disconn
    *          port for osgi console.
    * @param distPath
    *          root path of the dist.
+   * @param environmentName
+   *          name of the environment.
    * @param statusListener
    *          listener class for handle status changes.
    */
   public EosgiDistRunner(final int consolePort, final String distPath,
-      final DistStatusListener statusListener) {
-    super();
+      final String environmentName, final DistStatusListener statusListener) {
+    Objects.requireNonNull(distPath, "distPath cannot be null");
+    Objects.requireNonNull(environmentName, "environmentName cannot be null");
+
     if (consolePort > 0) {
       gogoClient = new GogoClient(LOCALHOST, consolePort, this);
     }
-    this.distTask = new DistTask(distPath, this);
+
+    this.distTask = new DistTask(distPath, environmentName, this);
     this.statusListener = statusListener;
   }
 

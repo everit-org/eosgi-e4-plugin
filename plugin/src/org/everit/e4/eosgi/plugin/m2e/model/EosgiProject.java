@@ -61,21 +61,21 @@ public class EosgiProject {
   private int getDistOsgiConsolePort(final String environmentName) {
     int port = -1;
 
-    Environment environment = environments.get(environmentName);
-    if (environment.getSystemProperties() == null) {
-      return port;
-    }
-
-    String osgiConsolePort = environment.getSystemProperties().get("osgi.console");
-    if (osgiConsolePort == null) {
-      return port;
-    }
-
-    try {
-      port = Integer.valueOf(osgiConsolePort);
-    } catch (NumberFormatException e) {
-      LOGGER.warning("Invalid OSGI console port: " + osgiConsolePort);
-    }
+    // Environment environment = environments.get(environmentName);
+    // if (environment.getSystemProperties() == null) {
+    // return port;
+    // }
+    //
+    // String osgiConsolePort = environment.getSystemProperties().get("osgi.console");
+    // if (osgiConsolePort == null) {
+    // return port;
+    // }
+    //
+    // try {
+    // port = Integer.valueOf(osgiConsolePort);
+    // } catch (NumberFormatException e) {
+    // LOGGER.warning("Invalid OSGI console port: " + osgiConsolePort);
+    // }
 
     return port;
   }
@@ -140,12 +140,23 @@ public class EosgiProject {
         LOGGER.info(distStatus.toString());
       }
     };
-    DistRunner distRunner = new EosgiDistRunner(getDistOsgiConsolePort(environmentName),
-        getDistStartCommand(environmentName),
-        statusListener);
-    distRunners.put(environmentName, distRunner);
-    distStatusListeners.put(environmentName, statusListener);
-    distRunner.start();
+
+    DistRunner distRunner = distRunners.get(environmentName);
+    if (distRunner == null) {
+      int osgiConsolePort = getDistOsgiConsolePort(environmentName);
+      String distStartCommand = getDistStartCommand(environmentName);
+
+      distRunner = new EosgiDistRunner(osgiConsolePort,
+          distStartCommand,
+          environmentName, statusListener);
+
+      distRunners.put(environmentName, distRunner);
+      distStatusListeners.put(environmentName, statusListener);
+
+      distRunner.start();
+    } else {
+      LOGGER.info("The dist is already running!");
+    }
   }
 
   /**
@@ -157,16 +168,16 @@ public class EosgiProject {
   public void stopDist(final String environmentName) {
     Objects.requireNonNull(environmentName, "environmentName cannot be null");
 
-    DistRunner distRunner = distRunners.get(environmentName);
+    DistRunner distRunner = distRunners.remove(environmentName);
     if (distRunner == null) {
       return;
     }
     distRunner.stop();
-    /*
-     * DistStatusListener distStatusListener = distStatusListeners.get(environmentName); if
-     * (distStatusListener != null) { distStatusListeners.remove(environmentName); }
-     */
-    LOGGER.info("h");
+
+    DistStatusListener distStatusListener = distStatusListeners.get(environmentName);
+    if (distStatusListener != null) {
+      distStatusListeners.remove(environmentName);
+    }
   }
 
   @Override

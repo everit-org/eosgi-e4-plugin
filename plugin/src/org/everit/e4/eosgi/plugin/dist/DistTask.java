@@ -1,13 +1,15 @@
 package org.everit.e4.eosgi.plugin.dist;
 
 import java.io.IOException;
-import java.lang.reflect.Field;
+import java.util.Objects;
 import java.util.logging.Logger;
 
 /**
  * Runnable for wrapper.
  */
 public class DistTask implements Runnable {
+
+  private static final String KILLER_SCRIPT_PATH = "/home/zsoltdoma/bin/kill-dist.sh";
 
   /**
    * Callback interface for notify the dist stopped event.
@@ -17,6 +19,8 @@ public class DistTask implements Runnable {
   }
 
   private static final Logger LOGGER = Logger.getLogger(DistTask.class.getName());
+
+  private String environmentName;
 
   /**
    * Path of the executable file.
@@ -29,28 +33,24 @@ public class DistTask implements Runnable {
 
   private DistStoppedCallback stoppedCallback;
 
-  public DistTask(final String path, final DistStoppedCallback stoppedCallback) {
+  /**
+   * {@link Runnable} class for running a dist.
+   * 
+   * @param path
+   *          starter script full path.
+   * @param environmentName
+   *          name of the environment.
+   * @param stoppedCallback
+   *          callback listener.
+   */
+  public DistTask(final String path, final String environmentName,
+      final DistStoppedCallback stoppedCallback) {
     super();
+    Objects.requireNonNull(path, "path cannot be null");
+    Objects.requireNonNull(environmentName, "environmentName cannot be null");
     this.path = path;
+    this.environmentName = environmentName;
     this.stoppedCallback = stoppedCallback;
-  }
-
-  private int getPidFromProcess() {
-    int pid = -1;
-    try {
-      Field field = process.getClass().getDeclaredField("pid");
-      field.setAccessible(true);
-      pid = field.getInt(process);
-    } catch (NoSuchFieldException e) {
-      throw new RuntimeException("determine dist process pid", e);
-    } catch (SecurityException e) {
-      throw new RuntimeException("determine dist process pid", e);
-    } catch (IllegalArgumentException e) {
-      throw new RuntimeException("determine dist process pid", e);
-    } catch (IllegalAccessException e) {
-      throw new RuntimeException("determine dist process pid", e);
-    }
-    return pid;
   }
 
   public synchronized boolean isStopped() {
@@ -59,7 +59,7 @@ public class DistTask implements Runnable {
 
   private void killRelevantProcesses() {
     ProcessBuilder processBuilder = new ProcessBuilder(
-        new String[] { "/home/zsoltdoma/bin/kill-dist.sh", "raca-production-main" });
+        new String[] { KILLER_SCRIPT_PATH, environmentName });
     try {
       Process killerProcess = processBuilder.start();
       int killerResult = killerProcess.waitFor();
@@ -95,7 +95,9 @@ public class DistTask implements Runnable {
   public int stop() {
     stopProcessIfRunning();
     killRelevantProcesses();
-    this.stoppedCallback.distStopped();
+    if (stoppedCallback != null) {
+      this.stoppedCallback.distStopped();
+    }
     return 0;
   }
 
