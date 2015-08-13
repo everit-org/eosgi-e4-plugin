@@ -1,4 +1,4 @@
-package org.everit.e4.eosgi.plugin.dist;
+package org.everit.e4.eosgi.plugin.dist.gogo;
 
 /**
  * Enum fo Gogo shell commands.

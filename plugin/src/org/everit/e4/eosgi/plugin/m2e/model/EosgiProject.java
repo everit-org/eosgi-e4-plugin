@@ -5,10 +5,16 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.logging.Logger;
 
 import org.apache.maven.model.Build;
 import org.apache.maven.model.Dependency;
 import org.eclipse.core.resources.IProject;
+import org.everit.e4.eosgi.plugin.dist.DistRunner;
+import org.everit.e4.eosgi.plugin.dist.DistStatus;
+import org.everit.e4.eosgi.plugin.dist.DistStatusListener;
+import org.everit.e4.eosgi.plugin.dist.EosgiDistRunner;
 
 /**
  * Class for representing an Eosgi project.
@@ -22,6 +28,8 @@ public class EosgiProject {
 
   public static final String LINUX_START = "/runConsole.sh";
 
+  static final Logger LOGGER = Logger.getLogger(EosgiProject.class.getName());
+
   private File basedir;
 
   private Build build;
@@ -30,18 +38,60 @@ public class EosgiProject {
 
   private boolean dist;
 
+  private Map<String, DistRunner> distRunners = new HashMap<>();
+
+  private Map<String, DistStatusListener> distStatusListeners = new HashMap<>();
+
   private Map<String, Environment> environments;
 
   private IProject project;
 
+  /**
+   * Constructor.
+   *
+   * @param project
+   *          {@link IProject} reference.
+   */
   public EosgiProject(final IProject project) {
     super();
     this.project = project;
-    this.environments = new HashMap<>();
+    environments = new HashMap<>();
+  }
+
+  private int getDistOsgiConsolePort(final String environmentName) {
+    int port = -1;
+
+    Environment environment = environments.get(environmentName);
+    if (environment.getSystemProperties() == null) {
+      return port;
+    }
+
+    String osgiConsolePort = environment.getSystemProperties().get("osgi.console");
+    if (osgiConsolePort == null) {
+      return port;
+    }
+
+    try {
+      port = Integer.valueOf(osgiConsolePort);
+    } catch (NumberFormatException e) {
+      LOGGER.warning("Invalid OSGI console port: " + osgiConsolePort);
+    }
+
+    return port;
+  }
+
+  private String getDistStartCommand(final String environmentName) {
+    String environmentId = environments.get(environmentName).getId();
+
+    if (environmentId == null) {
+      return null;
+    }
+
+    return this.build.getDirectory() + DIST_FOLDER + environmentId + DIST_BIN + LINUX_START;
   }
 
   public List<Environment> getEnvironments() {
-    return new ArrayList<>(this.environments.values());
+    return new ArrayList<>(environments.values());
   }
 
   public IProject getProject() {
@@ -72,6 +122,51 @@ public class EosgiProject {
     for (Environment environment : environments) {
       this.environments.put(environment.getId(), environment);
     }
+  }
+
+  /**
+   * Start a dist with a given environment name.
+   * 
+   * @param environmentName
+   *          name of the environment.
+   */
+  public void startDist(final String environmentName) {
+    Objects.requireNonNull(environmentName, "environmentName cannot be null");
+
+    DistStatusListener statusListener = new DistStatusListener() {
+
+      @Override
+      public void distStatusChanged(final DistStatus distStatus) {
+        LOGGER.info(distStatus.toString());
+      }
+    };
+    DistRunner distRunner = new EosgiDistRunner(getDistOsgiConsolePort(environmentName),
+        getDistStartCommand(environmentName),
+        statusListener);
+    distRunners.put(environmentName, distRunner);
+    distStatusListeners.put(environmentName, statusListener);
+    distRunner.start();
+  }
+
+  /**
+   * Stop a dist with a given environment name.
+   * 
+   * @param environmentName
+   *          name of the environment.
+   */
+  public void stopDist(final String environmentName) {
+    Objects.requireNonNull(environmentName, "environmentName cannot be null");
+
+    DistRunner distRunner = distRunners.get(environmentName);
+    if (distRunner == null) {
+      return;
+    }
+    distRunner.stop();
+    /*
+     * DistStatusListener distStatusListener = distStatusListeners.get(environmentName); if
+     * (distStatusListener != null) { distStatusListeners.remove(environmentName); }
+     */
+    LOGGER.info("h");
   }
 
   @Override

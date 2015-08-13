@@ -14,8 +14,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.everit.e4.eosgi.plugin.dist.DistStatus;
-import org.everit.e4.eosgi.plugin.dist.DistTask;
-import org.everit.e4.eosgi.plugin.dist.DistTask.DistStoppedCallback;
 import org.everit.e4.eosgi.plugin.dist.EosgiDistRunner;
 import org.junit.Before;
 import org.junit.Test;
@@ -70,17 +68,17 @@ public class DistRunnerTest {
   public void testConnect() throws Exception {
     // String distPath = "/home/zsoltdoma/dev/ide/jee-latest-2/osgi-console/";
     String distPath = "/home/zsoltdoma/svn/cams-raca/offline/trunk/dist-dev/core/target";
-    EosgiDistRunner eosgiDistRunner = new EosgiDistRunner(6667,
-        distPath, distStatus -> {
-          LOGGER.log(Level.INFO, distStatus.toString());
-          if (DistStatus.STOPPED == distStatus) {
-            stopped = true;
-          }
-        });
+    EosgiDistRunner eosgiDistRunner = new EosgiDistRunner(6667, distPath, distStatus -> {
+      LOGGER.log(Level.INFO, distStatus.toString());
+      if (DistStatus.STOPPED == distStatus) {
+        stopped = true;
+      }
+    });
 
     eosgiDistRunner.start();
 
     Thread.sleep(30000);
+    // System.out.println();
 
     eosgiDistRunner.stop();
 

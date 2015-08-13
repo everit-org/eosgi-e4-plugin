@@ -25,13 +25,27 @@ public class EosgiProjectConfigurator extends AbstractProjectConfigurator
   @Override
   public void configure(final ProjectConfigurationRequest request, final IProgressMonitor monitor)
       throws CoreException {
-    IProject project = request.getProject();
+    // IProject project = request.getProject();
+    //
+    // EosgiProject eosgiEclipseProject = new EosgiProject(project);
+    // Activator.getDefault().getEosgiProjectController().addProject(project, eosgiEclipseProject);
+    //
+    // String projectName = project.getName();
+    // Activator.getDefault().info(projectName + " configure");
+  }
 
-    EosgiProject eosgiEclipseProject = new EosgiProject(project);
-    Activator.getDefault().getEosgiProjectController().addProject(project, eosgiEclipseProject);
+  @Override
+  public void configureClasspath(final IMavenProjectFacade mavenProjectFacade,
+      final IClasspathDescriptor classpathDescriptor,
+      final IProgressMonitor progressMonitor) throws CoreException {
+    // TODO Auto-generated method stub
+  }
 
-    String projectName = project.getName();
-    Activator.getDefault().info(projectName + " configure");
+  @Override
+  public void configureRawClasspath(final ProjectConfigurationRequest projectConfigurationRequest,
+      final IClasspathDescriptor classpathDescriptor,
+      final IProgressMonitor progressMonitor) throws CoreException {
+    // TODO Auto-generated method stub
   }
 
   @Override
@@ -40,9 +54,9 @@ public class EosgiProjectConfigurator extends AbstractProjectConfigurator
       final IPluginExecutionMetadata executionMetadata) {
     IProject project = projectFacade.getProject();
 
-    processEnvironments(execution, project);
+    // processEnvironments(execution, project);
 
-    String executionId = execution.getExecutionId();
+    // String executionId = execution.getExecutionId();
     String projectName = project.getName();
 
     if ("dist".equals(execution.getGoal())) {
@@ -68,20 +82,6 @@ public class EosgiProjectConfigurator extends AbstractProjectConfigurator
       Activator.getDefault().getEosgiProjectController().addProject(project,
           eosgiProject);
     }
-  }
-
-  @Override
-  public void configureClasspath(IMavenProjectFacade arg0, IClasspathDescriptor arg1,
-      IProgressMonitor arg2) throws CoreException {
-    // TODO Auto-generated method stub
-
-  }
-
-  @Override
-  public void configureRawClasspath(ProjectConfigurationRequest arg0, IClasspathDescriptor arg1,
-      IProgressMonitor arg2) throws CoreException {
-    // TODO Auto-generated method stub
-
   }
 
 }

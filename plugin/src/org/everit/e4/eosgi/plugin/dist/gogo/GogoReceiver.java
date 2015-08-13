@@ -1,4 +1,4 @@
-package org.everit.e4.eosgi.plugin.dist;
+package org.everit.e4.eosgi.plugin.dist.gogo;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -11,7 +11,7 @@ import java.util.logging.Logger;
 /**
  * Class for handle received messages from GoGo server.
  */
-class GogoReceiver implements Runnable {
+public class GogoReceiver implements Runnable {
   /**
    * Callback interface for notify {@link GogoClient} that the server is disconnected.
    */

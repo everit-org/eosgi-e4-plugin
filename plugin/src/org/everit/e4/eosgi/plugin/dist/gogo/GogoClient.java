@@ -1,4 +1,4 @@
-package org.everit.e4.eosgi.plugin.dist;
+package org.everit.e4.eosgi.plugin.dist.gogo;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -9,13 +9,17 @@ import java.nio.charset.Charset;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.everit.e4.eosgi.plugin.dist.GogoReceiver.ReceivedMessageCallback;
+import org.everit.e4.eosgi.plugin.dist.gogo.GogoReceiver.ReceivedMessageCallback;
 
 /**
  * Class for manage GoGo shell connection.
  */
 public class GogoClient implements ReceivedMessageCallback {
-  static interface DisconnecedCallback {
+
+  /**
+   * Callback interface for disconnection.
+   */
+  public static interface DisconnecedCallback {
     void disconnected();
   }
 
@@ -45,7 +49,7 @@ public class GogoClient implements ReceivedMessageCallback {
    * @param host
    *          osgi dist host.
    * @param port
-   *          osgi dist console Fport.
+   *          osgi dist console port.
    */
   public GogoClient(final String host, final int port,
       final DisconnecedCallback disconnecedCallback) {
@@ -65,8 +69,7 @@ public class GogoClient implements ReceivedMessageCallback {
         this.socket = new Socket(host, port);
         LOGGER.log(Level.INFO,
             "connected to " + socket.getRemoteSocketAddress());
-        gogoReceiver = new GogoReceiver(socket.getInputStream(), this);
-        new Thread(gogoReceiver).start();
+        createAndStartGoGoReceiver();
         bufferedWriter = new BufferedWriter(
             new OutputStreamWriter(socket.getOutputStream(), Charset.forName("UTF-8")));
       } catch (UnknownHostException e) {
@@ -76,6 +79,11 @@ public class GogoClient implements ReceivedMessageCallback {
         tryCounter++;
       }
     }
+  }
+
+  private void createAndStartGoGoReceiver() throws IOException {
+    gogoReceiver = new GogoReceiver(socket.getInputStream(), this);
+    new Thread(gogoReceiver).start();
   }
 
   /**

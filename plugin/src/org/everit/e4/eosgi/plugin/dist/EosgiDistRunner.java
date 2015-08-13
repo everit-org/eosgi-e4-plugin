@@ -1,10 +1,12 @@
 package org.everit.e4.eosgi.plugin.dist;
 
 import org.everit.e4.eosgi.plugin.dist.DistTask.DistStoppedCallback;
-import org.everit.e4.eosgi.plugin.dist.GogoClient.DisconnecedCallback;
+import org.everit.e4.eosgi.plugin.dist.gogo.GogoClient;
+import org.everit.e4.eosgi.plugin.dist.gogo.GogoClient.DisconnecedCallback;
+import org.everit.e4.eosgi.plugin.dist.gogo.GogoShellCommand;
 
 public class EosgiDistRunner implements DistRunner, DistStoppedCallback, DisconnecedCallback {
-  private static final String START_SH = "/eosgi-dist/racaof-production-main/bin/runConsole.sh";
+  private static final String LOCALHOST = "localhost";
 
   private DistTask distTask;
 
@@ -25,9 +27,10 @@ public class EosgiDistRunner implements DistRunner, DistStoppedCallback, Disconn
   public EosgiDistRunner(final int consolePort, final String distPath,
       final DistStatusListener statusListener) {
     super();
-    gogoClient = new GogoClient("localhost", consolePort, this);
-    // this.distTask = new DistTask(distPath + "start-gogo.sh", this);
-    this.distTask = new DistTask(distPath + START_SH, this);
+    if (consolePort > 0) {
+      gogoClient = new GogoClient(LOCALHOST, consolePort, this);
+    }
+    this.distTask = new DistTask(distPath, this);
     this.statusListener = statusListener;
   }
 
@@ -53,18 +56,27 @@ public class EosgiDistRunner implements DistRunner, DistStoppedCallback, Disconn
   public void start() {
     statusListener.distStatusChanged(DistStatus.STARTING);
     new Thread(distTask).start();
-    gogoClient.connect();
-    if (gogoClient.isConnected()) {
-      statusListener.distStatusChanged(DistStatus.RUNNING);
+
+    if (gogoClient == null) {
+      statusListener.distStatusChanged(DistStatus.STARTED);
     } else {
-      statusListener.distStatusChanged(DistStatus.DETACHED);
+      gogoClient.connect();
+      if (gogoClient.isConnected()) {
+        statusListener.distStatusChanged(DistStatus.RUNNING);
+      } else {
+        statusListener.distStatusChanged(DistStatus.DETACHED);
+      }
     }
   }
 
   @Override
   public void stop() {
-    // statusListener.distStatusChanged(DistStatus.STOPPING);
-    gogoClient.sendCommand(GogoShellCommand.CLOSE);
+    statusListener.distStatusChanged(DistStatus.STOPPING);
+    if (gogoClient == null) {
+      this.distTask.stop();
+    } else {
+      gogoClient.sendCommand(GogoShellCommand.CLOSE);
+    }
   }
 
 }
