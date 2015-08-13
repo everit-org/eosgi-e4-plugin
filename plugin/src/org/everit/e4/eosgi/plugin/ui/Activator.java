@@ -8,9 +8,9 @@ import org.osgi.framework.BundleContext;
 
 public class Activator extends AbstractUIPlugin {
 
-  public static final String PLUGIN_ID = "org.everit.e4.eosgi.plugin";
-
   private static Activator plugin;
+
+  public static final String PLUGIN_ID = "org.everit.e4.eosgi.plugin";
 
   public static Activator getDefault() {
     return plugin;
@@ -20,7 +20,7 @@ public class Activator extends AbstractUIPlugin {
     return AbstractUIPlugin.imageDescriptorFromPlugin(PLUGIN_ID, path);
   }
 
-  private EosgiProjects eosgiProjectController = new EosgiProjects();
+  private final EosgiProjects eosgiProjectController = new EosgiProjects();
 
   public Activator() {
   }

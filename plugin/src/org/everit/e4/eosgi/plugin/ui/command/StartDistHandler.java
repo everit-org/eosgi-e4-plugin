@@ -9,11 +9,13 @@ import org.eclipse.core.commands.IHandler;
 import org.eclipse.core.commands.IHandlerListener;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.jface.viewers.ISelection;
+import org.eclipse.jface.viewers.TreePath;
 import org.eclipse.jface.viewers.TreeSelection;
 import org.eclipse.ui.handlers.HandlerUtil;
 import org.everit.e4.eosgi.plugin.m2e.model.EosgiProject;
 import org.everit.e4.eosgi.plugin.ui.Activator;
-import org.everit.e4.eosgi.plugin.ui.EosgiProjects;
+import org.everit.e4.eosgi.plugin.ui.navigator.nodes.EosgiNode;
+import org.everit.e4.eosgi.plugin.ui.navigator.nodes.EosgiNodeType;
 
 /**
  * Handler implementation for start the current selected dist project.
@@ -51,6 +53,24 @@ public class StartDistHandler implements IHandler {
     return null;
   }
 
+  private IProject findParentProject(final TreePath[] treePaths) {
+    if (treePaths == null || treePaths.length == 0) {
+      return null;
+    }
+
+    TreePath treePath = treePaths[0];
+    if (treePath == null) {
+      return null;
+    }
+
+    Object firstSegment = treePath.getFirstSegment();
+    if (firstSegment instanceof IProject) {
+      return (IProject) firstSegment;
+    }
+
+    return null;
+  }
+
   @Override
   public boolean isEnabled() {
     return true;
@@ -71,11 +91,20 @@ public class StartDistHandler implements IHandler {
       project = (IProject) firstElement;
     }
 
-    if (project != null) {
-      EosgiProjects controller = Activator.getDefault().getEosgiProjectController();
-      EosgiProject eosgiProject = controller.getProject(project);
+    String environmentName = null;
+    if (firstElement instanceof EosgiNode) {
+      EosgiNode eosgiNode = (EosgiNode) firstElement;
+      if (EosgiNodeType.ENVIRONMENT == eosgiNode.getType()) {
+        environmentName = eosgiNode.getName();
+      }
+      project = findParentProject(treeSelection.getPaths());
+    }
+
+    if (project != null && environmentName != null) {
+      EosgiProject eosgiProject = Activator.getDefault().getEosgiProjectController()
+          .getProject(project);
       if (eosgiProject != null) {
-        LOGGER.info(eosgiProject.toString());
+        LOGGER.info(eosgiProject.getDistRunnerDescriptor(environmentName).toString());
       } else {
         LOGGER.info("Dont't have dist for selected project: " + project.getName());
       }
