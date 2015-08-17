@@ -1,6 +1,13 @@
 package org.everit.e4.eosgi.plugin.dist;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.logging.Logger;
 
@@ -9,8 +16,6 @@ import java.util.logging.Logger;
  */
 public class DistTask implements Runnable {
 
-  private static final String KILLER_SCRIPT_PATH = "/home/zsoltdoma/bin/kill-dist.sh";
-
   /**
    * Callback interface for notify the dist stopped event.
    */
@@ -18,7 +23,18 @@ public class DistTask implements Runnable {
     void distStopped();
   }
 
+  private static final String JPS = "jps";
+
+  private static final String JPS_PARAM_FOR_DETAILED_OUTPUT = "-l";
+
+  private static final Map<String, String []> KILL_COMMANDS_BY_OS = new HashMap<>();
+
   private static final Logger LOGGER = Logger.getLogger(DistTask.class.getName());
+
+  static {
+    KILL_COMMANDS_BY_OS.put("win", new String[] { "", "", "forpid" }); // TODO win
+    KILL_COMMANDS_BY_OS.put("linux", new String[] { "kill", "-2", "forpid" });
+  }
 
   private String environmentName;
 
@@ -53,13 +69,34 @@ public class DistTask implements Runnable {
     this.stoppedCallback = stoppedCallback;
   }
 
+  private List<String> getRelevantJavaPids() {
+    ProcessBuilder processBuilder = new ProcessBuilder(
+        new String[] { JPS, JPS_PARAM_FOR_DETAILED_OUTPUT });
+    List<String> processPids = null;
+    try {
+      Process killerProcess = processBuilder.start();
+      InputStream inputStream = killerProcess.getInputStream();
+      if (inputStream != null) {
+        processPids = processPids(inputStream);
+      }
+      killerProcess.waitFor();
+    } catch (IOException e) {
+      throw new RuntimeException("killing dist process", e);
+    } catch (InterruptedException e) {
+      throw new RuntimeException("killing dist process", e);
+    }
+    return processPids;
+  }
+
   public synchronized boolean isStopped() {
     return stopped;
   }
 
-  private void killRelevantProcesses() {
+  private void killProcessByPid(final String pid) {
+    String[] killComman = KILL_COMMANDS_BY_OS.get(OSUtils.currentOS());
+    killComman[2] = pid;
     ProcessBuilder processBuilder = new ProcessBuilder(
-        new String[] { KILLER_SCRIPT_PATH, environmentName });
+        killComman);
     try {
       Process killerProcess = processBuilder.start();
       int killerResult = killerProcess.waitFor();
@@ -69,6 +106,36 @@ public class DistTask implements Runnable {
     } catch (InterruptedException e) {
       throw new RuntimeException("killing dist process", e);
     }
+  }
+
+  private void killProcesses(final List<String> pids) {
+    if (pids != null) {
+      for (String pid : pids) {
+        killProcessByPid(pid);
+      }
+    }
+  }
+
+  private List<String> processPids(final InputStream inputStream) throws IOException {
+    List<String> pidList = new ArrayList<>();
+    BufferedReader bufferedReader = null;
+    try {
+      bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
+      String line = "";
+      while ((line = bufferedReader.readLine()) != null) {
+        String[] splittedLine = line.split(" ");
+        if (splittedLine.length == 2 && splittedLine[1].contains(environmentName)) {
+          pidList.add(splittedLine[0]);
+        }
+      }
+    } catch (Exception e) {
+      LOGGER.warning("Can't read JPS output.");
+    } finally {
+      if (bufferedReader != null) {
+        bufferedReader.close();
+      }
+    }
+    return pidList;
   }
 
   @Override
@@ -94,7 +161,7 @@ public class DistTask implements Runnable {
    */
   public int stop() {
     stopProcessIfRunning();
-    killRelevantProcesses();
+    killProcesses(getRelevantJavaPids());
     if (stoppedCallback != null) {
       this.stoppedCallback.distStopped();
     }
