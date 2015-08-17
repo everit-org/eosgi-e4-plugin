@@ -31,6 +31,8 @@ public class DistTask implements Runnable {
 
   private static final Logger LOGGER = Logger.getLogger(DistTask.class.getName());
 
+  private static final int PID_ARGUMENT_INDEX = 2;
+
   static {
     KILL_COMMANDS_BY_OS.put("win", new String[] { "", "", "forpid" }); // TODO win
     KILL_COMMANDS_BY_OS.put("linux", new String[] { "kill", "-2", "forpid" });
@@ -74,12 +76,12 @@ public class DistTask implements Runnable {
         new String[] { JPS, JPS_PARAM_FOR_DETAILED_OUTPUT });
     List<String> processPids = null;
     try {
-      Process killerProcess = processBuilder.start();
-      InputStream inputStream = killerProcess.getInputStream();
+      Process jpsProcess = processBuilder.start();
+      InputStream inputStream = jpsProcess.getInputStream();
       if (inputStream != null) {
         processPids = processPids(inputStream);
       }
-      killerProcess.waitFor();
+      jpsProcess.waitFor();
     } catch (IOException e) {
       throw new RuntimeException("killing dist process", e);
     } catch (InterruptedException e) {
@@ -93,10 +95,9 @@ public class DistTask implements Runnable {
   }
 
   private void killProcessByPid(final String pid) {
-    String[] killComman = KILL_COMMANDS_BY_OS.get(OSUtils.currentOS());
-    killComman[2] = pid;
-    ProcessBuilder processBuilder = new ProcessBuilder(
-        killComman);
+    String[] killCommand = KILL_COMMANDS_BY_OS.get(OSUtils.currentOS());
+    killCommand[PID_ARGUMENT_INDEX] = pid;
+    ProcessBuilder processBuilder = new ProcessBuilder(killCommand);
     try {
       Process killerProcess = processBuilder.start();
       int killerResult = killerProcess.waitFor();
