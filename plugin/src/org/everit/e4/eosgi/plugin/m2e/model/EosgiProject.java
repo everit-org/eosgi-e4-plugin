@@ -11,24 +11,28 @@ import java.util.logging.Logger;
 import org.apache.maven.model.Build;
 import org.apache.maven.model.Dependency;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.ui.console.MessageConsoleStream;
 import org.everit.e4.eosgi.plugin.dist.DistRunner;
 import org.everit.e4.eosgi.plugin.dist.DistStatus;
 import org.everit.e4.eosgi.plugin.dist.DistStatusListener;
 import org.everit.e4.eosgi.plugin.dist.EosgiDistRunner;
+import org.everit.e4.eosgi.plugin.util.OSUtils;
 
 /**
  * Class for representing an Eosgi project.
  */
 public class EosgiProject {
-  public static final String DIST_BIN = "/bin";
+  public static final String DIST_BIN = "bin";
 
-  public static final String DIST_FOLDER = "/eosgi-dist/";
+  public static final String DIST_FOLDER = "eosgi-dist";
 
-  public static final String DIST_LOG = "/log";
+  public static final String DIST_LOG = "log";
 
-  public static final String LINUX_START = "/runConsole.sh";
+  public static final String LINUX_START = "runConsole.sh";
 
   static final Logger LOGGER = Logger.getLogger(EosgiProject.class.getName());
+
+  public static final String WIN_START = "runConsole.bat";
 
   private File basedir;
 
@@ -87,7 +91,14 @@ public class EosgiProject {
       return null;
     }
 
-    return this.build.getDirectory() + DIST_FOLDER + environmentId + DIST_BIN + LINUX_START;
+    String binPath = this.build.getDirectory() + File.separator + DIST_FOLDER + File.separator
+        + environmentId + File.separator + DIST_BIN + File.separator;
+    if ("win".equals(OSUtils.currentOS())) {
+      binPath = binPath + WIN_START;
+    } else {
+      binPath = binPath + LINUX_START;
+    }
+    return binPath;
   }
 
   public List<Environment> getEnvironments() {
@@ -130,7 +141,7 @@ public class EosgiProject {
    * @param environmentName
    *          name of the environment.
    */
-  public void startDist(final String environmentName) {
+  public void startDist(final String environmentName, final MessageConsoleStream messageStream) {
     Objects.requireNonNull(environmentName, "environmentName cannot be null");
 
     DistStatusListener statusListener = new DistStatusListener() {
@@ -148,7 +159,7 @@ public class EosgiProject {
 
       distRunner = new EosgiDistRunner(osgiConsolePort,
           distStartCommand,
-          environmentName, statusListener);
+          environmentName, statusListener, messageStream);
 
       distRunners.put(environmentName, distRunner);
       distStatusListeners.put(environmentName, statusListener);

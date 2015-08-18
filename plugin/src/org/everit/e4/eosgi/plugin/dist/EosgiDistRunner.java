@@ -2,20 +2,15 @@ package org.everit.e4.eosgi.plugin.dist;
 
 import java.util.Objects;
 
+import org.eclipse.ui.console.MessageConsoleStream;
 import org.everit.e4.eosgi.plugin.dist.DistTask.DistStoppedCallback;
-import org.everit.e4.eosgi.plugin.dist.gogo.GogoClient;
 import org.everit.e4.eosgi.plugin.dist.gogo.GogoClient.DisconnecedCallback;
-import org.everit.e4.eosgi.plugin.dist.gogo.GogoShellCommand;
 
 /**
  * Dist runner class.
  */
 public class EosgiDistRunner implements DistRunner, DistStoppedCallback, DisconnecedCallback {
-  private static final String LOCALHOST = "localhost";
-
   private DistTask distTask;
-
-  private GogoClient gogoClient;
 
   private DistStatusListener statusListener;
 
@@ -32,15 +27,16 @@ public class EosgiDistRunner implements DistRunner, DistStoppedCallback, Disconn
    *          listener class for handle status changes.
    */
   public EosgiDistRunner(final int consolePort, final String distPath,
-      final String environmentName, final DistStatusListener statusListener) {
+      final String environmentName, final DistStatusListener statusListener,
+      final MessageConsoleStream messageStream) {
     Objects.requireNonNull(distPath, "distPath cannot be null");
     Objects.requireNonNull(environmentName, "environmentName cannot be null");
 
-    if (consolePort > 0) {
-      gogoClient = new GogoClient(LOCALHOST, consolePort, this);
-    }
+    // if (consolePort > 0) {
+    // gogoClient = new GogoClient(LOCALHOST, consolePort, this);
+    // }
 
-    this.distTask = new DistTask(distPath, environmentName, this);
+    this.distTask = new DistTask(distPath, environmentName, this, messageStream);
     this.statusListener = statusListener;
   }
 
@@ -66,27 +62,13 @@ public class EosgiDistRunner implements DistRunner, DistStoppedCallback, Disconn
   public void start() {
     statusListener.distStatusChanged(DistStatus.STARTING);
     new Thread(distTask).start();
-
-    if (gogoClient == null) {
-      statusListener.distStatusChanged(DistStatus.STARTED);
-    } else {
-      gogoClient.connect();
-      if (gogoClient.isConnected()) {
-        statusListener.distStatusChanged(DistStatus.RUNNING);
-      } else {
-        statusListener.distStatusChanged(DistStatus.DETACHED);
-      }
-    }
+    statusListener.distStatusChanged(DistStatus.STARTED);
   }
 
   @Override
   public void stop() {
     statusListener.distStatusChanged(DistStatus.STOPPING);
-    if (gogoClient == null) {
-      this.distTask.stop();
-    } else {
-      gogoClient.sendCommand(GogoShellCommand.CLOSE);
-    }
+    this.distTask.stop();
   }
 
 }

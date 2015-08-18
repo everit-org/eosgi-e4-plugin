@@ -4,12 +4,13 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.Arrays;
 import java.util.Objects;
+import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import org.eclipse.ui.console.MessageConsoleStream;
+import org.everit.e4.eosgi.plugin.dist.killer.DistKiller;
 
 /**
  * Runnable for wrapper.
@@ -23,22 +24,11 @@ public class DistTask implements Runnable {
     void distStopped();
   }
 
-  private static final String JPS = "jps";
-
-  private static final String JPS_PARAM_FOR_DETAILED_OUTPUT = "-l";
-
-  private static final Map<String, String []> KILL_COMMANDS_BY_OS = new HashMap<>();
-
   private static final Logger LOGGER = Logger.getLogger(DistTask.class.getName());
 
-  private static final int PID_ARGUMENT_INDEX = 2;
-
-  static {
-    KILL_COMMANDS_BY_OS.put("win", new String[] { "", "", "forpid" }); // TODO win
-    KILL_COMMANDS_BY_OS.put("linux", new String[] { "kill", "-2", "forpid" });
-  }
-
   private String environmentName;
+
+  private MessageConsoleStream messageStream;
 
   /**
    * Path of the executable file.
@@ -62,8 +52,9 @@ public class DistTask implements Runnable {
    *          callback listener.
    */
   public DistTask(final String path, final String environmentName,
-      final DistStoppedCallback stoppedCallback) {
+      final DistStoppedCallback stoppedCallback, final MessageConsoleStream messageStream) {
     super();
+    this.messageStream = messageStream;
     Objects.requireNonNull(path, "path cannot be null");
     Objects.requireNonNull(environmentName, "environmentName cannot be null");
     this.path = path;
@@ -71,72 +62,31 @@ public class DistTask implements Runnable {
     this.stoppedCallback = stoppedCallback;
   }
 
-  private List<String> getRelevantJavaPids() {
-    ProcessBuilder processBuilder = new ProcessBuilder(
-        new String[] { JPS, JPS_PARAM_FOR_DETAILED_OUTPUT });
-    List<String> processPids = null;
-    try {
-      Process jpsProcess = processBuilder.start();
-      InputStream inputStream = jpsProcess.getInputStream();
-      if (inputStream != null) {
-        processPids = processPids(inputStream);
-      }
-      jpsProcess.waitFor();
-    } catch (IOException e) {
-      throw new RuntimeException("killing dist process", e);
-    } catch (InterruptedException e) {
-      throw new RuntimeException("killing dist process", e);
-    }
-    return processPids;
-  }
-
   public synchronized boolean isStopped() {
     return stopped;
   }
 
-  private void killProcessByPid(final String pid) {
-    String[] killCommand = KILL_COMMANDS_BY_OS.get(OSUtils.currentOS());
-    killCommand[PID_ARGUMENT_INDEX] = pid;
-    ProcessBuilder processBuilder = new ProcessBuilder(killCommand);
-    try {
-      Process killerProcess = processBuilder.start();
-      int killerResult = killerProcess.waitFor();
-      LOGGER.info("killer process result: " + killerResult);
-    } catch (IOException e) {
-      throw new RuntimeException("killing dist process", e);
-    } catch (InterruptedException e) {
-      throw new RuntimeException("killing dist process", e);
-    }
-  }
-
-  private void killProcesses(final List<String> pids) {
-    if (pids != null) {
-      for (String pid : pids) {
-        killProcessByPid(pid);
-      }
-    }
-  }
-
-  private List<String> processPids(final InputStream inputStream) throws IOException {
-    List<String> pidList = new ArrayList<>();
+  private void readProcessStream(final InputStream inputStream) {
     BufferedReader bufferedReader = null;
     try {
       bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
       String line = "";
-      while ((line = bufferedReader.readLine()) != null) {
-        String[] splittedLine = line.split(" ");
-        if (splittedLine.length == 2 && splittedLine[1].contains(environmentName)) {
-          pidList.add(splittedLine[0]);
+      while ((line = bufferedReader.readLine()) != null && !stopped) {
+        if (messageStream != null) {
+          messageStream.println(line);
         }
       }
-    } catch (Exception e) {
-      LOGGER.warning("Can't read JPS output.");
+    } catch (IOException e) {
+      LOGGER.log(Level.SEVERE, "IO error", e);
     } finally {
       if (bufferedReader != null) {
-        bufferedReader.close();
+        try {
+          bufferedReader.close();
+        } catch (IOException e) {
+          LOGGER.log(Level.SEVERE, "closing input stream", e);
+        }
       }
     }
-    return pidList;
   }
 
   @Override
@@ -145,6 +95,12 @@ public class DistTask implements Runnable {
     try {
       process = processBuilder.start();
       LOGGER.info("wrapper running...");
+
+      InputStream inputStream = process.getInputStream();
+      if (inputStream != null) {
+        readProcessStream(inputStream);
+      }
+
       int resultCode = process.waitFor();
       LOGGER.info("Wrapper stopped with resultCode: " + resultCode);
       stopped = true;
@@ -162,7 +118,9 @@ public class DistTask implements Runnable {
    */
   public int stop() {
     stopProcessIfRunning();
-    killProcesses(getRelevantJavaPids());
+
+    DistKiller.createDistKiller(Arrays.asList(environmentName)).kill();
+
     if (stoppedCallback != null) {
       this.stoppedCallback.distStopped();
     }

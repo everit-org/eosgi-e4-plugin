@@ -84,6 +84,15 @@
             label="Start">
           </command>
           <command
+            commandId="org.everit.e4.eosgi.plugin.ui.command.startConsole"
+            label="Start (console)">
+            <commandParameter
+              id="org.everit.e4.eosgi.plugin.ui.command.param.console"
+              name="showConsole"
+              value="true">
+            </commandParameter>
+          </command>
+          <command
             commandId="org.everit.e4.eosgi.plugin.ui.command.stop"
             label="Stop">
           </command>
@@ -99,13 +108,28 @@
         name="startCommand"
         defaultHandler="org.everit.e4.eosgi.plugin.ui.command.StartDistHandler">
       </command>
+       <command
+        id="org.everit.e4.eosgi.plugin.ui.command.startConsole"
+        name="startConsoleCommand"
+        defaultHandler="org.everit.e4.eosgi.plugin.ui.command.StartDistHandler">
+      </command>
       <command
         id="org.everit.e4.eosgi.plugin.ui.command.stop"
         name="stopCommand"
         defaultHandler="org.everit.e4.eosgi.plugin.ui.command.StopDistHandler">
       </command>
     </extension>
-
+    
+<!--
+    <extension
+          id="org.everit.e4.eosgi.plugin.console"
+          point="org.eclipse.ui.console.consoleFactories">
+          <consoleFactory
+            label="Dist Console"
+            class="org.everit.e4.eosgi.plugin.ui.console.DistConsole">
+          </consoleFactory>
+    </extension>
+-->
 <!--
     <extension
       point="org.eclipse.ui.handlers">

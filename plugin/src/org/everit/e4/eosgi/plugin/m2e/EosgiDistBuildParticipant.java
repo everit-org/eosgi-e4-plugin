@@ -49,12 +49,12 @@ public class EosgiDistBuildParticipant extends MojoExecutionBuildParticipant {
 
     String projectName = project.getName();
     processEnvironments(getMojoExecution(), project);
+    fetchDistDataAndUpdateEosgiProject(mavenProjectFacade, project);
 
     Set<IProject> buildResult = null;
     try {
       LOGGER.info(projectName + " - building...");
       buildResult = super.build(kind, monitor);
-      fetchDistDataAndUpdateEosgiProject(mavenProjectFacade, project);
     } catch (Exception e) {
       clearDistDataFromEosgiProject(project);
       LOGGER.warning("Dist creating failed!");
