@@ -17,6 +17,7 @@ import org.everit.e4.eosgi.plugin.dist.DistStatus;
 import org.everit.e4.eosgi.plugin.dist.DistStatusListener;
 import org.everit.e4.eosgi.plugin.dist.EosgiDistRunner;
 import org.everit.e4.eosgi.plugin.util.OSUtils;
+import org.everit.e4.eosgi.plugin.util.OSUtils.OSType;
 
 /**
  * Class for representing an Eosgi project.
@@ -93,7 +94,7 @@ public class EosgiProject {
 
     String binPath = this.build.getDirectory() + File.separator + DIST_FOLDER + File.separator
         + environmentId + File.separator + DIST_BIN + File.separator;
-    if ("win".equals(OSUtils.currentOS())) {
+    if (OSType.WINDOWS == OSUtils.currentOS()) {
       binPath = binPath + WIN_START;
     } else {
       binPath = binPath + LINUX_START;

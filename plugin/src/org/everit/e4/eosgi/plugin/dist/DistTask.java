@@ -119,7 +119,8 @@ public class DistTask implements Runnable {
   public int stop() {
     stopProcessIfRunning();
 
-    DistKiller.createDistKiller(Arrays.asList(environmentName)).kill();
+    DistKiller.createDistKiller(Arrays.asList(environmentName, "org.rzo.yajsw.app.WrapperJVMMain"))
+        .kill();
 
     if (stoppedCallback != null) {
       this.stoppedCallback.distStopped();

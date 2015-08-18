@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.logging.Logger;
 
 import org.everit.e4.eosgi.plugin.util.OSUtils;
+import org.everit.e4.eosgi.plugin.util.OSUtils.OSType;
 
 /**
  * Abstract DistKiller class.
@@ -33,18 +34,18 @@ public abstract class DistKiller {
    * Create a DistKiller class by OS and filter list.
    * 
    * @param os
-   *          OS name like 'linux', "win", "mac".
+   *          {@link OSType} instance.
    * @param filters
    *          filter list. Example.: environment name.
    * @return OS specific DistKiller implementation.
    */
-  public static DistKiller createDistKiller(final String os, final List<String> filters) {
-    if (LINUX.equals(os)) {
+  public static DistKiller createDistKiller(final OSType os, final List<String> filters) {
+    if (OSType.LINUX == os) {
       return new LinuxDistKiller(filters);
-    } else if (WIN.equals(os)) {
+    } else if (OSType.WINDOWS == os) {
       return new WindowsDistKiller(filters);
     } else {
-      throw new IllegalArgumentException("unknown os type");
+      throw new IllegalArgumentException("Unknown os type");
     }
   }
 
