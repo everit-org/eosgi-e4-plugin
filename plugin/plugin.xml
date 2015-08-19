@@ -70,8 +70,8 @@
         locationURI="popup:org.eclipse.ui.popup.any"
         allPopups="false">
         <menu
-          id="org.everit.e4.eosgi.plugin.ui.menus.eosgi"
-          label="EOSGI Dist">
+          id="org.everit.e4.eosgi.plugin.ui.menus.environments"
+          label="Environment">
           <visibleWhen>
             <with variable="selection">
               <iterate ifEmpty="false">
@@ -85,13 +85,21 @@
             label="Start">
           </command>
           <command
-            commandId="org.everit.e4.eosgi.plugin.ui.command.startConsole"
-            label="Start (console)">
+            commandId="org.everit.e4.eosgi.plugin.ui.command.debug"
+            label="Debug">
             <commandParameter
               id="org.everit.e4.eosgi.plugin.ui.command.param.console"
-              name="showConsole"
+              name="debug"
               value="true">
             </commandParameter>
+          </command>
+          <command
+            commandId="org.everit.e4.eosgi.plugin.ui.command.update"
+            label="Update">
+          </command>
+          <command
+            commandId="org.everit.e4.eosgi.plugin.ui.command.showLog"
+            label="Show log">
           </command>
           <command
             commandId="org.everit.e4.eosgi.plugin.ui.command.stop"
