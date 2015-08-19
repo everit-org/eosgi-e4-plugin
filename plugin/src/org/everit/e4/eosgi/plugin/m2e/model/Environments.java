@@ -4,27 +4,27 @@ import java.util.List;
 
 public class Environments {
 
-    private List<Environment> environments;
+  private List<Environment> environments;
 
-    public List<Environment> getEnvironments() {
-        return environments;
+  public Environment[] getEnvironmentArray() {
+    if (environments != null) {
+      return environments.toArray(new Environment[] {});
+    } else {
+      return new Environment[] {};
     }
+  }
 
-    public Environment[] getEnvironmentArray() {
-        if (this.environments != null) {
-            return environments.toArray(new Environment[] {});
-        } else {
-            return new Environment[] {};
-        }
-    }
+  public List<Environment> getEnvironments() {
+    return environments;
+  }
 
-    public void setEnvironments(List<Environment> environments) {
-        this.environments = environments;
-    }
+  public void setEnvironments(final List<Environment> environments) {
+    this.environments = environments;
+  }
 
-    @Override
-    public String toString() {
-        return "Environments [environments=" + environments + "]";
-    }
+  @Override
+  public String toString() {
+    return "Environments [environments=" + environments + "]";
+  }
 
 }

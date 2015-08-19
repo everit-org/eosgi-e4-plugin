@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.everit.e4</groupId>
   <artifactId>org.everit.e4.eosgi.plugin.parent</artifactId>
-  <version>0.0.1-SNAPSHOT</version>
+  <version>0.0.1T</version>
   <packaging>pom</packaging>
 
   <properties>

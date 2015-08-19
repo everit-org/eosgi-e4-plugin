@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: eosgi-eclipse-plugin
 Bundle-SymbolicName: org.everit.e4.eosgi.plugin;singleton:=true
-Bundle-Version: 0.0.1.qualifier
+Bundle-Version: 0.0.1
 Bundle-Activator: org.everit.e4.eosgi.plugin.ui.Activator
 Require-Bundle: org.eclipse.ui,
  org.eclipse.core.runtime;bundle-version="3.4.0",
@@ -14,7 +14,10 @@ Require-Bundle: org.eclipse.ui,
  org.eclipse.m2e.maven.runtime,
  org.eclipse.core.expressions;bundle-version="3.4.600",
  org.eclipse.e4.core.services;bundle-version="1.2.1",
- org.slf4j.api;bundle-version="1.7.2"
+ org.slf4j.api;bundle-version="1.7.2",
+ org.junit,
+ org.eclipse.jface,
+ org.eclipse.ui.console;bundle-version="3.6.0"
 Bundle-ActivationPolicy: lazy
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Bundle-Vendor: Zsolt Doma, Everit Kft.

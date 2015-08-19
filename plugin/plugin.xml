@@ -6,11 +6,11 @@
           point="org.eclipse.ui.navigator.viewer">
       <viewerContentBinding
           viewerId="org.eclipse.ui.navigator.ProjectExplorer">
-            <includes>
+          <includes>
             <contentExtension
                   pattern="org.everit.e4.eosgi.plugin.ui.navigator">
             </contentExtension>
-         </includes>
+          </includes>
       </viewerContentBinding>
     </extension>
     
@@ -52,7 +52,7 @@
     <extension
         point="org.eclipse.m2e.core.projectConfigurators">
         <configurator
-            class="org.everit.e4.eosgi.plugin.m2e.EOSGIProjectConfigurator"
+            class="org.everit.e4.eosgi.plugin.m2e.EosgiProjectConfigurator"
             id="org.everit.e4.eosgi.plugin.m2e.eosgiProjectConfigurator"
             name="eosgiConfigurator">
         </configurator>
@@ -61,4 +61,113 @@
     <extension
         point="org.eclipse.m2e.core.lifecycleMappingMetadataSource">
     </extension>
+    
+    <extension
+      point="org.eclipse.ui.menus"
+      id="org.everit.e4.eosgi.plugin.ui.menus"
+      name="eosgiMenus">
+      <menuContribution
+        locationURI="popup:org.eclipse.ui.popup.any"
+        allPopups="false">
+        <menu
+          id="org.everit.e4.eosgi.plugin.ui.menus.eosgi"
+          label="EOSGI Dist">
+          <visibleWhen>
+            <with variable="selection">
+              <iterate ifEmpty="false">
+                <instanceof value="org.everit.e4.eosgi.plugin.ui.navigator.nodes.EosgiNode" />
+              </iterate>
+            </with>
+          </visibleWhen>
+          <command
+            commandId="org.everit.e4.eosgi.plugin.ui.command.start"
+            label="Start">
+          </command>
+          <command
+            commandId="org.everit.e4.eosgi.plugin.ui.command.startConsole"
+            label="Start (console)">
+            <commandParameter
+              id="org.everit.e4.eosgi.plugin.ui.command.param.console"
+              name="showConsole"
+              value="true">
+            </commandParameter>
+          </command>
+          <command
+            commandId="org.everit.e4.eosgi.plugin.ui.command.stop"
+            label="Stop">
+          </command>
+        </menu>
+      </menuContribution>
+    </extension>
+
+    <extension
+      id="org.everit.e4.eosgi.plugin.ui.command"
+      point="org.eclipse.ui.commands">
+      <command
+        id="org.everit.e4.eosgi.plugin.ui.command.start"
+        name="startCommand"
+        defaultHandler="org.everit.e4.eosgi.plugin.ui.command.StartDistHandler">
+      </command>
+       <command
+        id="org.everit.e4.eosgi.plugin.ui.command.startConsole"
+        name="startConsoleCommand"
+        defaultHandler="org.everit.e4.eosgi.plugin.ui.command.StartDistHandler">
+      </command>
+      <command
+        id="org.everit.e4.eosgi.plugin.ui.command.stop"
+        name="stopCommand"
+        defaultHandler="org.everit.e4.eosgi.plugin.ui.command.StopDistHandler">
+      </command>
+    </extension>
+    
+<!--
+    <extension
+          id="org.everit.e4.eosgi.plugin.console"
+          point="org.eclipse.ui.console.consoleFactories">
+          <consoleFactory
+            label="Dist Console"
+            class="org.everit.e4.eosgi.plugin.ui.console.DistConsole">
+          </consoleFactory>
+    </extension>
+-->
+<!--
+    <extension
+      point="org.eclipse.ui.handlers">
+      <handler
+        commandId="org.everit.e4.eosgi.plugin.ui.command.start"
+        class="org.everit.e4.eosgi.plugin.ui.command.StartDistHandler">
+        <enabledWhen>
+          <with variable="selection">
+            <iterate ifEmpty="false">
+              <instanceof value="org.everit.e4.eosgi.plugin.ui.navigator.nodes.EosgiNode" />
+            </iterate>
+          </with>
+        </enabledWhen>
+      </handler>
+    </extension>
+-->
+    
+    <!-- reusable definitions -->
+    <!--
+    <extension
+         point="org.eclipse.core.expressions.definitions">
+      <definition
+        id="org.everit.e4.eosgi.plugin.isIProject">
+         
+      </definition>
+    </extension>
+    -->
+    
+    <!--
+    <extension
+      point="org.eclipse.core.expressions.propertyTesters">
+      <propertyTester
+        id="org.everit.e4.eosgi.plugin.propertyTester"
+        type=""
+        namespace="org.everit.e4.eosgi.plugin.properties"
+        properties="property
+        class="org.everit.e4.eosgi.plugin.ui.command.ExamplePropertyTester">
+      </propertyTester>
+    </extension>
+    -->
 </plugin>

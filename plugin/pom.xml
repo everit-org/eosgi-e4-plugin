@@ -4,12 +4,12 @@
   <parent>
     <groupId>org.everit.config</groupId>
     <artifactId>org.everit.config.main</artifactId>
-    <version>6.0.2</version>
+    <version>6.0.2</version><!-- 7.0.3 -->
   </parent>
 
   <groupId>org.everit.e4</groupId>
   <artifactId>org.everit.e4.eosgi.plugin</artifactId>
-  <version>0.0.1-SNAPSHOT</version>
+  <version>0.0.1</version>
   <packaging>eclipse-plugin</packaging>
 
   <properties>
@@ -20,6 +20,7 @@
 
   <build>
     <sourceDirectory>src</sourceDirectory>
+    <testSourceDirectory>test</testSourceDirectory>
 
     <plugins>
       <plugin>
@@ -77,9 +78,9 @@
 
   <repositories>
     <repository>
-      <id>luna</id>
+      <id>mars</id>
       <layout>p2</layout>
-      <url>http://download.eclipse.org/releases/luna</url>
+      <url>http://download.eclipse.org/releases/mars</url>
     </repository>
   </repositories>
 </project>

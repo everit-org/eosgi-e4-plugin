@@ -4,56 +4,65 @@ import java.util.List;
 import java.util.Map;
 
 public class Environment {
-    private String id;
-    private String framework;
-    private Map<String, String> systemProperties;
-    private List<String> vmOptions;
-    private BundleSettings bundleSettings;
+  private String id;
 
-    public String getId() {
-        return id;
-    }
+  private String framework;
 
-    public void setId(String id) {
-        this.id = id;
-    }
+  private Map<String, String> systemProperties;
 
-    public String getFramework() {
-        return framework;
-    }
+  private List<String> vmOptions;
 
-    public void setFramework(String framework) {
-        this.framework = framework;
-    }
+  private BundleSettings bundleSettings;
 
-    public Map<String, String> getSystemProperties() {
-        return systemProperties;
-    }
+  public String getExecutionString() {
+    return EosgiProject.DIST_FOLDER + this.id + EosgiProject.DIST_BIN + EosgiProject.LINUX_START;
+  }
 
-    public void setSystemProperties(Map<String, String> systemProperties) {
-        this.systemProperties = systemProperties;
-    }
+  public BundleSettings getBundleSettings() {
+    return bundleSettings;
+  }
 
-    @Override
-    public String toString() {
-        return "Environment [id=" + id + ", framework=" + framework + ", systemProperties=" + systemProperties
-                + ", vmOptions=" + vmOptions + ", bundleSettings=" + bundleSettings + "]";
-    }
+  public String getFramework() {
+    return framework;
+  }
 
-    public List<String> getVmOptions() {
-        return vmOptions;
-    }
+  public String getId() {
+    return id;
+  }
 
-    public void setVmOptions(List<String> vmOptions) {
-        this.vmOptions = vmOptions;
-    }
+  public Map<String, String> getSystemProperties() {
+    return systemProperties;
+  }
 
-    public BundleSettings getBundleSettings() {
-        return bundleSettings;
-    }
+  public List<String> getVmOptions() {
+    return vmOptions;
+  }
 
-    public void setBundleSettings(BundleSettings bundleSettings) {
-        this.bundleSettings = bundleSettings;
-    }
+  public void setBundleSettings(final BundleSettings bundleSettings) {
+    this.bundleSettings = bundleSettings;
+  }
+
+  public void setFramework(final String framework) {
+    this.framework = framework;
+  }
+
+  public void setId(final String id) {
+    this.id = id;
+  }
+
+  public void setSystemProperties(final Map<String, String> systemProperties) {
+    this.systemProperties = systemProperties;
+  }
+
+  public void setVmOptions(final List<String> vmOptions) {
+    this.vmOptions = vmOptions;
+  }
+
+  @Override
+  public String toString() {
+    return "Environment [id=" + id + ", framework=" + framework + ", systemProperties="
+        + systemProperties
+        + ", vmOptions=" + vmOptions + ", bundleSettings=" + bundleSettings + "]";
+  }
 
 }
