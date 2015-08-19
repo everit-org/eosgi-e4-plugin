@@ -1,6 +1,7 @@
 package org.everit.e4.eosgi.plugin.dist.killer;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -16,15 +17,9 @@ import org.everit.e4.eosgi.plugin.util.OSUtils.OSType;
  */
 public abstract class DistKiller {
 
-  private static final String JPS = "jps";
-
   private static final String JPS_PARAM_FOR_DETAILED_OUTPUT = "-l";
 
-  private static final String LINUX = "linux";
-
   private static final Logger LOGGER = Logger.getLogger(DistKiller.class.getName());
-
-  private static final String WIN = "win";
 
   public static DistKiller createDistKiller(final List<String> filters) {
     return createDistKiller(OSUtils.currentOS(), filters);
@@ -55,6 +50,14 @@ public abstract class DistKiller {
     this.processFilters = processFilters;
   }
 
+  private String getJpsPath() {
+    if (OSType.WINDOWS == OSUtils.currentOS()) {
+      return System.getenv("java.home") + File.separator + "bin" + File.separator + "jps.exe";
+    } else {
+      return "jps";
+    }
+  }
+
   /**
    * Fetch relevant JAVA process ID by JPS.
    * 
@@ -62,7 +65,7 @@ public abstract class DistKiller {
    */
   protected List<String> getRelevantJavaPids() {
     ProcessBuilder processBuilder = new ProcessBuilder(
-        new String[] { JPS, JPS_PARAM_FOR_DETAILED_OUTPUT });
+        new String[] { getJpsPath(), JPS_PARAM_FOR_DETAILED_OUTPUT });
     List<String> processPids = null;
     try {
       Process jpsProcess = processBuilder.start();
