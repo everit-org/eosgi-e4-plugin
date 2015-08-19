@@ -1,5 +1,18 @@
 package org.everit.e4.eosgi.plugin.ui.navigator.nodes;
 
 public enum EosgiNodeType {
-  CONFIGURATION, KEY_VALUE, ENVIRONMENTS, ENVIRONMENT, SYSTEM_PROPS, VALUE, BUNDLE_SETTINGS, BUNDLE;
+  BUNDLE("BUNDLE"), BUNDLE_SETTINGS("BUNDLE_SETTINGS"), CONFIGURATION("CONFIGURATION"), ENVIRONMENT(
+      "ENVIRONMENT"), ENVIRONMENTS("ENVIRONMENTS"), KEY_VALUE("KEY_VALUE"), SYSTEM_PROPS(
+          "SYSTEM_PROPS"), VALUE("VALUE");
+
+  private String value;
+
+  EosgiNodeType(final String value) {
+    this.value = value;
+  }
+
+  public String getValue() {
+    return value;
+  }
+
 }

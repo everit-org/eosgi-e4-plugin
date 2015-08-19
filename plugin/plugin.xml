@@ -76,6 +76,7 @@
             <with variable="selection">
               <iterate ifEmpty="false">
                 <instanceof value="org.everit.e4.eosgi.plugin.ui.navigator.nodes.EosgiNode" />
+                <test property="org.everit.e4.eosgi.plugin.properties.type" value="ENVIRONMENT"/>
               </iterate>
             </with>
           </visibleWhen>
@@ -146,7 +147,7 @@
       </handler>
     </extension>
 -->
-    
+
     <!-- reusable definitions -->
     <!--
     <extension
@@ -157,17 +158,16 @@
       </definition>
     </extension>
     -->
-    
-    <!--
+
     <extension
       point="org.eclipse.core.expressions.propertyTesters">
       <propertyTester
-        id="org.everit.e4.eosgi.plugin.propertyTester"
-        type=""
+        id="org.everit.e4.eosgi.plugin.propertyTester.esogiNode"
+        type="org.everit.e4.eosgi.plugin.ui.navigator.nodes.EosgiNode"
         namespace="org.everit.e4.eosgi.plugin.properties"
-        properties="property
-        class="org.everit.e4.eosgi.plugin.ui.command.ExamplePropertyTester">
+        properties="type"
+        class="org.everit.e4.eosgi.plugin.ui.command.EosgiNodePropertyTester">
       </propertyTester>
     </extension>
-    -->
+
 </plugin>

@@ -3,13 +3,16 @@ package org.everit.e4.eosgi.plugin.ui.navigator.nodes;
 import java.util.Arrays;
 
 public class EosgiNode {
-  private String name;
+
+  private EosgiNode[] childs;
+
   private String label;
-  private String value;
+
+  private String name;
 
   private EosgiNodeType type;
 
-  private EosgiNode[] childs;
+  private String value;
 
   public EosgiNode[] getChilds() {
     return childs;
