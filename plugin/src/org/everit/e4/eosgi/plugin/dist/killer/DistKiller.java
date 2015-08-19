@@ -17,6 +17,8 @@ import org.everit.e4.eosgi.plugin.util.OSUtils.OSType;
  */
 public abstract class DistKiller {
 
+  private static final String JAVA_HOME = "JAVA_HOME";
+
   private static final String JPS_PARAM_FOR_DETAILED_OUTPUT = "-l";
 
   private static final Logger LOGGER = Logger.getLogger(DistKiller.class.getName());
@@ -52,7 +54,8 @@ public abstract class DistKiller {
 
   private String getJpsPath() {
     if (OSType.WINDOWS == OSUtils.currentOS()) {
-      return System.getenv("java.home") + File.separator + "bin" + File.separator + "jps.exe";
+      return System.getenv(JAVA_HOME).replace("\"", "") + File.separator + "bin" + File.separator
+          + "jps.exe";
     } else {
       return "jps";
     }
