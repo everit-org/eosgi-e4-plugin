@@ -2,12 +2,14 @@ package org.everit.e4.eosgi.plugin.m2e;
 
 import java.io.File;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
 
 import org.apache.maven.model.Build;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.plugin.MojoExecution;
+import org.apache.maven.project.MavenProject;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.m2e.core.project.IMavenProjectFacade;
@@ -73,7 +75,10 @@ public class EosgiDistBuildParticipant extends MojoExecutionBuildParticipant {
     File basedir = mavenProjectFacade.getMavenProject().getBasedir();
     Build build = mavenProjectFacade.getMavenProject().getBuild();
     List<Dependency> dependencies = mavenProjectFacade.getMavenProject().getDependencies();
-    // mavenProjectFacade.getMavenProject().getProjectReferences() // ez még jó lehet
+
+    Map<String, MavenProject> projectReferences = mavenProjectFacade.getMavenProject()
+        .getProjectReferences(); // ez még jó lehet
+
     updateEosgiProject(project, basedir, build, dependencies);
   }
 

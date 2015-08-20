@@ -7,7 +7,7 @@ import org.eclipse.core.resources.IProject;
 import org.everit.e4.eosgi.plugin.m2e.model.EosgiProject;
 
 /**
- * Manage Eosgi projects.
+ * Store Eosgi projects.
  */
 public class EosgiProjects {
 

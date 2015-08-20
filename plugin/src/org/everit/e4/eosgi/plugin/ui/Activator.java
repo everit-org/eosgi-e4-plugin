@@ -22,6 +22,8 @@ public class Activator extends AbstractUIPlugin {
 
   private final EosgiProjects eosgiProjectController = new EosgiProjects();
 
+  private final OsgiProjects osgiProjects = new OsgiProjects();
+
   public Activator() {
   }
 
@@ -31,6 +33,10 @@ public class Activator extends AbstractUIPlugin {
 
   public EosgiProjects getEosgiProjectController() {
     return eosgiProjectController;
+  }
+
+  public OsgiProjects getOsgiProjects() {
+    return osgiProjects;
   }
 
   public void info(final String message) {

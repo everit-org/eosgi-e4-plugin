@@ -63,6 +63,10 @@ public class EosgiProject {
     environments = new HashMap<>();
   }
 
+  public List<Dependency> getDependencies() {
+    return dependencies;
+  }
+
   private int getDistOsgiConsolePort(final String environmentName) {
     int port = -1;
 

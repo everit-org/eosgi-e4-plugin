@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.apache.maven.model.Dependency;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.StructuredViewer;
@@ -15,9 +16,14 @@ import org.everit.e4.eosgi.plugin.m2e.model.BundleSettings;
 import org.everit.e4.eosgi.plugin.m2e.model.Environment;
 import org.everit.e4.eosgi.plugin.m2e.model.EosgiProject;
 import org.everit.e4.eosgi.plugin.ui.Activator;
+import org.everit.e4.eosgi.plugin.ui.OsgiProject;
+import org.everit.e4.eosgi.plugin.ui.OsgiProjects;
 import org.everit.e4.eosgi.plugin.ui.navigator.nodes.EosgiNode;
 import org.everit.e4.eosgi.plugin.ui.navigator.nodes.EosgiNodeType;
 
+/**
+ * Tree content provider for EosgiNodes.
+ */
 public class EosgiEnvironmentContentProvider implements ITreeContentProvider {
 
   private static final Object[] NO_CHILDREN = new Object[0];
@@ -26,10 +32,33 @@ public class EosgiEnvironmentContentProvider implements ITreeContentProvider {
 
   private StructuredViewer viewer;
 
-  private EosgiNode[] convertFromEnvironments(final List<Environment> environmentList) {
+  private EosgiNode[] convertFromEnvironments(final List<Environment> environmentList,
+      final List<OsgiProject> relevantProjects) {
     EosgiNode configuration = new EosgiNode();
     configuration.setType(EosgiNodeType.CONFIGURATION);
     configuration.setName("EOSGI Configuration");
+
+    List<EosgiNode> configurationNodes = new ArrayList<>();
+
+    EosgiNode bundlesNode = new EosgiNode();
+    bundlesNode.setName("Bundles");
+    bundlesNode.setType(EosgiNodeType.BUNDLE_PROJECTS);
+    if (relevantProjects.isEmpty()) {
+      bundlesNode.setLabel("No relevant bundle in workspace");
+    } else {
+      EosgiNode[] bundleArray = new EosgiNode[relevantProjects.size()];
+      int i = 0;
+      for (OsgiProject osgiProject : relevantProjects) {
+        EosgiNode eosgiNode = new EosgiNode();
+        eosgiNode.setName(osgiProject.getProject().getName());
+        eosgiNode.setType(EosgiNodeType.KEY_VALUE);
+        eosgiNode.setValue(osgiProject.getMavenProject().getVersion());
+        bundleArray[i++] = eosgiNode;
+      }
+      bundlesNode.setChilds(bundleArray);
+    }
+
+    configurationNodes.add(bundlesNode);
 
     if (!environmentList.isEmpty()) {
       EosgiNode environmentsNode = new EosgiNode();
@@ -39,9 +68,10 @@ public class EosgiEnvironmentContentProvider implements ITreeContentProvider {
       EosgiNode[] environmentNodeArray = provessEnvironmentList(environmentList);
       environmentsNode.setChilds(environmentNodeArray);
 
-      configuration.setChilds(new EosgiNode[] { environmentsNode });
+      configurationNodes.add(environmentsNode);
     }
 
+    configuration.setChilds(configurationNodes.toArray(new EosgiNode[] {}));
     return new EosgiNode[] { configuration };
 
   }
@@ -86,9 +116,22 @@ public class EosgiEnvironmentContentProvider implements ITreeContentProvider {
     if (modelFile.isOpen()) {
       EosgiProject eosgiEclipseProject = Activator.getDefault().getEosgiProjectController()
           .getProject(modelFile);
+
+      List<OsgiProject> relevantProjects = new ArrayList<>();
+      if (eosgiEclipseProject != null) {
+        OsgiProjects osgiProjects = Activator.getDefault().getOsgiProjects();
+        List<Dependency> dependencies = eosgiEclipseProject.getDependencies();
+        for (Dependency dependency : dependencies) {
+          String artifactId = dependency.getArtifactId();
+          OsgiProject osgiProject = osgiProjects.getProjectBy(artifactId);
+          if (osgiProject != null) {
+            relevantProjects.add(osgiProject);
+          }
+        }
+      }
       if ((eosgiEclipseProject != null) && (eosgiEclipseProject.getEnvironments() != null)) {
         cachedModelMap.put(modelFile,
-            convertFromEnvironments(eosgiEclipseProject.getEnvironments()));
+            convertFromEnvironments(eosgiEclipseProject.getEnvironments(), relevantProjects));
         children = cachedModelMap.get(modelFile);
       }
     } else {
