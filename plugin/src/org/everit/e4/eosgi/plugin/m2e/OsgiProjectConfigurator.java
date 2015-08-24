@@ -16,6 +16,7 @@ import org.eclipse.m2e.core.project.configurator.ProjectConfigurationRequest;
 import org.eclipse.m2e.jdt.IClasspathDescriptor;
 import org.eclipse.m2e.jdt.IJavaProjectConfigurator;
 import org.everit.e4.eosgi.plugin.ui.nature.BundleNature;
+import org.everit.e4.eosgi.plugin.util.ProjectNatureUtils;
 
 /**
  * Project configurator for OSGI projects.
@@ -28,25 +29,6 @@ public class OsgiProjectConfigurator extends AbstractProjectConfigurator
    */
   private static final Logger LOGGER = Logger.getLogger(OsgiProjectConfigurator.class.getName());
 
-  private String[] addNature(final String[] natureIds) {
-    boolean notFound = true;
-    for (String nature : natureIds) {
-      if (BundleNature.NATURE_ID.equals(nature)) {
-        notFound = false;
-        break;
-      }
-    }
-
-    if (notFound) {
-      String[] newNatureIds = new String[natureIds.length + 1];
-      System.arraycopy(natureIds, 0, newNatureIds, 1, natureIds.length);
-      newNatureIds[0] = BundleNature.NATURE_ID;
-      return newNatureIds;
-    } else {
-      return natureIds;
-    }
-  }
-
   @Override
   public void configure(final ProjectConfigurationRequest request, final IProgressMonitor monitor)
       throws CoreException {
@@ -58,7 +40,7 @@ public class OsgiProjectConfigurator extends AbstractProjectConfigurator
     IProjectDescription projectDescription = project.getDescription();
     if (projectDescription != null) {
       String[] natureIds = projectDescription.getNatureIds();
-      String[] newNatureIds = addNature(natureIds);
+      String[] newNatureIds = ProjectNatureUtils.addNature(natureIds, BundleNature.NATURE_ID);
       projectDescription.setNatureIds(newNatureIds);
       project.setDescription(projectDescription, monitor);
     }

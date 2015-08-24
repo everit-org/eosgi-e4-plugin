@@ -1,8 +1,11 @@
 package org.everit.e4.eosgi.plugin.m2e;
 
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.apache.maven.plugin.MojoExecution;
+import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IProjectDescription;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.m2e.core.lifecyclemapping.model.IPluginExecutionMetadata;
@@ -12,6 +15,8 @@ import org.eclipse.m2e.core.project.configurator.AbstractProjectConfigurator;
 import org.eclipse.m2e.core.project.configurator.ProjectConfigurationRequest;
 import org.eclipse.m2e.jdt.IClasspathDescriptor;
 import org.eclipse.m2e.jdt.IJavaProjectConfigurator;
+import org.everit.e4.eosgi.plugin.ui.nature.EosgiNature;
+import org.everit.e4.eosgi.plugin.util.ProjectNatureUtils;
 
 /**
  * Project configurator for EOSGI projects.
@@ -28,13 +33,20 @@ public class EosgiDistProjectConfigurator extends AbstractProjectConfigurator
   @Override
   public void configure(final ProjectConfigurationRequest request, final IProgressMonitor monitor)
       throws CoreException {
-    // IProject project = request.getProject();
-    //
-    // EosgiProject eosgiEclipseProject = new EosgiProject(project);
-    // Activator.getDefault().getEosgiProjectController().addProject(project, eosgiEclipseProject);
-    //
-    // String projectName = project.getName();
-    // Activator.getDefault().info(projectName + " configure");
+    IProject project = request.getProject();
+    if (project == null) {
+      return;
+    }
+
+    IProjectDescription projectDescription = project.getDescription();
+    if (projectDescription != null) {
+      String[] natureIds = projectDescription.getNatureIds();
+      String[] newNatureIds = ProjectNatureUtils.addNature(natureIds, EosgiNature.NATURE_ID);
+      projectDescription.setNatureIds(newNatureIds);
+      project.setDescription(projectDescription, monitor);
+    }
+
+    LOGGER.log(Level.INFO, project.getName() + " configured as EOSGI dist project.");
   }
 
   @Override
@@ -56,29 +68,7 @@ public class EosgiDistProjectConfigurator extends AbstractProjectConfigurator
     // IProject project = projectFacade.getProject();
     // processEnvironments(execution, project);
     // String executionId = execution.getExecutionId();
-
-    if ("dist".equals(execution.getGoal())) {
-      return new EosgiDistBuildParticipant(execution, true, true);
-    } else {
-      return null;
-    }
+    return new EosgiDistBuildParticipant(execution, true, true);
   }
-
-  // private void processEnvironments(final MojoExecution execution, final IProject project) {
-  // Environments environments = new ConfiguratorParser().parse(execution.getConfiguration());
-  // Activator.getDefault().info(environments.toString());
-  //
-  // EosgiProject eosgiProject = Activator.getDefault().getEosgiProjectController()
-  // .getProject(project);
-  // if (eosgiProject == null) {
-  // // eosgiProject = new EosgiEclipseProject(project);
-  // // Activator.getDefault().info("Create EosgiProject: " + project.getName());
-  // } else {
-  // LOGGER.log(Level.INFO, "Update EosgiProject: " + project.getName());
-  // eosgiProject.setEnvironments(environments.getEnvironments());
-  // Activator.getDefault().getEosgiProjectController().addProject(project,
-  // eosgiProject);
-  // }
-  // }
 
 }
