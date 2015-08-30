@@ -1,20 +1,18 @@
 package org.everit.e4.eosgi.plugin.m2e;
 
-import java.io.File;
-import java.util.List;
 import java.util.Set;
 import java.util.logging.Logger;
 
-import org.apache.maven.model.Build;
-import org.apache.maven.model.Dependency;
 import org.apache.maven.plugin.MojoExecution;
+import org.apache.maven.project.MavenProject;
+import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResourceDelta;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.m2e.core.project.IMavenProjectFacade;
 import org.eclipse.m2e.core.project.configurator.MojoExecutionBuildParticipant;
-import org.everit.e4.eosgi.plugin.m2e.model.Environments;
-import org.everit.e4.eosgi.plugin.m2e.model.EosgiProject;
-import org.everit.e4.eosgi.plugin.m2e.xml.ConfiguratorParser;
+import org.everit.e4.eosgi.plugin.core.m2e.EosgiManager;
 import org.everit.e4.eosgi.plugin.ui.Activator;
 
 /**
@@ -47,67 +45,52 @@ public class EosgiDistBuildParticipant extends MojoExecutionBuildParticipant {
       return null;
     }
 
+    MavenProject mavenProject = mavenProjectFacade.getMavenProject();
+    if (mavenProject == null) {
+      return null;
+    }
+
+    processConfiguration(project);
+
     String projectName = project.getName();
-    processEnvironments(getMojoExecution(), project);
-    fetchDistDataAndUpdateEosgiProject(mavenProjectFacade, project);
-
     Set<IProject> buildResult = null;
-    try {
-      LOGGER.info(projectName + " - building...");
-      buildResult = super.build(kind, monitor);
-    } catch (Exception e) {
-      clearDistDataFromEosgiProject(project);
-      LOGGER.warning("Dist creating failed!");
+
+    MojoExecution mojoExecution = getMojoExecution();
+    if (mojoExecution != null) {
+      String goal = mojoExecution.getGoal();
+      if (!"dist".equals(goal)) {
+        return super.build(kind, monitor);
+      }
     }
-
-    Activator.getDefault().info(projectName + " - builded.");
-    return buildResult;
+    // try {
+    // LOGGER.info(projectName + " - building...");
+    // buildResult = super.build(kind, monitor);
+    // } catch (Exception e) {
+    // LOGGER.warning("Dist creating failed!");
+    // }
+    return null;
   }
 
-  private void clearDistDataFromEosgiProject(final IProject project) {
-    updateEosgiProject(project, null, null, null);
+  @Override
+  public void clean(final IProgressMonitor monitor) throws CoreException {
+    super.clean(monitor);
   }
 
-  private void fetchDistDataAndUpdateEosgiProject(final IMavenProjectFacade mavenProjectFacade,
-      final IProject project) {
-    File basedir = mavenProjectFacade.getMavenProject().getBasedir();
-    Build build = mavenProjectFacade.getMavenProject().getBuild();
-    List<Dependency> dependencies = mavenProjectFacade.getMavenProject().getDependencies();
-
-    // Map<String, MavenProject> projectReferences = mavenProjectFacade.getMavenProject()
-    // .getProjectReferences(); // ez még jó lehet
-
-    updateEosgiProject(project, basedir, build, dependencies);
+  @Override
+  protected IResourceDelta getDelta(final IProject project) {
+    return super.getDelta(project);
   }
 
-  private void processEnvironments(final MojoExecution execution, final IProject project) {
-    Environments environments = new ConfiguratorParser().parse(execution.getConfiguration());
-    Activator.getDefault().info(environments.toString());
-
-    EosgiProject eosgiProject = Activator.getDefault().getEosgiProjectController()
-        .getProject(project);
-    if (eosgiProject == null) {
-      eosgiProject = new EosgiProject(project);
+  private void processConfiguration(final IProject project) {
+    if (getMojoExecution() != null && getMojoExecution().getConfiguration() != null) {
+      Xpp3Dom configuration = getMojoExecution().getConfiguration();
+      if (configuration != null) {
+        EosgiManager eosgiManager = Activator.getDefault().getEosgiManager();
+        if (eosgiManager != null) {
+          eosgiManager.updateEnvironments(project, configuration);
+        }
+      }
     }
-    eosgiProject.setEnvironments(environments.getEnvironments());
-    Activator.getDefault().getEosgiProjectController().addProject(project,
-        eosgiProject);
-  }
-
-  private void updateEosgiProject(final IProject project, final File basedir, final Build build,
-      final List<Dependency> dependencies) {
-    EosgiProject eosgiProject = Activator.getDefault().getEosgiProjectController()
-        .getProject(project);
-
-    if (eosgiProject == null) {
-      eosgiProject = new EosgiProject(project);
-    }
-
-    eosgiProject.setBaseDir(basedir);
-    eosgiProject.setBuild(build);
-    eosgiProject.setDependencies(dependencies);
-
-    Activator.getDefault().getEosgiProjectController().addProject(project, eosgiProject);
   }
 
 }

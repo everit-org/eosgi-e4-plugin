@@ -4,19 +4,15 @@ import java.util.List;
 import java.util.Map;
 
 public class Environment {
-  private String id;
+  private BundleSettings bundleSettings;
 
   private String framework;
+
+  private String id;
 
   private Map<String, String> systemProperties;
 
   private List<String> vmOptions;
-
-  private BundleSettings bundleSettings;
-
-  public String getExecutionString() {
-    return EosgiProject.DIST_FOLDER + this.id + EosgiProject.DIST_BIN + EosgiProject.LINUX_START;
-  }
 
   public BundleSettings getBundleSettings() {
     return bundleSettings;

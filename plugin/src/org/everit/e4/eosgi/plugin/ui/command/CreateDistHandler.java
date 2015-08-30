@@ -1,7 +1,5 @@
 package org.everit.e4.eosgi.plugin.ui.command;
 
-import java.util.logging.Logger;
-
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.core.commands.IHandler;
@@ -9,15 +7,9 @@ import org.eclipse.core.commands.IHandlerListener;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.TreeSelection;
 import org.eclipse.ui.handlers.HandlerUtil;
-import org.everit.e4.eosgi.plugin.core.dist.DistManager;
 import org.everit.e4.eosgi.plugin.ui.Activator;
 
-/**
- * Handler implementation for stop the current selected dist project.
- */
-public class StopDistHandler extends AbstractDistHandler implements IHandler {
-
-  private static final Logger LOGGER = Logger.getLogger(StopDistHandler.class.getName());
+public class CreateDistHandler extends AbstractDistHandler implements IHandler {
 
   @Override
   public void addHandlerListener(final IHandlerListener handlerListener) {
@@ -25,7 +17,6 @@ public class StopDistHandler extends AbstractDistHandler implements IHandler {
 
   @Override
   public void dispose() {
-    LOGGER.info("dispose");
   }
 
   @Override
@@ -47,17 +38,10 @@ public class StopDistHandler extends AbstractDistHandler implements IHandler {
     processTreeSelection(treeSelection);
 
     if (project != null && environmentName != null) {
-      LOGGER.info("stop environment: " + environmentName);
-      DistManager distManager = Activator.getDefault().getDistManager();
-      distManager.stopDist(project, environmentName);
-      // EosgiProject eosgiProject = Activator.getDefault().getEosgiProjectController()
-      // .getProject(project);
-      // if (eosgiProject != null) {
-      // eosgiProject.stopDist(environmentName);
-      // } else {
-      // LOGGER.info("Dont't have dist for selected project: " + project.getName());
-      // }
+      LOGGER.info(project + ", " + environmentName + " dist generate");
+      Activator.getDefault().getEosgiManager().generateDistFor(project, environmentName);
     }
+
     return null;
   }
 

@@ -14,25 +14,35 @@ public class EosgiNature implements IProjectNature {
 
   public static final String NATURE_ID = "org.everit.e4.eosgi.plugin.ui.natures.eosgi";
 
+  private String name;
+
+  private IProject project;
+
   @Override
   public void configure() throws CoreException {
-    LOGGER.info("configure");
+    if (project != null) {
+      this.name = project.getName();
+      LOGGER.info(name + " project configured with EOSGI dist nature.");
+    }
   }
 
   @Override
   public void deconfigure() throws CoreException {
+    this.project = null;
+    this.name = null;
     LOGGER.info("deconfigure");
   }
 
   @Override
   public IProject getProject() {
     LOGGER.info("getProject");
-    return null;
+    return project;
   }
 
   @Override
   public void setProject(final IProject project) {
     LOGGER.info("setProject");
+    this.project = project;
   }
 
 }

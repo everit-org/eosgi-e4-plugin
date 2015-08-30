@@ -1,13 +1,15 @@
-package org.everit.e4.eosgi.plugin.dist;
+package org.everit.e4.eosgi.plugin.core.dist;
 
 /**
  * Interface for running EOSGI dists.
  */
 public interface DistRunner {
 
-  void onStatusChanged(DistStatus distStatus);
+  boolean isStartable();
 
   void start();
+
+  void startable();
 
   void stop();
 }

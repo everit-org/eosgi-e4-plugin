@@ -16,7 +16,7 @@ import org.eclipse.ui.console.IConsoleManager;
 import org.eclipse.ui.console.MessageConsole;
 import org.eclipse.ui.console.MessageConsoleStream;
 import org.eclipse.ui.handlers.HandlerUtil;
-import org.everit.e4.eosgi.plugin.m2e.model.EosgiProject;
+import org.everit.e4.eosgi.plugin.core.dist.DistManager;
 import org.everit.e4.eosgi.plugin.ui.Activator;
 
 /**
@@ -70,13 +70,20 @@ public class StartDistHandler extends AbstractDistHandler implements IHandler {
     processTreeSelection(treeSelection);
 
     if (project != null && environmentName != null) {
-      EosgiProject eosgiProject = Activator.getDefault().getEosgiProjectController()
-          .getProject(project);
-      if (eosgiProject != null) {
-        eosgiProject.startDist(environmentName, createConsole(environmentName));
-      } else {
-        LOGGER.info("Dont't have dist for selected project: " + project.getName());
+      LOGGER.info("start environment: " + environmentName);
+      DistManager distManager = Activator.getDefault().getDistManager();
+      if (distManager.startable(project, environmentName)) {
+        distManager.startDist(project, environmentName);
       }
+
+      // EosgiManager eosgiManager = Activator.getDefault().getEosgiManager();
+      // EosgiProject eosgiProject = Activator.getDefault().getEosgiProjectController()
+      // .getProject(project);
+      // if (eosgiProject != null) {
+      // eosgiProject.startDist(environmentName, createConsole(environmentName));
+      // } else {
+      // LOGGER.info("Dont't have dist for selected project: " + project.getName());
+      // }
     }
     return null;
   }

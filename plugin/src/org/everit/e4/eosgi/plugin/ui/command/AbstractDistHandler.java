@@ -5,8 +5,7 @@ import java.util.logging.Logger;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.jface.viewers.TreePath;
 import org.eclipse.jface.viewers.TreeSelection;
-import org.everit.e4.eosgi.plugin.ui.navigator.nodes.EosgiNode;
-import org.everit.e4.eosgi.plugin.ui.navigator.nodes.EosgiNodeType;
+import org.everit.e4.eosgi.plugin.ui.navigator.nodes.EnvironmentNode;
 
 public class AbstractDistHandler {
 
@@ -21,14 +20,15 @@ public class AbstractDistHandler {
       return null;
     }
 
-    TreePath treePath = treePaths[0];
-    if (treePath == null) {
-      return null;
-    }
+    for (TreePath treePath : treePaths) {
+      int segmentCount = treePath.getSegmentCount();
+      for (int i = 0; i < segmentCount; i++) {
+        Object segment = treePath.getSegment(i);
+        if (segment instanceof IProject) {
+          return (IProject) segment;
 
-    Object firstSegment = treePath.getFirstSegment();
-    if (firstSegment instanceof IProject) {
-      return (IProject) firstSegment;
+        }
+      }
     }
 
     return null;
@@ -45,11 +45,9 @@ public class AbstractDistHandler {
     }
   
     environmentName = null;
-    if (firstElement instanceof EosgiNode) {
-      EosgiNode eosgiNode = (EosgiNode) firstElement;
-      if (EosgiNodeType.ENVIRONMENT == eosgiNode.getType()) {
-        environmentName = eosgiNode.getName();
-      }
+    if (firstElement instanceof EnvironmentNode) {
+      EnvironmentNode eosgiNode = (EnvironmentNode) firstElement;
+      environmentName = eosgiNode.getName();
       project = findParentProject(treeSelection.getPaths());
     }
   }
