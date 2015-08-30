@@ -1,17 +1,17 @@
 package org.everit.e4.eosgi.plugin.ui.navigator;
 
-import org.everit.e4.eosgi.plugin.ui.navigator.nodes.AbstractEosgiNode;
+import org.everit.e4.eosgi.plugin.ui.navigator.nodes.AbstractNode;
 
 public class EosgiNodeChangeEvent {
 
-  private AbstractEosgiNode node;
+  private AbstractNode node;
 
-  public EosgiNodeChangeEvent(final AbstractEosgiNode node) {
+  public EosgiNodeChangeEvent(final AbstractNode node) {
     super();
     this.node = node;
   }
 
-  public AbstractEosgiNode getNode() {
+  public AbstractNode getNode() {
     return node;
   }
 }

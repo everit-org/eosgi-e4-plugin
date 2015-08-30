@@ -16,18 +16,21 @@ import org.eclipse.jface.viewers.TreeNodeContentProvider;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.swt.widgets.Control;
 import org.everit.e4.eosgi.plugin.ui.nature.EosgiNature;
-import org.everit.e4.eosgi.plugin.ui.navigator.nodes.AbstractEosgiNode;
+import org.everit.e4.eosgi.plugin.ui.navigator.nodes.AbstractNode;
 import org.everit.e4.eosgi.plugin.ui.navigator.nodes.DistNode;
 
+/**
+ * {@link ITreeContentProvider} implementation for manage the EOSGI nodes in ProjectExplorer.
+ */
 public class DistContentProvider extends TreeNodeContentProvider
     implements ITreeContentProvider, EosgiNodeChangeListener {
   static final Logger LOGGER = Logger.getLogger(DistContentProvider.class.getName());
 
   private static final Object[] NO_CHILDREN = new Object[] {};
 
-  private Map<AbstractEosgiNode, AbstractEosgiNode[]> eosgiNodeCache = new HashMap<>();
+  private Map<AbstractNode, AbstractNode[]> eosgiNodeCache = new HashMap<>();
 
-  private Map<IProject, AbstractEosgiNode[]> projectCache = new HashMap<>();
+  private Map<IProject, AbstractNode[]> projectCache = new HashMap<>();
 
   private StructuredViewer viewer;
 
@@ -44,7 +47,7 @@ public class DistContentProvider extends TreeNodeContentProvider
       children = NO_CHILDREN;
     } else if (parentElement instanceof IProject) {
       children = handleProject(parentElement);
-    } else if (parentElement instanceof AbstractEosgiNode) {
+    } else if (parentElement instanceof AbstractNode) {
       children = handleEosgiNode(parentElement);
     }
 
@@ -65,7 +68,7 @@ public class DistContentProvider extends TreeNodeContentProvider
     return null;
   }
 
-  private Runnable getRefreshRunnable(final AbstractEosgiNode node) {
+  private Runnable getRefreshRunnable(final AbstractNode node) {
     return new Runnable() {
       @Override
       public void run() {
@@ -74,7 +77,7 @@ public class DistContentProvider extends TreeNodeContentProvider
     };
   }
 
-  private Runnable getUpdateRunnable(final AbstractEosgiNode resource) {
+  private Runnable getUpdateRunnable(final AbstractNode resource) {
     return new Runnable() {
       @Override
       public void run() {
@@ -87,9 +90,9 @@ public class DistContentProvider extends TreeNodeContentProvider
     if (eosgiNodeCache.containsKey(parentElement)) {
       return eosgiNodeCache.get(parentElement);
     } else {
-      AbstractEosgiNode abstractEosgiNode = (AbstractEosgiNode) parentElement;
-      AbstractEosgiNode[] eosgiNodes = abstractEosgiNode.getChildren();
-      eosgiNodeCache.put(abstractEosgiNode, eosgiNodes);
+      AbstractNode abstractNode = (AbstractNode) parentElement;
+      AbstractNode[] eosgiNodes = abstractNode.getChildren();
+      eosgiNodeCache.put(abstractNode, eosgiNodes);
       return eosgiNodes;
     }
   }
@@ -124,9 +127,9 @@ public class DistContentProvider extends TreeNodeContentProvider
   public boolean hasChildren(final Object element) {
     if (element instanceof IProject) {
       return true;
-    } else if (element instanceof AbstractEosgiNode) {
-      AbstractEosgiNode node = (AbstractEosgiNode) element;
-      AbstractEosgiNode[] children = node.getChildren();
+    } else if (element instanceof AbstractNode) {
+      AbstractNode node = (AbstractNode) element;
+      AbstractNode[] children = node.getChildren();
       return children != null && children.length > 0;
     } else {
       return false;
@@ -141,7 +144,7 @@ public class DistContentProvider extends TreeNodeContentProvider
   @Override
   public void nodeChanged(final EosgiNodeChangeEvent event) {
     if (event != null && event.getNode() != null) {
-      AbstractEosgiNode node = event.getNode();
+      AbstractNode node = event.getNode();
 
       eosgiNodeCache.remove(node);
 

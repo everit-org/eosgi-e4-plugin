@@ -60,14 +60,14 @@
                    value="org.eclipse.core.resources.IProject">
                </instanceof>
                <instanceof
-                  value="org.everit.e4.eosgi.plugin.ui.navigator.model.AbstractEosgiNode">
+                  value="org.everit.e4.eosgi.plugin.ui.navigator.model.AbstractNode">
                 </instanceof>
              </or>
             </triggerPoints>
             <possibleChildren>
               <or>
                 <instanceof
-                  value="org.everit.e4.eosgi.plugin.ui.navigator.model.AbstractEosgiNode">
+                  value="org.everit.e4.eosgi.plugin.ui.navigator.model.AbstractNode">
                 </instanceof>
               </or>
             </possibleChildren>

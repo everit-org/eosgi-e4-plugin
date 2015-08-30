@@ -2,9 +2,9 @@ package org.everit.e4.eosgi.plugin.ui.navigator.nodes;
 
 import org.everit.e4.eosgi.plugin.ui.navigator.EosgiNodeChangeListener;
 
-public abstract class AbstractEosgiNode {
+public abstract class AbstractNode {
 
-  protected AbstractEosgiNode[] children;
+  protected AbstractNode[] children;
 
   protected String icon;
 
@@ -18,7 +18,7 @@ public abstract class AbstractEosgiNode {
 
   protected String value;
 
-  public abstract AbstractEosgiNode[] getChildren();
+  public abstract AbstractNode[] getChildren();
 
   public abstract String getIcon();
 

@@ -5,7 +5,7 @@ import java.util.Objects;
 import org.eclipse.core.resources.IProject;
 import org.everit.e4.eosgi.plugin.ui.navigator.EosgiNodeChangeListener;
 
-public class DistNode extends AbstractEosgiNode {
+public class DistNode extends AbstractNode {
 
   private IProject project;
 
@@ -17,9 +17,9 @@ public class DistNode extends AbstractEosgiNode {
   }
 
   @Override
-  public AbstractEosgiNode[] getChildren() {
+  public AbstractNode[] getChildren() {
     if (outdated) {
-      children = new AbstractEosgiNode[] { new BundlesNode(project, getListener()),
+      children = new AbstractNode[] { new BundlesNode(project, getListener()),
           new ManifestNode(project), new EnvironmentsNode(project, getListener()) };
       outdated = false;
     }

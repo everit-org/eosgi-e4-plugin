@@ -7,7 +7,7 @@ import org.eclipse.jface.viewers.StyledString;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.ui.navigator.IDescriptionProvider;
 import org.everit.e4.eosgi.plugin.ui.Activator;
-import org.everit.e4.eosgi.plugin.ui.navigator.nodes.AbstractEosgiNode;
+import org.everit.e4.eosgi.plugin.ui.navigator.nodes.AbstractNode;
 
 public class DistLabelProvider extends LabelProvider implements ILabelProvider,
     IDescriptionProvider, IStyledLabelProvider {
@@ -27,8 +27,8 @@ public class DistLabelProvider extends LabelProvider implements ILabelProvider,
 
   @Override
   public String getDescription(final Object element) {
-    if (element instanceof AbstractEosgiNode) {
-      AbstractEosgiNode node = (AbstractEosgiNode) element;
+    if (element instanceof AbstractNode) {
+      AbstractNode node = (AbstractNode) element;
       return node.getText();
     } else {
       return "";
@@ -37,8 +37,8 @@ public class DistLabelProvider extends LabelProvider implements ILabelProvider,
 
   @Override
   public Image getImage(final Object element) {
-    if (element instanceof AbstractEosgiNode) {
-      AbstractEosgiNode node = (AbstractEosgiNode) element;
+    if (element instanceof AbstractNode) {
+      AbstractNode node = (AbstractNode) element;
       return Activator.getImageDescriptor(node.getIcon()).createImage();
     } else {
       return super.getImage(element);
@@ -57,8 +57,8 @@ public class DistLabelProvider extends LabelProvider implements ILabelProvider,
 
   @Override
   public String getText(final Object element) {
-    if (element instanceof AbstractEosgiNode) {
-      AbstractEosgiNode node = (AbstractEosgiNode) element;
+    if (element instanceof AbstractNode) {
+      AbstractNode node = (AbstractNode) element;
       return node.getText();
     } else {
       return null;

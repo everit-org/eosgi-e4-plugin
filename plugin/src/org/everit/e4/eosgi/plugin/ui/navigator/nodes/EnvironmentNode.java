@@ -6,7 +6,7 @@ import org.everit.e4.eosgi.plugin.ui.Activator;
 import org.everit.e4.eosgi.plugin.ui.navigator.EosgiNodeChangeEvent;
 import org.everit.e4.eosgi.plugin.ui.navigator.EosgiNodeChangeListener;
 
-public class EnvironmentNode extends AbstractEosgiNode implements EnvironmentChangeListener {
+public class EnvironmentNode extends AbstractNode implements EnvironmentChangeListener {
 
   private DistStatus distStatus = DistStatus.STOPPED;
 
@@ -33,7 +33,7 @@ public class EnvironmentNode extends AbstractEosgiNode implements EnvironmentCha
   }
 
   @Override
-  public AbstractEosgiNode[] getChildren() {
+  public AbstractNode[] getChildren() {
     return null;
   }
 

@@ -1,9 +1,9 @@
 package org.everit.e4.eosgi.plugin.ui.navigator.nodes;
 
-public class LeafNode extends AbstractEosgiNode {
+public class LeafNode extends AbstractNode {
 
   @Override
-  public AbstractEosgiNode[] getChildren() {
+  public AbstractNode[] getChildren() {
     return null;
   }
 

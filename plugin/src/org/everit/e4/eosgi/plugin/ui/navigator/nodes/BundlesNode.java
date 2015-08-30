@@ -10,7 +10,7 @@ import org.everit.e4.eosgi.plugin.ui.Activator;
 import org.everit.e4.eosgi.plugin.ui.navigator.EosgiNodeChangeEvent;
 import org.everit.e4.eosgi.plugin.ui.navigator.EosgiNodeChangeListener;
 
-public class BundlesNode extends AbstractEosgiNode implements EosgiModelChangeListener {
+public class BundlesNode extends AbstractNode implements EosgiModelChangeListener {
 
   private static final String NODE_NAME = "Bundle projects";
 
@@ -24,7 +24,7 @@ public class BundlesNode extends AbstractEosgiNode implements EosgiModelChangeLi
   }
 
   @Override
-  public AbstractEosgiNode[] getChildren() {
+  public AbstractNode[] getChildren() {
     if (outdated) {
       EosgiManager eosgiManager = Activator.getDefault().getEosgiManager();
       List<String> bundleInfos = eosgiManager.fetchBundlesBy(project);

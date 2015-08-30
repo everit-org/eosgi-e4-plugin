@@ -10,7 +10,7 @@ import org.everit.e4.eosgi.plugin.ui.Activator;
 import org.everit.e4.eosgi.plugin.ui.navigator.EosgiNodeChangeEvent;
 import org.everit.e4.eosgi.plugin.ui.navigator.EosgiNodeChangeListener;
 
-public class EnvironmentsNode extends AbstractEosgiNode
+public class EnvironmentsNode extends AbstractNode
     implements EosgiModelChangeListener {
 
   private IProject project;
@@ -23,7 +23,7 @@ public class EnvironmentsNode extends AbstractEosgiNode
   }
 
   @Override
-  public AbstractEosgiNode[] getChildren() {
+  public AbstractNode[] getChildren() {
     if (outdated) {
       EosgiManager eosgiManager = Activator.getDefault().getEosgiManager();
       List<String> environments = eosgiManager.fetchEnvironmentsBy(project);

@@ -2,7 +2,7 @@ package org.everit.e4.eosgi.plugin.ui.navigator.nodes;
 
 import org.eclipse.core.resources.IProject;
 
-public class ManifestNode extends AbstractEosgiNode {
+public class ManifestNode extends AbstractNode {
 
   private IProject project;
 
@@ -12,7 +12,7 @@ public class ManifestNode extends AbstractEosgiNode {
   }
 
   @Override
-  public AbstractEosgiNode[] getChildren() {
+  public AbstractNode[] getChildren() {
     return null;
   }
 
