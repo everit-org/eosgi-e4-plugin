@@ -18,6 +18,7 @@ public class EnvironmentsNode extends AbstractNode
   public EnvironmentsNode(final IProject project, final EosgiNodeChangeListener listener) {
     this.project = project;
     setListener(listener);
+    setName("Environments");
     Activator.getDefault().getEosgiManager().addModelChangeListener(this);
     outdated = true;
   }
@@ -27,13 +28,19 @@ public class EnvironmentsNode extends AbstractNode
     if (outdated) {
       EosgiManager eosgiManager = Activator.getDefault().getEosgiManager();
       List<String> environments = eosgiManager.fetchEnvironmentsBy(project);
-      List<EnvironmentNode> nodes = new ArrayList<>();
+      List<EnvironmentNode> nodes;
+      nodes = new ArrayList<>();
       for (String environment : environments) {
         EnvironmentNode node = new EnvironmentNode(environment, getListener());
         nodes.add(node);
       }
       children = nodes.toArray(new EnvironmentNode[] {});
       outdated = false;
+    }
+    if (children == null || children.length == 0) {
+      setLabel(" (No environment found)");
+    } else {
+      setLabel(null);
     }
     return children;
   }
@@ -45,7 +52,11 @@ public class EnvironmentsNode extends AbstractNode
 
   @Override
   public String getText() {
-    return "Environments";
+    if (getLabel() == null) {
+      return getName();
+    } else {
+      return getName() + getLabel();
+    }
   }
 
   @Override

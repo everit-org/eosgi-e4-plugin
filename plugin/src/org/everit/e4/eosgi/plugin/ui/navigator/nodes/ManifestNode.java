@@ -8,7 +8,8 @@ public class ManifestNode extends AbstractNode {
 
   public ManifestNode(final IProject project) {
     this.project = project;
-    setLabel("No exists");
+    setName("Manifest");
+    setLabel(" (Not implemented, yet)");
   }
 
   @Override
@@ -23,7 +24,7 @@ public class ManifestNode extends AbstractNode {
 
   @Override
   public String getText() {
-    return "Manifest";
+    return getName() + getLabel();
   }
 
 }

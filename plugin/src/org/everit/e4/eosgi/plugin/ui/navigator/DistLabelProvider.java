@@ -47,12 +47,29 @@ public class DistLabelProvider extends LabelProvider implements ILabelProvider,
 
   @Override
   public StyledString getStyledText(final Object element) {
-    String text = getText(element);
-    if (text == null) {
+    if (element == null) {
       return null;
-    } else {
-      return new StyledString(text);
     }
+    String text = getText(element);
+    StyledString styledString = new StyledString(text);
+
+    if (element instanceof AbstractNode) {
+      AbstractNode node = (AbstractNode) element;
+      if (node.getLabel() != null) {
+        int startPos = node.getName().length();
+        int length = node.getLabel().length();
+        length = Math.min(length, text.length());
+        styledString.setStyle(startPos, length,
+            StyledString.DECORATIONS_STYLER);
+      } else if (node.getValue() != null) {
+        int startPos = node.getName().length();
+        int length = node.getLabel().length();
+        length = Math.min(length, text.length());
+        styledString.setStyle(startPos, length,
+            StyledString.QUALIFIER_STYLER);
+      }
+    }
+    return styledString;
   }
 
   @Override

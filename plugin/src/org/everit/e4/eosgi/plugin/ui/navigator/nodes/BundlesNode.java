@@ -19,6 +19,7 @@ public class BundlesNode extends AbstractNode implements EosgiModelChangeListene
   public BundlesNode(final IProject project, final EosgiNodeChangeListener listener) {
     this.project = project;
     setListener(listener);
+    setName(NODE_NAME);
     Activator.getDefault().getEosgiManager().addModelChangeListener(this);
     outdated = true;
   }
@@ -38,8 +39,10 @@ public class BundlesNode extends AbstractNode implements EosgiModelChangeListene
       children = leafNodes.toArray(new LeafNode[] {});
       outdated = false;
     }
-    if (children == null) {
-      setLabel("No relevant bundle project found.");
+    if (children == null || children.length == 0) {
+      setLabel(" (No relevant bundle project found.)");
+    } else {
+      setLabel(null);
     }
     return children;
   }
@@ -55,7 +58,11 @@ public class BundlesNode extends AbstractNode implements EosgiModelChangeListene
 
   @Override
   public String getText() {
-    return NODE_NAME;
+    if (getLabel() == null) {
+      return getName();
+    } else {
+      return getName() + getLabel();
+    }
   }
 
   @Override

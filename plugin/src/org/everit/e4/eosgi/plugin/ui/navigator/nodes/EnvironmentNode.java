@@ -17,7 +17,7 @@ public class EnvironmentNode extends AbstractNode implements EnvironmentChangeLi
     this.environmentId = environmentId;
     setListener(listener);
     setName(environmentId);
-    setLabel("(" + distStatus.name() + ")");
+    setLabel(" (" + distStatus.name() + ")");
     Activator.getDefault().getDistManager().addEnvironmentChangeListener(this);
   }
 
@@ -27,7 +27,7 @@ public class EnvironmentNode extends AbstractNode implements EnvironmentChangeLi
 
       this.distStatus = distStatus;
       setName(environmentId);
-      setLabel("(" + distStatus.name() + ")");
+      setLabel(" (" + distStatus.name() + ")");
       getListener().nodeChanged(new EosgiNodeChangeEvent(this));
     }
   }

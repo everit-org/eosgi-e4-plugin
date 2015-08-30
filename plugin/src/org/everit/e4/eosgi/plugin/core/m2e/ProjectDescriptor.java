@@ -72,6 +72,9 @@ public class ProjectDescriptor {
   }
 
   public String mavenInfo() {
+    if (groupId == null || artifactId == null || version == null) {
+      return null;
+    }
     return groupId + ":" + artifactId + ":" + version;
   }
 
@@ -79,7 +82,7 @@ public class ProjectDescriptor {
     relevantProjectIds.remove(id);
   }
 
-  public void setBuildDirectory(String buildDirectory) {
+  public void setBuildDirectory(final String buildDirectory) {
     this.buildDirectory = buildDirectory;
   }
 

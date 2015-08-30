@@ -103,7 +103,10 @@ public class DefaultEosgiManager
         for (String id : relevantProjectIds) {
           IProject bundleProject = projectIdMap.get(id);
           ProjectDescriptor bundleDescripor = projectMap.get(bundleProject);
-          bundleIdList.add(bundleDescripor.mavenInfo());
+          String mavenInfo = bundleDescripor.mavenInfo();
+          if (mavenInfo != null) {
+            bundleIdList.add(mavenInfo);
+          }
         }
       }
     }
