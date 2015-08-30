@@ -30,10 +30,13 @@ public class DefaultDistRunner implements DistRunner {
 
     this.statusListener = statusListener;
     String startCommand = DistUtils.getDistStartCommand(buildDirectory, environmentId);
-    DistStoppedCallback stoppedCallback = () -> {
-      statusListener.distStatusChanged(DistStatus.STOPPED, project, environmentId);
-    };
-    this.distTask = new DistTask(startCommand, environmentId, stoppedCallback, null);
+    this.distTask = new DistTask(startCommand, environmentId, new DistStoppedCallback() {
+
+      @Override
+      public void distStopped() {
+        statusListener.distStatusChanged(DistStatus.STOPPED, project, environmentId);
+      }
+    }, null);
   }
 
   @Override

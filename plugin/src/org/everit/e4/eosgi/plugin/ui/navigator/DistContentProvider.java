@@ -15,15 +15,6 @@ import org.eclipse.jface.viewers.StructuredViewer;
 import org.eclipse.jface.viewers.TreeNodeContentProvider;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.Tree;
-import org.eclipse.ui.IViewPart;
-import org.eclipse.ui.IViewReference;
-import org.eclipse.ui.IWorkbench;
-import org.eclipse.ui.IWorkbenchPage;
-import org.eclipse.ui.PlatformUI;
-import org.eclipse.ui.navigator.NavigatorActionService;
-import org.eclipse.ui.navigator.resources.ProjectExplorer;
-import org.eclipse.ui.views.IViewDescriptor;
 import org.everit.e4.eosgi.plugin.ui.nature.EosgiNature;
 import org.everit.e4.eosgi.plugin.ui.navigator.nodes.AbstractEosgiNode;
 import org.everit.e4.eosgi.plugin.ui.navigator.nodes.DistNode;
@@ -48,7 +39,6 @@ public class DistContentProvider extends TreeNodeContentProvider
 
   @Override
   public Object[] getChildren(final Object parentElement) {
-    // treeStaffs();
     Object[] children = NO_CHILDREN;
     if (parentElement == null) {
       children = NO_CHILDREN;
@@ -182,55 +172,11 @@ public class DistContentProvider extends TreeNodeContentProvider
     }
   }
 
-  /**
-   * Run all of the runnables that are the widget updates
-   * 
-   * @param runnables
-   */
-  private void runUpdates(Collection runnables) {
+  private void runUpdates(final Collection runnables) {
     Iterator runnableIterator = runnables.iterator();
     while (runnableIterator.hasNext()) {
       ((Runnable) runnableIterator.next()).run();
     }
 
-  }
-
-  private void treeStaffs() {
-    IWorkbench workbench = PlatformUI.getWorkbench();
-    // IViewDescriptor projectExplorerDescritptor = workbench.getViewRegistry()
-    // .find("org.eclipse.ui.navigator.ProjectExplorer");
-    IViewReference[] viewReferences = workbench.getActiveWorkbenchWindow().getActivePage()
-        .getViewReferences();
-    for (IViewReference iViewReference : viewReferences) {
-      LOGGER.info(iViewReference.getId());
-      if ("org.eclipse.ui.navigator.ProjectExplorer".equals(iViewReference.getId())) {
-        IViewPart view = iViewReference.getView(false);
-        if (view instanceof Tree) {
-          Tree tree = (Tree) view;
-        } else if (view instanceof ProjectExplorer) {
-          ProjectExplorer explorer = (ProjectExplorer) view;
-          NavigatorActionService navigatorActionService = explorer.getNavigatorActionService();
-          // explorer.addPropertyListener(new IPropertyListener() {
-          //
-          // @Override
-          // public void propertyChanged(Object source, int propId) {
-          // return;
-          // }
-          // });
-        }
-      }
-    }
-
-    IViewDescriptor[] viewDescriptors = workbench.getViewRegistry().getViews();
-    for (IViewDescriptor iViewDescriptor : viewDescriptors) {
-      String id = iViewDescriptor.getId();
-      LOGGER.info("viewId: " + id);
-    }
-
-    IWorkbenchPage[] pages = workbench.getActiveWorkbenchWindow().getPages();
-    if (pages != null) {
-      for (IWorkbenchPage iWorkbenchPage : pages) {
-      }
-    }
   }
 }
