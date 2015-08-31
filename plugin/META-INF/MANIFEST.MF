@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: eosgi-eclipse-plugin
 Bundle-SymbolicName: org.everit.e4.eosgi.plugin;singleton:=true
-Bundle-Version: 0.0.1
+Bundle-Version: 0.0.2
 Bundle-Activator: org.everit.e4.eosgi.plugin.ui.Activator
 Require-Bundle: org.eclipse.ui,
  org.eclipse.core.runtime;bundle-version="3.4.0",
