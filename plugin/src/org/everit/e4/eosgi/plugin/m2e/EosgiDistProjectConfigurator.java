@@ -1,8 +1,5 @@
 package org.everit.e4.eosgi.plugin.m2e;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
 import org.apache.maven.plugin.MojoExecution;
 import org.apache.maven.project.MavenProject;
 import org.eclipse.core.resources.IProject;
@@ -14,6 +11,8 @@ import org.eclipse.m2e.core.project.IMavenProjectFacade;
 import org.eclipse.m2e.core.project.MavenProjectChangedEvent;
 import org.eclipse.m2e.core.project.configurator.AbstractBuildParticipant;
 import org.eclipse.m2e.core.project.configurator.AbstractProjectConfigurator;
+import org.eclipse.m2e.core.project.configurator.ILifecycleMappingConfiguration;
+import org.eclipse.m2e.core.project.configurator.MojoExecutionKey;
 import org.eclipse.m2e.core.project.configurator.ProjectConfigurationRequest;
 import org.eclipse.m2e.jdt.IClasspathDescriptor;
 import org.eclipse.m2e.jdt.IJavaProjectConfigurator;
@@ -27,12 +26,6 @@ import org.everit.e4.eosgi.plugin.util.ProjectNatureUtils;
  */
 public class EosgiDistProjectConfigurator extends AbstractProjectConfigurator
     implements IJavaProjectConfigurator {
-
-  /**
-   * Logger.
-   */
-  private static final Logger LOGGER = Logger
-      .getLogger(EosgiDistProjectConfigurator.class.getName());
 
   private void addEosgiNature(final IProgressMonitor monitor, final IProject project)
       throws CoreException {
@@ -55,7 +48,7 @@ public class EosgiDistProjectConfigurator extends AbstractProjectConfigurator
 
     addEosgiNature(monitor, project);
 
-    LOGGER.log(Level.INFO, project.getName() + " configured as EOSGI dist project.");
+    Activator.getDefault().info(project.getName() + " configured as EOSGI dist project.");
   }
 
   @Override
@@ -74,10 +67,7 @@ public class EosgiDistProjectConfigurator extends AbstractProjectConfigurator
   public AbstractBuildParticipant getBuildParticipant(final IMavenProjectFacade projectFacade,
       final MojoExecution execution,
       final IPluginExecutionMetadata executionMetadata) {
-    // IProject project = projectFacade.getProject();
-    // processEnvironments(execution, project);
-    // String executionId = execution.getExecutionId();
-    return new EosgiDistBuildParticipant(execution, false, false);
+    return new EosgiDistBuildParticipant(execution, true, true);
   }
 
   @Override
@@ -87,15 +77,29 @@ public class EosgiDistProjectConfigurator extends AbstractProjectConfigurator
   }
 
   @Override
+  public boolean hasConfigurationChanged(IMavenProjectFacade newFacade,
+      ILifecycleMappingConfiguration oldProjectConfiguration, MojoExecutionKey key,
+      IProgressMonitor monitor) {
+    // TODO Auto-generated method stub
+    return super.hasConfigurationChanged(newFacade, oldProjectConfiguration, key, monitor);
+  }
+
+  @Override
   public void mavenProjectChanged(final MavenProjectChangedEvent event,
       final IProgressMonitor monitor)
           throws CoreException {
-    MavenProject mavenProject = event.getMavenProject().getMavenProject();
-    IProject project = event.getMavenProject().getProject();
+    IMavenProjectFacade mavenProjectFacade = event.getMavenProject();
+    MavenProject mavenProject = null;
+
+    IProject project = null;
+    if (mavenProjectFacade != null) {
+      mavenProject = mavenProjectFacade.getMavenProject();
+      project = event.getMavenProject().getProject();
+    }
 
     if (project != null || mavenProject != null) {
       EosgiManager eosgiManager = Activator.getDefault().getEosgiManager();
-      eosgiManager.refreshProject(project, mavenProject);
+      eosgiManager.refreshProject(project, mavenProject, monitor);
     }
 
     super.mavenProjectChanged(event, monitor);

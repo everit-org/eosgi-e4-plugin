@@ -1,5 +1,7 @@
 package org.everit.e4.eosgi.plugin.ui.navigator.nodes;
 
+import java.util.Arrays;
+
 import org.eclipse.core.resources.IProject;
 
 public class ManifestNode extends AbstractNode {
@@ -25,6 +27,13 @@ public class ManifestNode extends AbstractNode {
   @Override
   public String getText() {
     return getName() + getLabel();
+  }
+
+  @Override
+  public String toString() {
+    return "ManifestNode [project=" + project + ", children=" + Arrays.toString(children)
+        + ", icon=" + icon + ", label=" + label + ", name=" + name + ", outdated=" + outdated
+        + ", value=" + value + "]";
   }
 
 }

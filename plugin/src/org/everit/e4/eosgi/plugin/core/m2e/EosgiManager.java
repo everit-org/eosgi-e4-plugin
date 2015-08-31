@@ -5,7 +5,7 @@ import java.util.List;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.eclipse.core.resources.IProject;
-import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IProgressMonitor;
 
 /**
  * Manage IProject , MavenProject connections and store eosgi dist informations.
@@ -20,14 +20,12 @@ public interface EosgiManager {
 
   void generateDistFor(final IProject project, final String environmentId);
 
-  void init(IProject[] projects) throws CoreException;
+  void refreshProject(IProject project, MavenProject mavenProject, IProgressMonitor monitor);
 
-  void refreshProject(IProject project, MavenProject mavenProject);
-
-  void registerProject(IProject project);
+  void registerProject(IProject project, IProgressMonitor monitor);
 
   void removeModelChangeListener(EosgiModelChangeListener listener);
 
-  void updateEnvironments(IProject project, Xpp3Dom configuration);
+  void updateEnvironments(IProject project, Xpp3Dom configuration, IProgressMonitor monitor);
 
 }

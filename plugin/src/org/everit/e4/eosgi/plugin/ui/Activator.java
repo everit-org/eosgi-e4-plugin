@@ -2,14 +2,18 @@ package org.everit.e4.eosgi.plugin.ui;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.everit.e4.eosgi.plugin.core.dist.DefaultDistManager;
 import org.everit.e4.eosgi.plugin.core.dist.DistManager;
 import org.everit.e4.eosgi.plugin.core.m2e.DefaultEosgiManager;
 import org.everit.e4.eosgi.plugin.core.m2e.EosgiManager;
+import org.everit.e4.eosgi.plugin.ui.nature.EosgiNature;
 import org.osgi.framework.BundleContext;
 
 public class Activator extends AbstractUIPlugin {
@@ -55,8 +59,27 @@ public class Activator extends AbstractUIPlugin {
     plugin = this;
     distManager = new DefaultDistManager();
     eosgiManager = new DefaultEosgiManager();
-    IProject[] projects = ResourcesPlugin.getWorkspace().getRoot().getProjects();
-    eosgiManager.init(projects);
+
+    Job job = new Job("Initializing EOSGI manager") {
+      @Override
+      protected IStatus run(final IProgressMonitor monitor) {
+        IProject[] projects = ResourcesPlugin.getWorkspace().getRoot().getProjects();
+        monitor.beginTask("Register projects for EOSGI manager...", projects.length);
+        int i = 1;
+        for (IProject project : projects) {
+          try {
+            if (project.isOpen() && project.hasNature(EosgiNature.NATURE_ID)) {
+              eosgiManager.registerProject(project, monitor);
+            }
+          } catch (CoreException e) {
+            Activator.getDefault().error(e.getMessage());
+          }
+          monitor.worked(i++);
+        }
+        return Status.OK_STATUS;
+      }
+    };
+    job.schedule();
   }
 
   @Override

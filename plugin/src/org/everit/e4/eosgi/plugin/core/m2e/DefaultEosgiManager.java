@@ -86,10 +86,13 @@ public class DefaultEosgiManager
   }
 
   private void addProjectWithRelevantId(final IProject project, final String relevantId) {
-    ProjectDescriptor projectDescriptor = null;
-    projectDescriptor = projectMap.getOrDefault(project, new ProjectDescriptor());
-    projectDescriptor.addProjectId(relevantId);
-    projectMap.put(project, projectDescriptor);
+    ProjectDescriptor projectDescriptor = projectMap.get(project);
+    if (projectDescriptor != null) {
+      projectDescriptor.addProjectId(relevantId);
+      projectMap.put(project, projectDescriptor);
+    } else {
+      Activator.getDefault().error("Update project with relevant project failed");
+    }
   }
 
   @Override
@@ -104,9 +107,7 @@ public class DefaultEosgiManager
           IProject bundleProject = projectIdMap.get(id);
           ProjectDescriptor bundleDescripor = projectMap.get(bundleProject);
           String mavenInfo = bundleDescripor.mavenInfo();
-          if (mavenInfo != null) {
-            bundleIdList.add(mavenInfo);
-          }
+          bundleIdList.add(mavenInfo);
         }
       }
     }
@@ -135,7 +136,7 @@ public class DefaultEosgiManager
     return depMavenProjectFacade;
   }
 
-  private MavenProject findMavenProjectFor(final IProject project) {
+  private MavenProject findMavenProjectFor(final IProject project, final IProgressMonitor monitor) {
     MavenProject mavenProject = null;
 
     IMavenProjectFacade mavenProjectFacade = projectRegistry.getProject(project);
@@ -144,7 +145,16 @@ public class DefaultEosgiManager
       return mavenProject;
     }
 
-    mavenProject = mavenProjectFacade.getMavenProject();
+    if (monitor != null) {
+      try {
+        mavenProject = mavenProjectFacade.getMavenProject(monitor);
+      } catch (CoreException e) {
+        e.printStackTrace();
+      }
+    } else {
+      mavenProject = mavenProjectFacade.getMavenProject();
+    }
+
     if (mavenProject == null) {
       Activator.getDefault().error("Not found MavenProject for project: " + project.getName());
       return mavenProject;
@@ -177,15 +187,6 @@ public class DefaultEosgiManager
 
   private boolean hasProject(final IProject project) {
     return projectMap.containsKey(project);
-  }
-
-  @Override
-  public void init(final IProject[] projects) throws CoreException {
-    for (IProject project : projects) {
-      if (project.isOpen() && project.hasNature(EosgiNature.NATURE_ID)) {
-        registerProject(project);
-      }
-    }
   }
 
   @Override
@@ -229,7 +230,7 @@ public class DefaultEosgiManager
     }
 
     if (project == null || mavenProject == null) {
-      Activator.getDefault().error("Mavan project update: null project");
+      Activator.getDefault().error("Maven project update: null project");
       return;
     }
 
@@ -239,24 +240,25 @@ public class DefaultEosgiManager
       }
     } else {
       if (hasProject(project)) {
-        updateProject(project, mavenProject);
+        updateProject(project, mavenProject, monitor);
       } else {
-        registerProject(project);
+        registerProject(project, monitor);
       }
     }
   }
 
   @Override
-  public void refreshProject(final IProject project, final MavenProject mavenProject) {
+  public void refreshProject(final IProject project, final MavenProject mavenProject,
+      final IProgressMonitor monitor) {
     if (hasProject(project)) {
-      updateProject(project, mavenProject);
+      updateProject(project, mavenProject, monitor);
     } else {
-      registerProject(project);
+      registerProject(project, monitor);
     }
   }
 
   @Override
-  public void registerProject(final IProject project) {
+  public void registerProject(final IProject project, final IProgressMonitor monitor) {
     Objects.requireNonNull(project, "project cannot be null");
     if (hasProject(project)) {
       LOGGER.log(Level.WARNING, project.getName() + " already registered");
@@ -270,16 +272,17 @@ public class DefaultEosgiManager
       LOGGER.log(Level.WARNING, "check project nature", e);
     }
 
-    MavenProject mavenProject = findMavenProjectFor(project);
+    MavenProject mavenProject = findMavenProjectFor(project, monitor);
     if (distProject) {
       projectMap.put(project, new ProjectDescriptor(true));
     } else {
       projectMap.put(project, new ProjectDescriptor());
     }
+
     if (mavenProject == null) {
       LOGGER.log(Level.INFO, "No maven project found for " + project.getName() + ". Skipped.");
     } else {
-      updateProject(project, mavenProject);
+      updateProject(project, mavenProject, monitor);
     }
   }
 
@@ -309,14 +312,14 @@ public class DefaultEosgiManager
   }
 
   private void updateBundleProject(final ProjectDescriptor projectDescriptor,
-      final MavenProject mavenProject) {
+      final MavenProject mavenProject, final IProgressMonitor monitor) {
     Objects.requireNonNull(projectDescriptor, "projectDescriptor cannot be null");
     projectDescriptor.setMavenInfo(mavenProject.getGroupId(), mavenProject.getArtifactId(),
         mavenProject.getVersion());
   }
 
   private void updateDistProject(final ProjectDescriptor projectDescriptor,
-      final MavenProject mavenProject) {
+      final MavenProject mavenProject, final IProgressMonitor monitor) {
     Objects.requireNonNull(projectDescriptor, "projectDescriptor cannot be null");
     String distProjectId = createProjectId(mavenProject);
     projectDescriptor.clearProjectIds();
@@ -333,6 +336,7 @@ public class DefaultEosgiManager
         if (relevantProject != null) {
           addProjectToIdMap(projectId, relevantProject);
           projectDescriptor.addProjectId(projectId);
+          registerProject(relevantProject, monitor);
           addProjectWithRelevantId(relevantProject, distProjectId);
         }
       }
@@ -340,7 +344,8 @@ public class DefaultEosgiManager
   }
 
   @Override
-  public void updateEnvironments(final IProject project, final Xpp3Dom configuration) {
+  public void updateEnvironments(final IProject project, final Xpp3Dom configuration,
+      final IProgressMonitor monitor) {
     Objects.requireNonNull(project, "project cannot be null");
 
     if (!hasProject(project)) {
@@ -372,16 +377,17 @@ public class DefaultEosgiManager
     }
   }
 
-  private void updateProject(final IProject project, final MavenProject mavenProject) {
+  private void updateProject(final IProject project, final MavenProject mavenProject,
+      final IProgressMonitor monitor) {
     Objects.requireNonNull(project, "project cannot be null");
     Objects.requireNonNull(mavenProject, "mavenProject cannot be null");
 
     ProjectDescriptor projectDescriptor = projectMap.get(project);
     if (projectDescriptor.isDistProject()) {
-      updateDistProject(projectDescriptor, mavenProject);
+      updateDistProject(projectDescriptor, mavenProject, monitor);
 
     } else {
-      updateBundleProject(projectDescriptor, mavenProject);
+      updateBundleProject(projectDescriptor, mavenProject, monitor);
     }
 
     notifyModelChange(project);

@@ -1,7 +1,6 @@
 package org.everit.e4.eosgi.plugin.m2e;
 
 import java.util.Set;
-import java.util.logging.Logger;
 
 import org.apache.maven.plugin.MojoExecution;
 import org.apache.maven.project.MavenProject;
@@ -19,8 +18,6 @@ import org.everit.e4.eosgi.plugin.ui.Activator;
  * MojoExecutionBuildParticipant implementation for eosgi-maven-plugin.
  */
 public class EosgiDistBuildParticipant extends MojoExecutionBuildParticipant {
-
-  private static final Logger LOGGER = Logger.getLogger(EosgiDistBuildParticipant.class.getName());
 
   public EosgiDistBuildParticipant(final MojoExecution execution,
       final boolean runOnIncremental) {
@@ -45,30 +42,21 @@ public class EosgiDistBuildParticipant extends MojoExecutionBuildParticipant {
       return null;
     }
 
-    MavenProject mavenProject = mavenProjectFacade.getMavenProject();
+    MavenProject mavenProject = mavenProjectFacade.getMavenProject(monitor);
     if (mavenProject == null) {
       return null;
     }
 
-    processConfiguration(project);
+    processConfiguration(project, monitor);
 
-    String projectName = project.getName();
-    Set<IProject> buildResult = null;
-
-    MojoExecution mojoExecution = getMojoExecution();
-    if (mojoExecution != null) {
-      String goal = mojoExecution.getGoal();
-      if (!"dist".equals(goal)) {
-        return super.build(kind, monitor);
-      }
-    }
-    // try {
-    // LOGGER.info(projectName + " - building...");
-    // buildResult = super.build(kind, monitor);
-    // } catch (Exception e) {
-    // LOGGER.warning("Dist creating failed!");
+    // MojoExecution mojoExecution = getMojoExecution();
+    // if (mojoExecution != null) {
+    // String goal = mojoExecution.getGoal();
+    // if (!"dist".equals(goal)) {
+    // return ;
     // }
-    return null;
+    // }
+    return super.build(kind, monitor);
   }
 
   @Override
@@ -81,13 +69,13 @@ public class EosgiDistBuildParticipant extends MojoExecutionBuildParticipant {
     return super.getDelta(project);
   }
 
-  private void processConfiguration(final IProject project) {
+  private void processConfiguration(final IProject project, final IProgressMonitor monitor) {
     if (getMojoExecution() != null && getMojoExecution().getConfiguration() != null) {
       Xpp3Dom configuration = getMojoExecution().getConfiguration();
       if (configuration != null) {
         EosgiManager eosgiManager = Activator.getDefault().getEosgiManager();
         if (eosgiManager != null) {
-          eosgiManager.updateEnvironments(project, configuration);
+          eosgiManager.updateEnvironments(project, configuration, monitor);
         }
       }
     }

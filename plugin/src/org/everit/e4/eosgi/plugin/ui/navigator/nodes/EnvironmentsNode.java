@@ -1,6 +1,7 @@
 package org.everit.e4.eosgi.plugin.ui.navigator.nodes;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.eclipse.core.resources.IProject;
@@ -69,4 +70,12 @@ public class EnvironmentsNode extends AbstractNode
       }
     }
   }
+
+  @Override
+  public String toString() {
+    return "EnvironmentsNode [project=" + project + ", children=" + Arrays.toString(children)
+        + ", icon=" + icon + ", label=" + label + ", name=" + name + ", outdated=" + outdated
+        + ", value=" + value + "]";
+  }
+
 }

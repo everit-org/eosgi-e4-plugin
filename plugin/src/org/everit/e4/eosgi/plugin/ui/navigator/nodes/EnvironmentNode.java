@@ -1,5 +1,7 @@
 package org.everit.e4.eosgi.plugin.ui.navigator.nodes;
 
+import java.util.Arrays;
+
 import org.everit.e4.eosgi.plugin.core.dist.DistStatus;
 import org.everit.e4.eosgi.plugin.core.dist.EnvironmentChangeListener;
 import org.everit.e4.eosgi.plugin.ui.Activator;
@@ -45,6 +47,13 @@ public class EnvironmentNode extends AbstractNode implements EnvironmentChangeLi
   @Override
   public String getText() {
     return getName() + getLabel();
+  }
+
+  @Override
+  public String toString() {
+    return "EnvironmentNode [distStatus=" + distStatus + ", environmentId=" + environmentId
+        + ", children=" + Arrays.toString(children) + ", icon=" + icon + ", label=" + label
+        + ", name=" + name + ", outdated=" + outdated + ", value=" + value + "]";
   }
 
 }

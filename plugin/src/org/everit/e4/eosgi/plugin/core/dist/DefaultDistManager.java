@@ -55,7 +55,7 @@ public class DefaultDistManager implements DistManager, DistChangeListener {
     return getDistRunner(project, environmentId) != null;
   }
 
-  private void notifyEnvironmentChange(String environmentId, DistStatus distStatus) {
+  private void notifyEnvironmentChange(final String environmentId, final DistStatus distStatus) {
     for (EnvironmentChangeListener listener : environmentChangeListeners) {
       listener.environmentChanged(environmentId, distStatus);
     }

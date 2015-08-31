@@ -1,6 +1,7 @@
 package org.everit.e4.eosgi.plugin.ui.navigator.nodes;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.eclipse.core.resources.IProject;
@@ -40,7 +41,7 @@ public class BundlesNode extends AbstractNode implements EosgiModelChangeListene
       outdated = false;
     }
     if (children == null || children.length == 0) {
-      setLabel(" (No relevant bundle project found.)");
+      setLabel(" (No relevant bundle project found)");
     } else {
       setLabel(null);
     }
@@ -69,11 +70,18 @@ public class BundlesNode extends AbstractNode implements EosgiModelChangeListene
   public void modelChanged(final Object object) {
     if (object instanceof IProject) {
       IProject proj = (IProject) object;
-      if (project.equals(proj) && getListener() != null) {
+      if (getListener() != null) {
         outdated = true;
         getListener().nodeChanged(new EosgiNodeChangeEvent(this));
       }
     }
+  }
+
+  @Override
+  public String toString() {
+    return "BundlesNode [project=" + project + ", children=" + Arrays.toString(children) + ", icon="
+        + icon + ", label=" + label + ", name=" + name + ", outdated=" + outdated + ", value="
+        + value + "]";
   }
 
 }
