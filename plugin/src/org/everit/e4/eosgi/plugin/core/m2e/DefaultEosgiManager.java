@@ -145,14 +145,11 @@ public class DefaultEosgiManager
       return mavenProject;
     }
 
-    if (monitor != null) {
-      try {
-        mavenProject = mavenProjectFacade.getMavenProject(monitor);
-      } catch (CoreException e) {
-        e.printStackTrace();
-      }
-    } else {
-      mavenProject = mavenProjectFacade.getMavenProject();
+    try {
+      mavenProject = mavenProjectFacade.getMavenProject(monitor);
+    } catch (CoreException e) {
+      Activator.getDefault()
+          .error("find  distribution for " + project.getName() + " - " + e.getMessage());
     }
 
     if (mavenProject == null) {
@@ -163,25 +160,44 @@ public class DefaultEosgiManager
   }
 
   @Override
-  public void generateDistFor(final IProject project, final String environmentId) {
+  public void generateDistFor(final IProject project, final String environmentId,
+      final IProgressMonitor monitor) {
+    Objects.requireNonNull(project, "project must be not null");
+    Objects.requireNonNull(environmentId, "environmentId must be not null");
+
+    monitor.setTaskName("Fetch maven infomation...");
+
     IMavenProjectFacade mavenProjectFacade = this.projectRegistry.getProject(project);
-    MavenProject mavenProject = mavenProjectFacade.getMavenProject();
+    MavenProject mavenProject = null;
+    try {
+      mavenProject = mavenProjectFacade.getMavenProject(monitor);
+    } catch (CoreException e) {
+      Activator.getDefault().error("creating distribution for " + project.getName() + "/"
+          + environmentId + " - " + e.getMessage());
+    }
+
+    if (mavenProject == null) {
+      return;
+    }
 
     MojoExecution execution = null;
     try {
+      monitor.setTaskName("Fetch execution infomation...");
       execution = mavenProjectFacade
           .getMojoExecution(new MojoExecutionKey("org.everit.osgi.dev", "eosgi-maven-plugin",
-              "3.2.2-SNAPSHOT", "dist", "deploy", "dist"), null);
+              "3.2.2-SNAPSHOT", "dist", "deploy", "dist"), monitor);
 
       MojoDescriptor mojoDescriptor = execution.getMojoDescriptor();
       mojoDescriptor.getParameterMap().get("environmentId").setDefaultValue(environmentId);
 
-      maven.execute(mavenProject, execution, null);
+      monitor.setTaskName("create distribution...");
+      maven.execute(mavenProject, execution, monitor);
 
       DistManager distManager = Activator.getDefault().getDistManager();
       distManager.distStartable(project, environmentId);
     } catch (CoreException e) {
-      e.printStackTrace();
+      Activator.getDefault().error("creating distribution for " + project.getName() + "/"
+          + environmentId + " - " + e.getMessage());
     }
   }
 

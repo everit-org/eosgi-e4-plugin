@@ -18,7 +18,8 @@ public interface EosgiManager {
 
   List<String> fetchEnvironmentsBy(IProject project);
 
-  void generateDistFor(final IProject project, final String environmentId);
+  void generateDistFor(final IProject project, final String environmentId,
+      IProgressMonitor monitor);
 
   void refreshProject(IProject project, MavenProject mavenProject, IProgressMonitor monitor);
 

@@ -65,7 +65,7 @@ public class Activator extends AbstractUIPlugin {
       protected IStatus run(final IProgressMonitor monitor) {
         IProject[] projects = ResourcesPlugin.getWorkspace().getRoot().getProjects();
         monitor.beginTask("Register projects for EOSGI manager...", projects.length);
-        int i = 1;
+        int i = 0;
         for (IProject project : projects) {
           try {
             if (project.isOpen() && project.hasNature(EosgiNature.NATURE_ID)) {
@@ -74,11 +74,13 @@ public class Activator extends AbstractUIPlugin {
           } catch (CoreException e) {
             Activator.getDefault().error(e.getMessage());
           }
-          monitor.worked(i++);
+          monitor.worked(++i);
         }
+        monitor.done();
         return Status.OK_STATUS;
       }
     };
+    job.setPriority(Job.BUILD);
     job.schedule();
   }
 

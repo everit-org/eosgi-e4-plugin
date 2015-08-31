@@ -2,6 +2,7 @@ package org.everit.e4.eosgi.plugin.m2e;
 
 import org.apache.maven.plugin.MojoExecution;
 import org.apache.maven.project.MavenProject;
+import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IProjectDescription;
 import org.eclipse.core.runtime.CoreException;
@@ -77,10 +78,24 @@ public class EosgiDistProjectConfigurator extends AbstractProjectConfigurator
   }
 
   @Override
-  public boolean hasConfigurationChanged(IMavenProjectFacade newFacade,
-      ILifecycleMappingConfiguration oldProjectConfiguration, MojoExecutionKey key,
-      IProgressMonitor monitor) {
-    // TODO Auto-generated method stub
+  public boolean hasConfigurationChanged(final IMavenProjectFacade newFacade,
+      final ILifecycleMappingConfiguration oldProjectConfiguration, final MojoExecutionKey key,
+      final IProgressMonitor monitor) {
+    if (newFacade != null) {
+      monitor.subTask("Update configuration");
+      try {
+        IProject project = newFacade.getProject();
+        MojoExecution mojoExecution = newFacade.getMojoExecution(key, monitor);
+        Xpp3Dom configuration = mojoExecution.getConfiguration();
+        if (project != null && configuration != null) {
+          EosgiManager eosgiManager = Activator.getDefault().getEosgiManager();
+          eosgiManager.updateEnvironments(project, configuration, monitor);
+        }
+      } catch (CoreException e) {
+        Activator.getDefault()
+            .error("Configuration change handling failed for project: " + e.getMessage());
+      }
+    }
     return super.hasConfigurationChanged(newFacade, oldProjectConfiguration, key, monitor);
   }
 

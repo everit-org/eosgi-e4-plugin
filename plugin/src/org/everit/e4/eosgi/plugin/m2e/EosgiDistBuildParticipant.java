@@ -56,7 +56,8 @@ public class EosgiDistBuildParticipant extends MojoExecutionBuildParticipant {
     // return ;
     // }
     // }
-    return super.build(kind, monitor);
+    // return super.build(kind, monitor);
+    return null;
   }
 
   @Override
@@ -71,6 +72,7 @@ public class EosgiDistBuildParticipant extends MojoExecutionBuildParticipant {
 
   private void processConfiguration(final IProject project, final IProgressMonitor monitor) {
     if (getMojoExecution() != null && getMojoExecution().getConfiguration() != null) {
+      monitor.subTask("Process dist configuration for project (" + project.getName() + ")");
       Xpp3Dom configuration = getMojoExecution().getConfiguration();
       if (configuration != null) {
         EosgiManager eosgiManager = Activator.getDefault().getEosgiManager();

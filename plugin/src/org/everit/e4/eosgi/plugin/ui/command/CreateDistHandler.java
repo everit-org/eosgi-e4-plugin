@@ -4,6 +4,10 @@ import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.core.commands.IHandler;
 import org.eclipse.core.commands.IHandlerListener;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.TreeSelection;
 import org.eclipse.ui.handlers.HandlerUtil;
@@ -39,7 +43,18 @@ public class CreateDistHandler extends AbstractDistHandler implements IHandler {
 
     if (project != null && environmentName != null) {
       LOGGER.info(project + ", " + environmentName + " dist generate");
-      Activator.getDefault().getEosgiManager().generateDistFor(project, environmentName);
+      Job job = new Job(
+          "EOSGI plugin: create distribution for " + project.getName() + "/" + environmentName) {
+
+        @Override
+        protected IStatus run(final IProgressMonitor monitor) {
+          Activator.getDefault().getEosgiManager().generateDistFor(project, environmentName,
+              monitor);
+          return Status.OK_STATUS;
+        }
+      };
+      job.setPriority(Job.SHORT);
+      job.schedule();
     }
 
     return null;
