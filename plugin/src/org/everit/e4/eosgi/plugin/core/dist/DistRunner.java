@@ -5,11 +5,11 @@ package org.everit.e4.eosgi.plugin.core.dist;
  */
 public interface DistRunner {
 
-  boolean isStartable();
+  boolean isCreated();
 
   void start();
 
-  void startable();
+  void setCreatedStatus(boolean createdStatus);
 
   void stop();
 }

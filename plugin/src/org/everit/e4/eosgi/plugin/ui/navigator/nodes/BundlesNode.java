@@ -69,7 +69,6 @@ public class BundlesNode extends AbstractNode implements EosgiModelChangeListene
   @Override
   public void modelChanged(final Object object) {
     if (object instanceof IProject) {
-      IProject proj = (IProject) object;
       if (getListener() != null) {
         outdated = true;
         getListener().nodeChanged(new EosgiNodeChangeEvent(this));

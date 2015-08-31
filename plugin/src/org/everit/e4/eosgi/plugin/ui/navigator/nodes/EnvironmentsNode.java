@@ -11,11 +11,20 @@ import org.everit.e4.eosgi.plugin.ui.Activator;
 import org.everit.e4.eosgi.plugin.ui.navigator.EosgiNodeChangeEvent;
 import org.everit.e4.eosgi.plugin.ui.navigator.EosgiNodeChangeListener;
 
+/**
+ * Project explorer node for show environments.
+ */
 public class EnvironmentsNode extends AbstractNode
     implements EosgiModelChangeListener {
 
   private IProject project;
 
+  /**
+   * Constructor.
+   * 
+   * @param project
+   * @param listener
+   */
   public EnvironmentsNode(final IProject project, final EosgiNodeChangeListener listener) {
     this.project = project;
     setListener(listener);

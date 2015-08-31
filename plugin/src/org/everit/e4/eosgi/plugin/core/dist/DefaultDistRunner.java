@@ -8,13 +8,13 @@ import org.everit.e4.eosgi.plugin.util.DistUtils;
 
 public class DefaultDistRunner implements DistRunner {
 
+  private boolean created;
+
   private DistTask distTask;
 
   private String environmentId;
 
   private IProject project;
-
-  private boolean startable;
 
   private DistChangeListener statusListener;
 
@@ -40,8 +40,13 @@ public class DefaultDistRunner implements DistRunner {
   }
 
   @Override
-  public boolean isStartable() {
-    return startable;
+  public boolean isCreated() {
+    return created;
+  }
+
+  @Override
+  public void setCreatedStatus(boolean createdStatus) {
+    this.created = createdStatus;
   }
 
   @Override
@@ -49,11 +54,6 @@ public class DefaultDistRunner implements DistRunner {
     statusListener.distStatusChanged(DistStatus.STARTING, project, environmentId);
     new Thread(distTask).start();
     statusListener.distStatusChanged(DistStatus.RUNNING, project, environmentId);
-  }
-
-  @Override
-  public void startable() {
-    this.startable = true;
   }
 
   @Override

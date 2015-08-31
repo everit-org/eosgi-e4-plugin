@@ -206,7 +206,7 @@ public class DefaultEosgiManager
       maven.execute(mavenProject, execution, monitor);
 
       DistManager distManager = Activator.getDefault().getDistManager();
-      distManager.distStartable(project, environmentId);
+      distManager.updateDistStatus(project, environmentId);
     } catch (CoreException e) {
       Activator.getDefault().error("creating distribution for " + project.getName() + "/"
           + environmentId + " - " + e.getMessage());

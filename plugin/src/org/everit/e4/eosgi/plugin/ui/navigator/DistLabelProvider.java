@@ -63,7 +63,7 @@ public class DistLabelProvider extends LabelProvider implements ILabelProvider,
             StyledString.DECORATIONS_STYLER);
       } else if (node.getValue() != null) {
         int startPos = node.getName().length();
-        int length = node.getLabel().length();
+        int length = node.getValue().length();
         length = Math.min(length, text.length());
         styledString.setStyle(startPos, length,
             StyledString.QUALIFIER_STYLER);

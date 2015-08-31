@@ -6,13 +6,13 @@ public interface DistManager {
 
   void addEnvironmentChangeListener(EnvironmentChangeListener listener);
 
-  void distStartable(IProject project, String environmentId);
+  void updateDistStatus(IProject project, String environmentId);
 
   boolean hasDist(IProject project, String environmentId);
 
   void registerDist(IProject project, String environmentId, String buildDirectory);
 
-  boolean startable(IProject project, String environmentId);
+  boolean isCreated(IProject project, String environmentId);
 
   void startDist(IProject project, String environmentId);
 

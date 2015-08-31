@@ -8,6 +8,9 @@ import java.util.Set;
 
 import org.eclipse.core.resources.IProject;
 
+/**
+ * Default implementation for {@link DistManager} interface.
+ */
 public class DefaultDistManager implements DistManager, DistChangeListener {
 
   private Map<IProject, Map<String, DistRunner>> distMap;
@@ -23,17 +26,6 @@ public class DefaultDistManager implements DistManager, DistChangeListener {
   @Override
   public void addEnvironmentChangeListener(final EnvironmentChangeListener listener) {
     this.environmentChangeListeners.add(listener);
-  }
-
-  @Override
-  public void distStartable(IProject project, String environmentId) {
-    Objects.requireNonNull(project, "project cannot be null");
-    Objects.requireNonNull(environmentId, "environment cannot be null");
-
-    DistRunner distRunner = getDistRunner(project, environmentId);
-    if (distRunner != null) {
-      distRunner.startable();
-    }
   }
 
   @Override
@@ -53,6 +45,15 @@ public class DefaultDistManager implements DistManager, DistChangeListener {
   @Override
   public boolean hasDist(final IProject project, final String environmentId) {
     return getDistRunner(project, environmentId) != null;
+  }
+
+  @Override
+  public boolean isCreated(final IProject project, final String environmentId) {
+    if (!hasDist(project, environmentId)) {
+      return false;
+    }
+    DistRunner distRunner = getDistRunner(project, environmentId);
+    return distRunner != null && distRunner.isCreated();
   }
 
   private void notifyEnvironmentChange(final String environmentId, final DistStatus distStatus) {
@@ -82,21 +83,12 @@ public class DefaultDistManager implements DistManager, DistChangeListener {
   }
 
   @Override
-  public boolean startable(final IProject project, final String environmentId) {
-    if (!hasDist(project, environmentId)) {
-      return false;
-    }
-    DistRunner distRunner = getDistRunner(project, environmentId);
-    return distRunner != null && distRunner.isStartable();
-  }
-
-  @Override
   public void startDist(final IProject project, final String environmentId) {
     Objects.requireNonNull(project, "project cannot be null");
     Objects.requireNonNull(environmentId, "environment cannot be null");
 
     DistRunner distRunner = getDistRunner(project, environmentId);
-    if (distRunner != null && distRunner.isStartable()) {
+    if (distRunner != null && distRunner.isCreated()) {
       distRunner.start();
     }
   }
@@ -109,6 +101,18 @@ public class DefaultDistManager implements DistManager, DistChangeListener {
     DistRunner distRunner = getDistRunner(project, environmentId);
     if (distRunner != null) {
       distRunner.stop();
+    }
+  }
+
+  @Override
+  public void updateDistStatus(final IProject project, final String environmentId) {
+    Objects.requireNonNull(project, "project cannot be null");
+    Objects.requireNonNull(environmentId, "environment cannot be null");
+
+    DistRunner distRunner = getDistRunner(project, environmentId);
+    if (distRunner != null) {
+      distRunner.setCreatedStatus(true);
+      notifyEnvironmentChange(environmentId, DistStatus.STOPPED);
     }
   }
 

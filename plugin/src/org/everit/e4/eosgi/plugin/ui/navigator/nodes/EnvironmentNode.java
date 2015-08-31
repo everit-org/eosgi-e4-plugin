@@ -8,28 +8,38 @@ import org.everit.e4.eosgi.plugin.ui.Activator;
 import org.everit.e4.eosgi.plugin.ui.navigator.EosgiNodeChangeEvent;
 import org.everit.e4.eosgi.plugin.ui.navigator.EosgiNodeChangeListener;
 
+/**
+ * Project explorer node for show environment.
+ */
 public class EnvironmentNode extends AbstractNode implements EnvironmentChangeListener {
 
-  private DistStatus distStatus = DistStatus.STOPPED;
+  private DistStatus distStatus = DistStatus.NONE;
 
   private String environmentId;
 
-  public EnvironmentNode(String environmentId, final EosgiNodeChangeListener listener) {
+  /**
+   * Constructor.
+   * 
+   * @param environmentId
+   *          id of the environment.
+   * @param listener
+   *          listener for model changes.
+   */
+  public EnvironmentNode(final String environmentId, final EosgiNodeChangeListener listener) {
     super();
     this.environmentId = environmentId;
     setListener(listener);
     setName(environmentId);
-    setLabel(" (" + distStatus.name() + ")");
+    setValue(getDistStatusString());
     Activator.getDefault().getDistManager().addEnvironmentChangeListener(this);
   }
 
   @Override
   public void environmentChanged(final String environmentId, final DistStatus distStatus) {
     if (this.environmentId.equals(environmentId)) {
-
       this.distStatus = distStatus;
       setName(environmentId);
-      setLabel(" (" + distStatus.name() + ")");
+      setValue(getDistStatusString());
       getListener().nodeChanged(new EosgiNodeChangeEvent(this));
     }
   }
@@ -39,6 +49,14 @@ public class EnvironmentNode extends AbstractNode implements EnvironmentChangeLi
     return null;
   }
 
+  public DistStatus getDistStatus() {
+    return distStatus;
+  }
+
+  public String getDistStatusString() {
+    return " " + distStatus.name().toLowerCase();
+  }
+
   @Override
   public String getIcon() {
     return "icons/ExecutionEnvironment.gif";
@@ -46,7 +64,7 @@ public class EnvironmentNode extends AbstractNode implements EnvironmentChangeLi
 
   @Override
   public String getText() {
-    return getName() + getLabel();
+    return getName() + getValue();
   }
 
   @Override

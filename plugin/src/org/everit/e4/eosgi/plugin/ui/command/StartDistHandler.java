@@ -72,7 +72,7 @@ public class StartDistHandler extends AbstractDistHandler implements IHandler {
     if (project != null && environmentName != null) {
       LOGGER.info("start environment: " + environmentName);
       DistManager distManager = Activator.getDefault().getDistManager();
-      if (distManager.startable(project, environmentName)) {
+      if (distManager.isCreated(project, environmentName)) {
         distManager.startDist(project, environmentName);
       }
 
