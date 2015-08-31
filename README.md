@@ -15,7 +15,7 @@ Soon...
 $ git clone https://github.com/zsdoma/eosgi-e4-plugin.git
 $ cd eosgi-e4-plugin
 $ mvn clean install
-$ cp plugin/target/org.everit.e4.eosgi.plugin-0.0.1-SNAPSHOT.jar \
+$ cp plugin/target/org.everit.e4.eosgi.plugin-0.0.2.jar \
 <your-eclipse-path>/dropins
 ```
 
