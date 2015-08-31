@@ -26,7 +26,6 @@ import org.eclipse.m2e.core.project.IMavenProjectChangedListener;
 import org.eclipse.m2e.core.project.IMavenProjectFacade;
 import org.eclipse.m2e.core.project.IMavenProjectRegistry;
 import org.eclipse.m2e.core.project.MavenProjectChangedEvent;
-import org.eclipse.m2e.core.project.configurator.MojoExecutionKey;
 import org.everit.e4.eosgi.plugin.core.dist.DistManager;
 import org.everit.e4.eosgi.plugin.m2e.model.Environment;
 import org.everit.e4.eosgi.plugin.m2e.model.Environments;
@@ -40,6 +39,12 @@ import org.everit.e4.eosgi.plugin.ui.nature.EosgiNature;
 public class DefaultEosgiManager
     implements EosgiManager, IMavenConfigurationChangeListener,
     IMavenProjectChangedListener {
+
+  private static final String DIST_GOAL = "dist";
+
+  private static final String EOSGI_MAVEN_PLUGIN_ARTIFACT_ID = "eosgi-maven-plugin";
+
+  private static final String EOSGI_MAVEN_PLUGIN_GROUP_ID = "org.everit.osgi.dev";
 
   private static final Logger LOGGER = Logger.getLogger(DefaultEosgiManager.class.getName());
 
@@ -183,9 +188,16 @@ public class DefaultEosgiManager
     MojoExecution execution = null;
     try {
       monitor.setTaskName("Fetch execution infomation...");
-      execution = mavenProjectFacade
-          .getMojoExecution(new MojoExecutionKey("org.everit.osgi.dev", "eosgi-maven-plugin",
-              "3.2.2-SNAPSHOT", "dist", "deploy", "dist"), monitor);
+      List<MojoExecution> mojoExecutions = mavenProjectFacade
+          .getMojoExecutions(EOSGI_MAVEN_PLUGIN_GROUP_ID, EOSGI_MAVEN_PLUGIN_ARTIFACT_ID, monitor,
+              DIST_GOAL);
+      if (mojoExecutions.isEmpty()) {
+        return;
+      }
+      execution = mojoExecutions.get(0);
+      // execution = mavenProjectFacade
+      // .getMojoExecution(new MojoExecutionKey("org.everit.osgi.dev", "eosgi-maven-plugin",
+      // "3.2.2-SNAPSHOT", "dist", "deploy", "dist"), monitor);
 
       MojoDescriptor mojoDescriptor = execution.getMojoDescriptor();
       mojoDescriptor.getParameterMap().get("environmentId").setDefaultValue(environmentId);
