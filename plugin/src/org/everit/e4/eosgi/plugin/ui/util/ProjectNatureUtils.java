@@ -1,4 +1,4 @@
-package org.everit.e4.eosgi.plugin.util;
+package org.everit.e4.eosgi.plugin.ui.util;
 
 /**
  * Util functions for manage project natures.

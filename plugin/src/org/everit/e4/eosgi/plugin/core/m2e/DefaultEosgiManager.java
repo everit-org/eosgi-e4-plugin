@@ -26,9 +26,9 @@ import org.eclipse.m2e.core.project.IMavenProjectFacade;
 import org.eclipse.m2e.core.project.IMavenProjectRegistry;
 import org.eclipse.m2e.core.project.MavenProjectChangedEvent;
 import org.everit.e4.eosgi.plugin.core.dist.DistManager;
-import org.everit.e4.eosgi.plugin.m2e.model.Environment;
-import org.everit.e4.eosgi.plugin.m2e.model.Environments;
-import org.everit.e4.eosgi.plugin.m2e.xml.ConfiguratorParser;
+import org.everit.e4.eosgi.plugin.core.m2e.model.Environment;
+import org.everit.e4.eosgi.plugin.core.m2e.model.Environments;
+import org.everit.e4.eosgi.plugin.core.m2e.xml.ConfiguratorParser;
 import org.everit.e4.eosgi.plugin.ui.Activator;
 import org.everit.e4.eosgi.plugin.ui.nature.EosgiNature;
 

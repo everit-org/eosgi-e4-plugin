@@ -1,4 +1,4 @@
-package org.everit.e4.eosgi.plugin.dist.gogo;
+package org.everit.e4.eosgi.plugin.core.dist.gogo;
 
 import java.io.BufferedReader;
 import java.io.IOException;

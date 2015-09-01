@@ -4,7 +4,7 @@ import java.util.Objects;
 
 import org.eclipse.core.resources.IProject;
 import org.everit.e4.eosgi.plugin.core.dist.DistTask.DistStoppedCallback;
-import org.everit.e4.eosgi.plugin.util.DistUtils;
+import org.everit.e4.eosgi.plugin.core.util.DistUtils;
 
 public class DefaultDistRunner implements DistRunner {
 

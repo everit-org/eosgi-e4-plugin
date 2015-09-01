@@ -8,7 +8,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
-import org.everit.e4.eosgi.plugin.m2e.model.Environment;
+import org.everit.e4.eosgi.plugin.core.m2e.model.Environment;
 
 public class ProjectDescriptor {
   private String artifactId;

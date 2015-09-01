@@ -93,7 +93,7 @@
     <extension
         point="org.eclipse.m2e.core.projectConfigurators">
         <configurator
-            class="org.everit.e4.eosgi.plugin.m2e.EosgiDistProjectConfigurator"
+            class="org.everit.e4.eosgi.plugin.core.m2e.EosgiDistProjectConfigurator"
             id="org.everit.e4.eosgi.plugin.m2e.eosgiDistProjectConfigurator"
             name="Project configurator for EOSGI dist projects.">
         </configurator>

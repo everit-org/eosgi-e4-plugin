@@ -1,4 +1,4 @@
-package org.everit.e4.eosgi.plugin.m2e.model;
+package org.everit.e4.eosgi.plugin.core.m2e.model;
 
 import java.util.List;
 import java.util.Map;

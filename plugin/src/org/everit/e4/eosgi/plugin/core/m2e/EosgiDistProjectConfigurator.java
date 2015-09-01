@@ -1,4 +1,4 @@
-package org.everit.e4.eosgi.plugin.m2e;
+package org.everit.e4.eosgi.plugin.core.m2e;
 
 import org.apache.maven.plugin.MojoExecution;
 import org.apache.maven.project.MavenProject;
@@ -17,10 +17,9 @@ import org.eclipse.m2e.core.project.configurator.MojoExecutionKey;
 import org.eclipse.m2e.core.project.configurator.ProjectConfigurationRequest;
 import org.eclipse.m2e.jdt.IClasspathDescriptor;
 import org.eclipse.m2e.jdt.IJavaProjectConfigurator;
-import org.everit.e4.eosgi.plugin.core.m2e.EosgiManager;
 import org.everit.e4.eosgi.plugin.ui.Activator;
 import org.everit.e4.eosgi.plugin.ui.nature.EosgiNature;
-import org.everit.e4.eosgi.plugin.util.ProjectNatureUtils;
+import org.everit.e4.eosgi.plugin.ui.util.ProjectNatureUtils;
 
 /**
  * Project configurator for EOSGI projects.

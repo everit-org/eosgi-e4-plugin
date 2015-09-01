@@ -1,4 +1,4 @@
-package org.everit.e4.eosgi.plugin.m2e.xml;
+package org.everit.e4.eosgi.plugin.core.m2e.xml;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -6,10 +6,10 @@ import java.util.List;
 import java.util.Map;
 
 import org.codehaus.plexus.util.xml.Xpp3Dom;
-import org.everit.e4.eosgi.plugin.m2e.model.Bundle;
-import org.everit.e4.eosgi.plugin.m2e.model.BundleSettings;
-import org.everit.e4.eosgi.plugin.m2e.model.Environment;
-import org.everit.e4.eosgi.plugin.m2e.model.Environments;
+import org.everit.e4.eosgi.plugin.core.m2e.model.Bundle;
+import org.everit.e4.eosgi.plugin.core.m2e.model.BundleSettings;
+import org.everit.e4.eosgi.plugin.core.m2e.model.Environment;
+import org.everit.e4.eosgi.plugin.core.m2e.model.Environments;
 
 public class ConfiguratorParser {
 

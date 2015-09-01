@@ -1,4 +1,4 @@
-package org.everit.e4.eosgi.plugin.m2e;
+package org.everit.e4.eosgi.plugin.core.m2e;
 
 import java.util.Set;
 
@@ -10,7 +10,6 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.m2e.core.project.IMavenProjectFacade;
 import org.eclipse.m2e.core.project.configurator.MojoExecutionBuildParticipant;
-import org.everit.e4.eosgi.plugin.core.m2e.EosgiManager;
 import org.everit.e4.eosgi.plugin.ui.Activator;
 
 /**

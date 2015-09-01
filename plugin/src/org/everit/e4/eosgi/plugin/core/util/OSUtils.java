@@ -1,4 +1,4 @@
-package org.everit.e4.eosgi.plugin.util;
+package org.everit.e4.eosgi.plugin.core.util;
 
 /**
  * Utility method for OS specific staffs.

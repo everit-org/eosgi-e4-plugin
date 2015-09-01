@@ -1,4 +1,4 @@
-package org.everit.e4.eosgi.plugin.dist.gogo;
+package org.everit.e4.eosgi.plugin.core.dist.gogo;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -9,7 +9,7 @@ import java.nio.charset.Charset;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.everit.e4.eosgi.plugin.dist.gogo.GogoReceiver.ReceivedMessageCallback;
+import org.everit.e4.eosgi.plugin.core.dist.gogo.GogoReceiver.ReceivedMessageCallback;
 
 /**
  * Class for manage GoGo shell connection.

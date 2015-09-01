@@ -1,4 +1,4 @@
-package org.everit.e4.eosgi.plugin.dist.killer;
+package org.everit.e4.eosgi.plugin.core.dist.killer;
 
 import java.util.ArrayList;
 import java.util.List;

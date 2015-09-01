@@ -1,4 +1,4 @@
-package org.everit.e4.eosgi.plugin.dist.killer;
+package org.everit.e4.eosgi.plugin.core.dist.killer;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -9,8 +9,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 
-import org.everit.e4.eosgi.plugin.util.OSUtils;
-import org.everit.e4.eosgi.plugin.util.OSUtils.OSType;
+import org.everit.e4.eosgi.plugin.core.util.OSUtils;
+import org.everit.e4.eosgi.plugin.core.util.OSUtils.OSType;
 
 /**
  * Abstract DistKiller class.

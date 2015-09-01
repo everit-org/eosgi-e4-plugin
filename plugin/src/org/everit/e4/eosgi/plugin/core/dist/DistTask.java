@@ -10,7 +10,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.eclipse.ui.console.MessageConsoleStream;
-import org.everit.e4.eosgi.plugin.dist.killer.DistKiller;
+import org.everit.e4.eosgi.plugin.core.dist.killer.DistKiller;
 
 /**
  * Runnable for wrapper.

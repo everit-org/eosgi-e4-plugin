@@ -1,9 +1,9 @@
-package org.everit.e4.eosgi.plugin.util;
+package org.everit.e4.eosgi.plugin.core.util;
 
 import java.io.File;
 import java.util.Objects;
 
-import org.everit.e4.eosgi.plugin.util.OSUtils.OSType;
+import org.everit.e4.eosgi.plugin.core.util.OSUtils.OSType;
 
 public final class DistUtils {
   public static final String DIST_BIN = "bin";
