@@ -12,7 +12,6 @@ import java.util.logging.Logger;
 
 import org.apache.maven.model.Dependency;
 import org.apache.maven.plugin.MojoExecution;
-import org.apache.maven.plugin.descriptor.MojoDescriptor;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.eclipse.core.resources.IProject;
@@ -195,12 +194,6 @@ public class DefaultEosgiManager
         return;
       }
       execution = mojoExecutions.get(0);
-      // execution = mavenProjectFacade
-      // .getMojoExecution(new MojoExecutionKey("org.everit.osgi.dev", "eosgi-maven-plugin",
-      // "3.2.2-SNAPSHOT", "dist", "deploy", "dist"), monitor);
-
-      MojoDescriptor mojoDescriptor = execution.getMojoDescriptor();
-      mojoDescriptor.getParameterMap().get("environmentId").setDefaultValue(environmentId);
 
       monitor.setTaskName("create distribution...");
       maven.execute(mavenProject, execution, monitor);
