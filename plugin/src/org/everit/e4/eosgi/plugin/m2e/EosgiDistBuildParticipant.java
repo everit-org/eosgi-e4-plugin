@@ -3,7 +3,6 @@ package org.everit.e4.eosgi.plugin.m2e;
 import java.util.Set;
 
 import org.apache.maven.plugin.MojoExecution;
-import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResourceDelta;
@@ -42,21 +41,8 @@ public class EosgiDistBuildParticipant extends MojoExecutionBuildParticipant {
       return null;
     }
 
-    MavenProject mavenProject = mavenProjectFacade.getMavenProject(monitor);
-    if (mavenProject == null) {
-      return null;
-    }
-
     processConfiguration(project, monitor);
 
-    // MojoExecution mojoExecution = getMojoExecution();
-    // if (mojoExecution != null) {
-    // String goal = mojoExecution.getGoal();
-    // if (!"dist".equals(goal)) {
-    // return ;
-    // }
-    // }
-    // return super.build(kind, monitor);
     return null;
   }
 

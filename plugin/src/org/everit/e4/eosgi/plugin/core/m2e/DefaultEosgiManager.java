@@ -134,6 +134,33 @@ public class DefaultEosgiManager
     return envList;
   }
 
+  private void findAndRegisterDependencies(final ProjectDescriptor projectDescriptor,
+      final MavenProject mavenProject, final IProgressMonitor monitor) {
+    String distProjectId = createProjectId(mavenProject);
+    List<Dependency> dependencies = mavenProject.getDependencies();
+    for (Dependency dependency : dependencies) {
+      String projectId = createProjectId(dependency);
+      IMavenProjectFacade mavenProjectFacade = findMavenProject(dependency);
+      if (mavenProjectFacade != null && mavenProjectFacade.getProject() != null) {
+        IProject relevantProject = mavenProjectFacade.getProject();
+        if (relevantProject != null) {
+          addProjectToIdMap(projectId, relevantProject);
+          projectDescriptor.addProjectId(projectId);
+          registerProject(relevantProject, monitor);
+          addProjectWithRelevantId(relevantProject, distProjectId);
+
+          try {
+            MavenProject relevantMavenProject = mavenProjectFacade.getMavenProject(monitor);
+            findAndRegisterDependencies(projectDescriptor, relevantMavenProject, monitor);
+          } catch (CoreException e) {
+            Activator.getDefault()
+                .error("Can't find maven project for " + relevantProject.getName());
+          }
+        }
+      }
+    }
+  }
+
   private IMavenProjectFacade findMavenProject(final Dependency dependency) {
     IMavenProjectFacade depMavenProjectFacade = projectRegistry.getMavenProject(
         dependency.getGroupId(), dependency.getArtifactId(), dependency.getVersion());
@@ -342,26 +369,13 @@ public class DefaultEosgiManager
   private void updateDistProject(final ProjectDescriptor projectDescriptor,
       final MavenProject mavenProject, final IProgressMonitor monitor) {
     Objects.requireNonNull(projectDescriptor, "projectDescriptor cannot be null");
-    String distProjectId = createProjectId(mavenProject);
+
     projectDescriptor.clearProjectIds();
     projectDescriptor.setMavenInfo(mavenProject.getGroupId(), mavenProject.getArtifactId(),
         mavenProject.getVersion());
     projectDescriptor.setBuildDirectory(mavenProject.getBuild().getDirectory());
 
-    List<Dependency> dependencies = mavenProject.getDependencies();
-    for (Dependency dependency : dependencies) {
-      String projectId = createProjectId(dependency);
-      IMavenProjectFacade mavenProjectFacade = findMavenProject(dependency);
-      if (mavenProjectFacade != null && mavenProjectFacade.getProject() != null) {
-        IProject relevantProject = mavenProjectFacade.getProject();
-        if (relevantProject != null) {
-          addProjectToIdMap(projectId, relevantProject);
-          projectDescriptor.addProjectId(projectId);
-          registerProject(relevantProject, monitor);
-          addProjectWithRelevantId(relevantProject, distProjectId);
-        }
-      }
-    }
+    findAndRegisterDependencies(projectDescriptor, mavenProject, monitor);
   }
 
   @Override
