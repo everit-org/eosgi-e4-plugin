@@ -15,16 +15,20 @@ import org.apache.maven.plugin.MojoExecution;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResourceChangeEvent;
+import org.eclipse.core.resources.IResourceDelta;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.m2e.core.MavenPlugin;
 import org.eclipse.m2e.core.embedder.IMaven;
 import org.eclipse.m2e.core.embedder.IMavenConfigurationChangeListener;
 import org.eclipse.m2e.core.embedder.MavenConfigurationChangeEvent;
+import org.eclipse.m2e.core.lifecyclemapping.model.IPluginExecutionMetadata;
 import org.eclipse.m2e.core.project.IMavenProjectChangedListener;
 import org.eclipse.m2e.core.project.IMavenProjectFacade;
 import org.eclipse.m2e.core.project.IMavenProjectRegistry;
 import org.eclipse.m2e.core.project.MavenProjectChangedEvent;
+import org.eclipse.m2e.core.project.configurator.MojoExecutionKey;
 import org.everit.e4.eosgi.plugin.core.dist.DistManager;
 import org.everit.e4.eosgi.plugin.core.m2e.model.Environment;
 import org.everit.e4.eosgi.plugin.core.m2e.model.Environments;
@@ -97,6 +101,60 @@ public class DefaultEosgiManager
     } else {
       Activator.getDefault().error("Update project with relevant project failed");
     }
+  }
+
+  @Override
+  public void callPackageOnProject(final IProject project, final IProgressMonitor monitor) {
+    // Objects.requireNonNull(project, "project must be not null");
+    Objects.requireNonNull(monitor, "environmentId must be not null");
+    
+    monitor.setTaskName("Fetch maven infomation...");
+
+    IMavenProjectFacade mavenProjectFacade = this.projectRegistry.getProject(project);
+    MavenProject mavenProject = null;
+    try {
+      mavenProject = mavenProjectFacade.getMavenProject(monitor);
+    } catch (CoreException e) {
+      Activator.getDefault()
+          .error("prepare for call package on " + project.getName() + " - " + e.getMessage());
+    }
+
+    if (mavenProject == null) {
+      return;
+    }
+    
+    MojoExecution execution = null;
+    try {
+      monitor.setTaskName("Fetch execution infomation...");
+      Map<MojoExecutionKey, List<IPluginExecutionMetadata>> mojoExecutionMapping = mavenProjectFacade
+          .getMojoExecutionMapping();
+      MojoExecutionKey selected = null;
+      for (MojoExecutionKey key : mojoExecutionMapping.keySet()) {
+        String artifactId = key.getArtifactId();
+        String bundleArtifact = "maven-bundle-plugin";
+        if (artifactId.equals(bundleArtifact)) {
+          execution = mavenProjectFacade.getMojoExecution(selected, monitor);
+          break;
+        }
+      }
+
+      // List<MojoExecution> mojoExecutions = mavenProjectFacade
+      // .getMojoExecutions("org.apache.felix", "maven-bundle-plugin", monitor,
+      // "bundle");
+      // if (mojoExecutions.isEmpty()) {
+      // return;
+      // }
+      // execution = mojoExecutions.get(0);
+
+      if (execution != null) {
+        monitor.setTaskName("run package...");
+        maven.execute(mavenProject, execution, monitor);
+      }
+
+    } catch (CoreException e) {
+      Activator.getDefault().error("call package on " + project.getName() + " - " + e.getMessage());
+    }
+    
   }
 
   @Override
@@ -238,6 +296,11 @@ public class DefaultEosgiManager
   }
 
   @Override
+  public boolean isOutdated(IProject project) {
+    return hasProject(project) && projectMap.get(project).isOutdated();
+  }
+
+  @Override
   public void mavenConfigurationChange(final MavenConfigurationChangeEvent event)
       throws CoreException {
     Object newValue = event.getNewValue();
@@ -291,6 +354,28 @@ public class DefaultEosgiManager
         updateProject(project, mavenProject, monitor);
       } else {
         registerProject(project, monitor);
+      }
+    }
+  }
+
+  private void projectsChange(final List<IProject> projects) {
+    Objects.requireNonNull(projects, "projects must be not null");
+    for (IProject iProject : projects) {
+      if (hasProject(iProject)) {
+        ProjectDescriptor projectDescriptor = projectMap.get(iProject);
+        projectDescriptor.setOutdated(true);
+        if (projectDescriptor.isDistProject()) {
+          // TODO nothing to do, yet
+        } else {
+          Set<String> relevantProjectIds = projectDescriptor.getRelevantProjectIds();
+          for (String string : relevantProjectIds) {
+            IProject relevantProject = projectIdMap.get(string);
+            if (relevantProject != null) {
+              projectMap.get(relevantProject).setOutdated(true);
+            }
+          }
+        }
+        notifyModelChange(iProject);
       }
     }
   }
@@ -357,6 +442,25 @@ public class DefaultEosgiManager
       projectIdMap.remove(projectId);
     }
     notifyModelChange(project);
+  }
+
+  @Override
+  public void resourceChanged(IResourceChangeEvent changeEvent) {
+    List<IProject> projects = new ArrayList<>();
+    if (changeEvent.getDelta() != null) {
+      IResourceDelta delta = changeEvent.getDelta();
+      IResourceDelta[] affectedChildrens = delta.getAffectedChildren();
+      if (affectedChildrens == null) {
+        return;
+      }
+      for (IResourceDelta iResourceDelta : affectedChildrens) {
+        if (iResourceDelta.getResource() instanceof IProject) {
+          IProject project = (IProject) iResourceDelta.getResource();
+          projects.add(project);
+        }
+      }
+      projectsChange(projects);
+    }
   }
 
   private void updateBundleProject(final ProjectDescriptor projectDescriptor,

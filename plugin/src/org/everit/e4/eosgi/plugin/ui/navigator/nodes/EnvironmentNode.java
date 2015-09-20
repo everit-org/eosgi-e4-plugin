@@ -17,6 +17,8 @@ public class EnvironmentNode extends AbstractNode implements EnvironmentChangeLi
 
   private String environmentId;
 
+  private boolean outdated = false;
+
   /**
    * Constructor.
    * 
@@ -24,13 +26,16 @@ public class EnvironmentNode extends AbstractNode implements EnvironmentChangeLi
    *          id of the environment.
    * @param listener
    *          listener for model changes.
+   * @param outdated TODO
    */
-  public EnvironmentNode(final String environmentId, final EosgiNodeChangeListener listener) {
+  public EnvironmentNode(final String environmentId, final EosgiNodeChangeListener listener,
+      boolean outdated) {
     super();
     this.environmentId = environmentId;
     setListener(listener);
     setName(environmentId);
-    setValue(getDistStatusString());
+    setOutdated(outdated);
+    // setValue(getDistStatusString());
     Activator.getDefault().getDistManager().addEnvironmentChangeListener(this);
   }
 
@@ -39,7 +44,7 @@ public class EnvironmentNode extends AbstractNode implements EnvironmentChangeLi
     if (this.environmentId.equals(environmentId)) {
       this.distStatus = distStatus;
       setName(environmentId);
-      setValue(getDistStatusString());
+      // setValue(getDistStatusString());
       getListener().nodeChanged(new EosgiNodeChangeEvent(this));
     }
   }
@@ -64,7 +69,24 @@ public class EnvironmentNode extends AbstractNode implements EnvironmentChangeLi
 
   @Override
   public String getText() {
-    return getName() + getValue();
+    if (getLabel() == null) {
+      return getName();
+    } else {
+      return getName() + getLabel();
+    }
+  }
+
+  public boolean isOutdated() {
+    return outdated;
+  }
+
+  public void setOutdated(boolean outdated) {
+    this.outdated = outdated;
+    if (outdated) {
+      setLabel(" *");
+    } else {
+      setLabel(null);
+    }
   }
 
   @Override

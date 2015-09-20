@@ -3,8 +3,10 @@ package org.everit.e4.eosgi.plugin.core.dist;
 import java.util.Objects;
 
 import org.eclipse.core.resources.IProject;
+import org.eclipse.ui.console.MessageConsoleStream;
 import org.everit.e4.eosgi.plugin.core.dist.DistTask.DistStoppedCallback;
 import org.everit.e4.eosgi.plugin.core.util.DistUtils;
+import org.everit.e4.eosgi.plugin.ui.Activator;
 
 public class DefaultDistRunner implements DistRunner {
 
@@ -13,6 +15,8 @@ public class DefaultDistRunner implements DistRunner {
   private DistTask distTask;
 
   private String environmentId;
+
+  private MessageConsoleStream messageConsole;
 
   private IProject project;
 
@@ -36,7 +40,7 @@ public class DefaultDistRunner implements DistRunner {
       public void distStopped() {
         statusListener.distStatusChanged(DistStatus.STOPPED, project, environmentId);
       }
-    }, null);
+    }, Activator.getDefault().createConsole(environmentId));
   }
 
   @Override
@@ -47,6 +51,10 @@ public class DefaultDistRunner implements DistRunner {
   @Override
   public void setCreatedStatus(boolean createdStatus) {
     this.created = createdStatus;
+  }
+
+  public void setMessageConsole(MessageConsoleStream messageConsole) {
+    this.messageConsole = messageConsole;
   }
 
   @Override

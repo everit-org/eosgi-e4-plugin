@@ -1,5 +1,6 @@
 package org.everit.e4.eosgi.plugin.ui;
 
+import org.eclipse.core.internal.events.ResourceChangeEvent;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
@@ -8,6 +9,11 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.resource.ImageDescriptor;
+import org.eclipse.ui.console.ConsolePlugin;
+import org.eclipse.ui.console.IConsole;
+import org.eclipse.ui.console.IConsoleManager;
+import org.eclipse.ui.console.MessageConsole;
+import org.eclipse.ui.console.MessageConsoleStream;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.everit.e4.eosgi.plugin.core.dist.DefaultDistManager;
 import org.everit.e4.eosgi.plugin.core.dist.DistManager;
@@ -35,6 +41,18 @@ public class Activator extends AbstractUIPlugin {
   private EosgiManager eosgiManager;
 
   public Activator() {
+  }
+
+  public MessageConsoleStream createConsole(final String name) {
+    ConsolePlugin consolePlugin = ConsolePlugin.getDefault();
+    IConsoleManager conMan = consolePlugin.getConsoleManager();
+
+    MessageConsole messageConsole = new MessageConsole(name,
+        Activator.getImageDescriptor("icons/everit.gif"));
+    conMan.addConsoles(new IConsole[] { messageConsole });
+
+    MessageConsoleStream messageStream = messageConsole.newMessageStream();
+    return messageStream;
   }
 
   public void error(final String message) {
@@ -82,6 +100,9 @@ public class Activator extends AbstractUIPlugin {
     };
     job.setPriority(Job.BUILD);
     job.schedule();
+
+    ResourcesPlugin.getWorkspace().addResourceChangeListener(eosgiManager,
+        ResourceChangeEvent.POST_BUILD);
   }
 
   @Override

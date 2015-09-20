@@ -21,6 +21,8 @@ public class ProjectDescriptor {
 
   private String groupId;
 
+  private boolean outdated = false;
+
   private Set<String> relevantProjectIds = new HashSet<>();
 
   private String version;
@@ -71,6 +73,10 @@ public class ProjectDescriptor {
     return distProject;
   }
 
+  public boolean isOutdated() {
+    return outdated;
+  }
+
   public String mavenInfo() {
     if (groupId == null || artifactId == null || version == null) {
       return null;
@@ -93,6 +99,10 @@ public class ProjectDescriptor {
     this.groupId = groupId;
     this.artifactId = artifactId;
     this.version = version;
+  }
+
+  public void setOutdated(final boolean outdated) {
+    this.outdated = outdated;
   }
 
   @Override

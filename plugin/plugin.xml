@@ -108,6 +108,16 @@
       point="org.eclipse.ui.menus"
       id="org.everit.e4.eosgi.plugin.ui.menus"
       name="eosgiMenus">
+      <!--
+      <menuContribution
+        locationURI="popup:org.eclipse.ui.popup.any"
+        allPopups="false">
+        <command
+          commandId="org.everit.e4.eosgi.plugin.ui.command.package"
+          label="Run package">
+        </command>
+      </menuContribution>
+      -->
       <menuContribution
         locationURI="popup:org.eclipse.ui.popup.any"
         allPopups="false">
@@ -124,7 +134,7 @@
           </visibleWhen>
           <command
             commandId="org.everit.e4.eosgi.plugin.ui.command.create"
-            label="Create distribution">
+            label="Create or refresh distribution">
           </command>
           <command
             commandId="org.everit.e4.eosgi.plugin.ui.command.start"
@@ -173,6 +183,11 @@
         name="distComand">
         <!--defaultHandler="org.everit.e4.eosgi.plugin.ui.command.CreateDistHandler">-->
       </command>
+      <command
+        id="org.everit.e4.eosgi.plugin.ui.command.package"
+        name="distComand"
+        defaultHandler="org.everit.e4.eosgi.plugin.ui.command.RunPackageHandler">
+      </command>
     </extension>
     
     <extension
@@ -215,6 +230,7 @@
                 <or>
                   <test property="org.everit.e4.eosgi.plugin.properties.distStatus" value="NONE"/>
                   <test property="org.everit.e4.eosgi.plugin.properties.distStatus" value="STOPPED"/>
+                  <test property="org.everit.e4.eosgi.plugin.properties.distStatus" value="RUNNING"/>
                 </or>
               </iterate>
           </with>
