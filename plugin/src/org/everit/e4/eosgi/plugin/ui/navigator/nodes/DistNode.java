@@ -19,8 +19,7 @@ public class DistNode extends AbstractNode {
   @Override
   public AbstractNode[] getChildren() {
     if (outdated) {
-      children = new AbstractNode[] { new BundlesNode(project, getListener()),
-          new ManifestNode(project), new EnvironmentsNode(project, getListener()) };
+      children = new AbstractNode[] { new EnvironmentsNode(project, getListener()) };
       outdated = false;
     }
     return children;

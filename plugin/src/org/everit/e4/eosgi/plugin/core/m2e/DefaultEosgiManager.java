@@ -15,8 +15,6 @@ import org.apache.maven.plugin.MojoExecution;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.eclipse.core.resources.IProject;
-import org.eclipse.core.resources.IResourceChangeEvent;
-import org.eclipse.core.resources.IResourceDelta;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.m2e.core.MavenPlugin;
@@ -296,17 +294,8 @@ public class DefaultEosgiManager
   }
 
   @Override
-  public boolean isOutdated(IProject project) {
-    return hasProject(project) && projectMap.get(project).isOutdated();
-  }
-
-  @Override
   public void mavenConfigurationChange(final MavenConfigurationChangeEvent event)
       throws CoreException {
-    Object newValue = event.getNewValue();
-    Object oldValue = event.getOldValue();
-    LOGGER.info("");
-
   }
 
   @Override
@@ -354,28 +343,6 @@ public class DefaultEosgiManager
         updateProject(project, mavenProject, monitor);
       } else {
         registerProject(project, monitor);
-      }
-    }
-  }
-
-  private void projectsChange(final List<IProject> projects) {
-    Objects.requireNonNull(projects, "projects must be not null");
-    for (IProject iProject : projects) {
-      if (hasProject(iProject)) {
-        ProjectDescriptor projectDescriptor = projectMap.get(iProject);
-        projectDescriptor.setOutdated(true);
-        if (projectDescriptor.isDistProject()) {
-          // TODO nothing to do, yet
-        } else {
-          Set<String> relevantProjectIds = projectDescriptor.getRelevantProjectIds();
-          for (String string : relevantProjectIds) {
-            IProject relevantProject = projectIdMap.get(string);
-            if (relevantProject != null) {
-              projectMap.get(relevantProject).setOutdated(true);
-            }
-          }
-        }
-        notifyModelChange(iProject);
       }
     }
   }
@@ -442,25 +409,6 @@ public class DefaultEosgiManager
       projectIdMap.remove(projectId);
     }
     notifyModelChange(project);
-  }
-
-  @Override
-  public void resourceChanged(IResourceChangeEvent changeEvent) {
-    List<IProject> projects = new ArrayList<>();
-    if (changeEvent.getDelta() != null) {
-      IResourceDelta delta = changeEvent.getDelta();
-      IResourceDelta[] affectedChildrens = delta.getAffectedChildren();
-      if (affectedChildrens == null) {
-        return;
-      }
-      for (IResourceDelta iResourceDelta : affectedChildrens) {
-        if (iResourceDelta.getResource() instanceof IProject) {
-          IProject project = (IProject) iResourceDelta.getResource();
-          projects.add(project);
-        }
-      }
-      projectsChange(projects);
-    }
   }
 
   private void updateBundleProject(final ProjectDescriptor projectDescriptor,

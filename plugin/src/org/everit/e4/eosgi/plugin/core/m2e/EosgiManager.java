@@ -5,13 +5,12 @@ import java.util.List;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.eclipse.core.resources.IProject;
-import org.eclipse.core.resources.IResourceChangeListener;
 import org.eclipse.core.runtime.IProgressMonitor;
 
 /**
  * Manage IProject , MavenProject connections and store eosgi dist informations.
  */
-public interface EosgiManager extends IResourceChangeListener {
+public interface EosgiManager {
 
   void addModelChangeListener(EosgiModelChangeListener listener);
 
@@ -23,8 +22,6 @@ public interface EosgiManager extends IResourceChangeListener {
 
   void generateDistFor(final IProject project, final String environmentId,
       IProgressMonitor monitor);
-
-  boolean isOutdated(IProject project);
 
   void refreshProject(IProject project, MavenProject mavenProject, IProgressMonitor monitor);
 

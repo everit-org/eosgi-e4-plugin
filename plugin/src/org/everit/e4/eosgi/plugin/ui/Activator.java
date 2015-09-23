@@ -1,6 +1,5 @@
 package org.everit.e4.eosgi.plugin.ui;
 
-import org.eclipse.core.internal.events.ResourceChangeEvent;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
@@ -100,9 +99,6 @@ public class Activator extends AbstractUIPlugin {
     };
     job.setPriority(Job.BUILD);
     job.schedule();
-
-    ResourcesPlugin.getWorkspace().addResourceChangeListener(eosgiManager,
-        ResourceChangeEvent.POST_BUILD);
   }
 
   @Override

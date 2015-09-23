@@ -1,7 +1,5 @@
 package org.everit.e4.eosgi.plugin.ui.navigator.nodes;
 
-import java.util.Arrays;
-
 import org.everit.e4.eosgi.plugin.core.dist.DistStatus;
 import org.everit.e4.eosgi.plugin.core.dist.EnvironmentChangeListener;
 import org.everit.e4.eosgi.plugin.ui.Activator;
@@ -17,8 +15,6 @@ public class EnvironmentNode extends AbstractNode implements EnvironmentChangeLi
 
   private String environmentId;
 
-  private boolean outdated = false;
-
   /**
    * Constructor.
    * 
@@ -26,15 +22,12 @@ public class EnvironmentNode extends AbstractNode implements EnvironmentChangeLi
    *          id of the environment.
    * @param listener
    *          listener for model changes.
-   * @param outdated TODO
    */
-  public EnvironmentNode(final String environmentId, final EosgiNodeChangeListener listener,
-      boolean outdated) {
+  public EnvironmentNode(final String environmentId, final EosgiNodeChangeListener listener) {
     super();
     this.environmentId = environmentId;
     setListener(listener);
     setName(environmentId);
-    setOutdated(outdated);
     // setValue(getDistStatusString());
     Activator.getDefault().getDistManager().addEnvironmentChangeListener(this);
   }
@@ -80,20 +73,9 @@ public class EnvironmentNode extends AbstractNode implements EnvironmentChangeLi
     return outdated;
   }
 
-  public void setOutdated(boolean outdated) {
-    this.outdated = outdated;
-    if (outdated) {
-      setLabel(" *");
-    } else {
-      setLabel(null);
-    }
-  }
-
   @Override
   public String toString() {
-    return "EnvironmentNode [distStatus=" + distStatus + ", environmentId=" + environmentId
-        + ", children=" + Arrays.toString(children) + ", icon=" + icon + ", label=" + label
-        + ", name=" + name + ", outdated=" + outdated + ", value=" + value + "]";
+    return "EnvironmentNode [distStatus=" + distStatus + ", environmentId=" + environmentId + "]";
   }
 
 }

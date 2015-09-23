@@ -48,11 +48,6 @@
       point="org.eclipse.ui.ide.projectNatureImages"
       name="Bundle project nature image">
       <image
-        id="org.everit.e4.eosgi.plugin.ui.projectNatureImages.bundleNatureImage"
-        natureId="org.everit.e4.eosgi.plugin.ui.natures.bundle"
-        icon="icons/osgi-logo_8_8.gif">
-      </image>
-      <image
         id="org.everit.e4.eosgi.plugin.ui.projectNatureImages.eosgiNatureImage"
         natureId="org.everit.e4.eosgi.plugin.ui.natures.eosgi"
         icon="icons/everit_8_8.gif">

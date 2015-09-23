@@ -38,11 +38,10 @@ public class EnvironmentsNode extends AbstractNode
     if (outdated) {
       EosgiManager eosgiManager = Activator.getDefault().getEosgiManager();
       List<String> environments = eosgiManager.fetchEnvironmentsBy(project);
-      boolean distOutdated = eosgiManager.isOutdated(project);
       List<EnvironmentNode> nodes;
       nodes = new ArrayList<>();
       for (String environment : environments) {
-        EnvironmentNode node = new EnvironmentNode(environment, getListener(), distOutdated);
+        EnvironmentNode node = new EnvironmentNode(environment, getListener());
         nodes.add(node);
       }
       children = nodes.toArray(new EnvironmentNode[] {});
