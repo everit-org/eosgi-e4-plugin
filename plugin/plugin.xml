@@ -222,11 +222,6 @@
         id="org.everit.e4.eosgi.plugin.ui.command.create"
         name="distComand">
       </command>
-      <command
-        id="org.everit.e4.eosgi.plugin.ui.command.package"
-        name="distComand"
-        defaultHandler="org.everit.e4.eosgi.plugin.ui.command.RunPackageHandler">
-      </command>
     </extension>
     
     <extension

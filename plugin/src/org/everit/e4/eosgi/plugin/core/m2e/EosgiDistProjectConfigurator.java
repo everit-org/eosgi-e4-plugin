@@ -48,6 +48,11 @@ public class EosgiDistProjectConfigurator extends AbstractProjectConfigurator
 
     addEosgiNature(monitor, project);
 
+    if (project != null) {
+      EosgiManager eosgiManager = Activator.getDefault().getEosgiManager();
+      eosgiManager.letDistProject(project);
+    }
+
     Activator.getDefault().info(project.getName() + " configured as EOSGI dist project.");
   }
 

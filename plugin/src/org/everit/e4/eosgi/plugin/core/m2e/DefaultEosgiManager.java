@@ -21,12 +21,10 @@ import org.eclipse.m2e.core.MavenPlugin;
 import org.eclipse.m2e.core.embedder.IMaven;
 import org.eclipse.m2e.core.embedder.IMavenConfigurationChangeListener;
 import org.eclipse.m2e.core.embedder.MavenConfigurationChangeEvent;
-import org.eclipse.m2e.core.lifecyclemapping.model.IPluginExecutionMetadata;
 import org.eclipse.m2e.core.project.IMavenProjectChangedListener;
 import org.eclipse.m2e.core.project.IMavenProjectFacade;
 import org.eclipse.m2e.core.project.IMavenProjectRegistry;
 import org.eclipse.m2e.core.project.MavenProjectChangedEvent;
-import org.eclipse.m2e.core.project.configurator.MojoExecutionKey;
 import org.everit.e4.eosgi.plugin.core.dist.DistManager;
 import org.everit.e4.eosgi.plugin.core.m2e.model.Environment;
 import org.everit.e4.eosgi.plugin.core.m2e.model.Environments;
@@ -99,60 +97,6 @@ public class DefaultEosgiManager
     } else {
       Activator.getDefault().error("Update project with relevant project failed");
     }
-  }
-
-  @Override
-  public void callPackageOnProject(final IProject project, final IProgressMonitor monitor) {
-    // Objects.requireNonNull(project, "project must be not null");
-    Objects.requireNonNull(monitor, "environmentId must be not null");
-    
-    monitor.setTaskName("Fetch maven infomation...");
-
-    IMavenProjectFacade mavenProjectFacade = this.projectRegistry.getProject(project);
-    MavenProject mavenProject = null;
-    try {
-      mavenProject = mavenProjectFacade.getMavenProject(monitor);
-    } catch (CoreException e) {
-      Activator.getDefault()
-          .error("prepare for call package on " + project.getName() + " - " + e.getMessage());
-    }
-
-    if (mavenProject == null) {
-      return;
-    }
-    
-    MojoExecution execution = null;
-    try {
-      monitor.setTaskName("Fetch execution infomation...");
-      Map<MojoExecutionKey, List<IPluginExecutionMetadata>> mojoExecutionMapping = mavenProjectFacade
-          .getMojoExecutionMapping();
-      MojoExecutionKey selected = null;
-      for (MojoExecutionKey key : mojoExecutionMapping.keySet()) {
-        String artifactId = key.getArtifactId();
-        String bundleArtifact = "maven-bundle-plugin";
-        if (artifactId.equals(bundleArtifact)) {
-          execution = mavenProjectFacade.getMojoExecution(selected, monitor);
-          break;
-        }
-      }
-
-      // List<MojoExecution> mojoExecutions = mavenProjectFacade
-      // .getMojoExecutions("org.apache.felix", "maven-bundle-plugin", monitor,
-      // "bundle");
-      // if (mojoExecutions.isEmpty()) {
-      // return;
-      // }
-      // execution = mojoExecutions.get(0);
-
-      if (execution != null) {
-        monitor.setTaskName("run package...");
-        maven.execute(mavenProject, execution, monitor);
-      }
-
-    } catch (CoreException e) {
-      Activator.getDefault().error("call package on " + project.getName() + " - " + e.getMessage());
-    }
-    
   }
 
   @Override
@@ -294,6 +238,18 @@ public class DefaultEosgiManager
   }
 
   @Override
+  public void letDistProject(IProject project) {
+    if (!hasProject(project)) {
+      return;
+    }
+    
+    ProjectDescriptor projectDescriptor = this.projectMap.get(project);
+    if (projectDescriptor != null) {
+      projectDescriptor.setDistProject(true);
+    }
+  }
+
+  @Override
   public void mavenConfigurationChange(final MavenConfigurationChangeEvent event)
       throws CoreException {
   }
@@ -369,7 +325,7 @@ public class DefaultEosgiManager
     try {
       distProject = project.hasNature(EosgiNature.NATURE_ID);
     } catch (CoreException e) {
-      LOGGER.log(Level.WARNING, "check project nature", e);
+      LOGGER.log(Level.WARNING, "check project nature ", e);
     }
 
     MavenProject mavenProject = findMavenProjectFor(project, monitor);

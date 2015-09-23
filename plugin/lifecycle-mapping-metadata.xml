@@ -8,6 +8,7 @@
         <versionRange>[1.0.0,)</versionRange>
         <goals>
           <goal>dist</goal>
+          <goal>integration-test</goal>
         </goals>
       </pluginExecutionFilter>
       <action>

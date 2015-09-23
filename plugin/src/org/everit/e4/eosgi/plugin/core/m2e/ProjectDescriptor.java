@@ -86,6 +86,10 @@ public class ProjectDescriptor {
     this.buildDirectory = buildDirectory;
   }
 
+  public void setDistProject(boolean distProject) {
+    this.distProject = distProject;
+  }
+
   public void setMavenInfo(final String groupId, final String artifactId, final String version) {
     Objects.requireNonNull(groupId, "groupId cannot be null");
     Objects.requireNonNull(artifactId, "artifactId cannot be null");

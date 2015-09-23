@@ -14,14 +14,14 @@ public interface EosgiManager {
 
   void addModelChangeListener(EosgiModelChangeListener listener);
 
-  void callPackageOnProject(final IProject project, final IProgressMonitor monitor);
-
   List<String> fetchBundlesBy(IProject project);
 
   List<String> fetchEnvironmentsBy(IProject project);
 
   void generateDistFor(final IProject project, final String environmentId,
       IProgressMonitor monitor);
+
+  void letDistProject(IProject project);
 
   void refreshProject(IProject project, MavenProject mavenProject, IProgressMonitor monitor);
 
