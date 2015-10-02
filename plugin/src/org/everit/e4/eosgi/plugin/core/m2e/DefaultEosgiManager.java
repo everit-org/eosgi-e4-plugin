@@ -30,6 +30,7 @@ import org.everit.e4.eosgi.plugin.core.m2e.model.Environment;
 import org.everit.e4.eosgi.plugin.core.m2e.model.Environments;
 import org.everit.e4.eosgi.plugin.core.m2e.xml.ConfiguratorParser;
 import org.everit.e4.eosgi.plugin.ui.Activator;
+import org.everit.e4.eosgi.plugin.ui.EOSGiLog;
 import org.everit.e4.eosgi.plugin.ui.nature.EosgiNature;
 
 /**
@@ -57,6 +58,8 @@ public class DefaultEosgiManager
         + mavenProject.getVersion();
   }
 
+  private EOSGiLog log;
+
   private IMaven maven;
 
   private Set<EosgiModelChangeListener> modelChangeListeners = new HashSet<>();
@@ -69,9 +72,12 @@ public class DefaultEosgiManager
 
   /**
    * Consturctor.
+   * 
+   * @param log
    */
-  public DefaultEosgiManager() {
+  public DefaultEosgiManager(final EOSGiLog log) {
     super();
+    this.log = log;
     this.projectRegistry = MavenPlugin.getMavenProjectRegistry();
     this.maven = MavenPlugin.getMaven();
     MavenPlugin.getMavenConfiguration().addConfigurationChangeListener(this);
@@ -95,7 +101,7 @@ public class DefaultEosgiManager
       projectDescriptor.addProjectId(relevantId);
       projectMap.put(project, projectDescriptor);
     } else {
-      Activator.getDefault().error("Update project with relevant project failed");
+      log.error("Update project with relevant project failed");
     }
   }
 
@@ -116,6 +122,18 @@ public class DefaultEosgiManager
       }
     }
     return bundleIdList;
+  }
+
+  private MojoExecution fetchDistMojoExecution(IMavenProjectFacade mavenProjectFacade,
+      final IProgressMonitor monitor) throws CoreException {
+    List<MojoExecution> mojoExecutions = mavenProjectFacade
+        .getMojoExecutions(EOSGI_MAVEN_PLUGIN_GROUP_ID, EOSGI_MAVEN_PLUGIN_ARTIFACT_ID, monitor,
+            DIST_GOAL);
+    if (!mojoExecutions.isEmpty()) {
+      return mojoExecutions.get(0);
+    } else {
+      return null;
+    }
   }
 
   @Override
@@ -153,8 +171,7 @@ public class DefaultEosgiManager
             MavenProject relevantMavenProject = mavenProjectFacade.getMavenProject(monitor);
             findAndRegisterDependencies(projectDescriptor, relevantMavenProject, monitor);
           } catch (CoreException e) {
-            Activator.getDefault()
-                .error("Can't find maven project for " + relevantProject.getName());
+            log.error("Can't find maven project for " + relevantProject.getName());
           }
         }
       }
@@ -172,19 +189,18 @@ public class DefaultEosgiManager
 
     IMavenProjectFacade mavenProjectFacade = projectRegistry.getProject(project);
     if (mavenProjectFacade == null) {
-      Activator.getDefault().error("Not found maven facade for project: " + project.getName());
+      log.error("Not found maven facade for project: " + project.getName());
       return mavenProject;
     }
 
     try {
       mavenProject = mavenProjectFacade.getMavenProject(monitor);
     } catch (CoreException e) {
-      Activator.getDefault()
-          .error("find  distribution for " + project.getName() + " - " + e.getMessage());
+      log.error("find  distribution for " + project.getName() + " - " + e.getMessage());
     }
 
     if (mavenProject == null) {
-      Activator.getDefault().error("Not found MavenProject for project: " + project.getName());
+      log.error("Not found MavenProject for project: " + project.getName());
       return mavenProject;
     }
     return mavenProject;
@@ -196,40 +212,30 @@ public class DefaultEosgiManager
     Objects.requireNonNull(project, "project must be not null");
     Objects.requireNonNull(environmentId, "environmentId must be not null");
 
-    monitor.setTaskName("Fetch maven infomation...");
-
+    monitor.setTaskName("fetching project information...");
     IMavenProjectFacade mavenProjectFacade = this.projectRegistry.getProject(project);
     MavenProject mavenProject = null;
     try {
       mavenProject = mavenProjectFacade.getMavenProject(monitor);
     } catch (CoreException e) {
-      Activator.getDefault().error("creating distribution for " + project.getName() + "/"
-          + environmentId + " - " + e.getMessage());
+      log.error("dist generation failed for: " + project.getName() + "/"
+          + environmentId, e);
     }
 
-    if (mavenProject == null) {
-      return;
-    }
+    if (mavenProject != null) {
+      try {
+        monitor.setTaskName("fetching execution information...");
+        MojoExecution execution = fetchDistMojoExecution(mavenProjectFacade, monitor);
 
-    MojoExecution execution = null;
-    try {
-      monitor.setTaskName("Fetch execution infomation...");
-      List<MojoExecution> mojoExecutions = mavenProjectFacade
-          .getMojoExecutions(EOSGI_MAVEN_PLUGIN_GROUP_ID, EOSGI_MAVEN_PLUGIN_ARTIFACT_ID, monitor,
-              DIST_GOAL);
-      if (mojoExecutions.isEmpty()) {
-        return;
+        monitor.setTaskName("creating dist...");
+        maven.execute(mavenProject, execution, monitor);
+
+        DistManager distManager = Activator.getDefault().getDistManager();
+        distManager.updateDistStatus(project, environmentId);
+      } catch (CoreException e) {
+        log.error("dist generation failed for: " + project.getName() + "/"
+            + environmentId, e);
       }
-      execution = mojoExecutions.get(0);
-
-      monitor.setTaskName("create distribution...");
-      maven.execute(mavenProject, execution, monitor);
-
-      DistManager distManager = Activator.getDefault().getDistManager();
-      distManager.updateDistStatus(project, environmentId);
-    } catch (CoreException e) {
-      Activator.getDefault().error("creating distribution for " + project.getName() + "/"
-          + environmentId + " - " + e.getMessage());
     }
   }
 
@@ -242,7 +248,7 @@ public class DefaultEosgiManager
     if (!hasProject(project)) {
       return;
     }
-    
+
     ProjectDescriptor projectDescriptor = this.projectMap.get(project);
     if (projectDescriptor != null) {
       projectDescriptor.setDistProject(true);
@@ -286,7 +292,7 @@ public class DefaultEosgiManager
     }
 
     if (project == null || mavenProject == null) {
-      Activator.getDefault().error("Maven project update: null project");
+      log.error("Maven project update: null project");
       return;
     }
 
@@ -399,7 +405,7 @@ public class DefaultEosgiManager
     try {
       environments = new ConfiguratorParser().parse(configuration);
     } catch (Exception e) {
-      LOGGER.log(Level.SEVERE, "process configuration", e);
+      log.error("can't parse configuration", e);
       return;
     }
 

@@ -7,6 +7,7 @@ import java.util.Objects;
 import java.util.Set;
 
 import org.eclipse.core.resources.IProject;
+import org.everit.e4.eosgi.plugin.ui.EOSGiLog;
 
 /**
  * Default implementation for {@link DistManager} interface.
@@ -17,21 +18,18 @@ public class DefaultDistManager implements DistManager, DistChangeListener {
 
   private Set<EnvironmentChangeListener> environmentChangeListeners;
 
-  public DefaultDistManager() {
+  private EOSGiLog log;
+
+  public DefaultDistManager(EOSGiLog log) {
     super();
     distMap = new HashMap<>();
     environmentChangeListeners = new HashSet<>();
+    this.log = log;
   }
 
   @Override
   public void addEnvironmentChangeListener(final EnvironmentChangeListener listener) {
     this.environmentChangeListeners.add(listener);
-  }
-
-  @Override
-  public void distStatusChanged(final DistStatus distStatus, final IProject project,
-      final String environmentId) {
-    notifyEnvironmentChange(environmentId, distStatus);
   }
 
   private DistRunner getDistRunner(final IProject project, final String environmentId) {
@@ -70,7 +68,7 @@ public class DefaultDistManager implements DistManager, DistChangeListener {
 
     DistRunner distRunner = getDistRunner(project, environmentId);
     if (distRunner == null) {
-      distRunner = new DefaultDistRunner(project, environmentId, buildDirectory, this);
+      distRunner = new EOSGiDistRunner(buildDirectory, environmentId, this, project);
       Map<String, DistRunner> environments = null;
       if (distMap.containsKey(project)) {
         environments = distMap.get(project);
@@ -91,6 +89,11 @@ public class DefaultDistManager implements DistManager, DistChangeListener {
     if (distRunner != null && distRunner.isCreated()) {
       distRunner.start();
     }
+  }
+
+  @Override
+  public void statusChangeEvent(DistStatusEvent event) {
+    notifyEnvironmentChange(event.environmentName, event.distStatus);
   }
 
   @Override

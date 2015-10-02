@@ -15,6 +15,7 @@ import org.everit.e4.eosgi.plugin.core.util.OSUtils.OSType;
 /**
  * Abstract DistKiller class.
  */
+@Deprecated
 public abstract class DistKiller {
 
   private static final String JAVA_HOME = "JAVA_HOME";

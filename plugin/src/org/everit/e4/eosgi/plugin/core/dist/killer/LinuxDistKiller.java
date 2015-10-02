@@ -5,6 +5,7 @@ import java.util.List;
 /**
  * {@link DistKiller} implementation for Linux OS.
  */
+@Deprecated
 public class LinuxDistKiller extends DistKiller {
 
   protected LinuxDistKiller(final List<String> processFilters) {

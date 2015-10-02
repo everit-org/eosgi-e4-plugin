@@ -1,5 +1,7 @@
 package org.everit.e4.eosgi.plugin.ui;
 
+import java.util.Objects;
+
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
@@ -39,23 +41,39 @@ public class Activator extends AbstractUIPlugin {
 
   private EosgiManager eosgiManager;
 
+  private EOSGiLog log;
+
   public Activator() {
+    log = new EOSGiLog(getLog());
   }
 
-  public MessageConsoleStream createConsole(final String name) {
+  /**
+   * Get or create (if don't exist) an IConsole with the given name and return with an
+   * {@link MessageConsoleStream}.
+   * 
+   * @param name
+   *          name of the console.
+   * @return
+   */
+  public MessageConsoleStream getConsoleWithName(final String name) {
+    Objects.requireNonNull(name, "name must be not null!");
     ConsolePlugin consolePlugin = ConsolePlugin.getDefault();
-    IConsoleManager conMan = consolePlugin.getConsoleManager();
-
-    MessageConsole messageConsole = new MessageConsole(name,
-        Activator.getImageDescriptor("icons/everit.gif"));
-    conMan.addConsoles(new IConsole[] { messageConsole });
-
-    MessageConsoleStream messageStream = messageConsole.newMessageStream();
-    return messageStream;
-  }
-
-  public void error(final String message) {
-    Activator.getDefault().getLog().log(new Status(IStatus.ERROR, PLUGIN_ID, message));
+    IConsoleManager consoleManager = consolePlugin.getConsoleManager();
+    
+    IConsole[] consoles = consoleManager.getConsoles();
+    MessageConsole console = null;
+    for (IConsole existingConsole : consoles) {
+      if (name.equals(existingConsole.getName()) && existingConsole instanceof MessageConsole) {
+        console = (MessageConsole) existingConsole;
+        break;
+      }
+    }
+    if (console == null) {
+      console = new MessageConsole(name,
+          Activator.getImageDescriptor("icons/everit.gif"));
+      consoleManager.addConsoles(new IConsole[] { console });
+    }
+    return console.newMessageStream();
   }
 
   public DistManager getDistManager() {
@@ -66,16 +84,13 @@ public class Activator extends AbstractUIPlugin {
     return eosgiManager;
   }
 
-  public void info(final String message) {
-    Activator.getDefault().getLog().log(new Status(IStatus.INFO, PLUGIN_ID, message));
-  }
-
   @Override
   public void start(final BundleContext context) throws Exception {
     super.start(context);
     plugin = this;
-    distManager = new DefaultDistManager();
-    eosgiManager = new DefaultEosgiManager();
+
+    distManager = new DefaultDistManager(log);
+    eosgiManager = new DefaultEosgiManager(log);
 
     Job job = new Job("Initializing EOSGI manager") {
       @Override
@@ -89,7 +104,7 @@ public class Activator extends AbstractUIPlugin {
               eosgiManager.registerProject(project, monitor);
             }
           } catch (CoreException e) {
-            Activator.getDefault().error(e.getMessage());
+            log.error("Couldn't register project with name " + project.getName(), e);
           }
           monitor.worked(++i);
         }

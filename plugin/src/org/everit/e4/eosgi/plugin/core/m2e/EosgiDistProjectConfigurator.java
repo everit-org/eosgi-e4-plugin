@@ -18,6 +18,7 @@ import org.eclipse.m2e.core.project.configurator.ProjectConfigurationRequest;
 import org.eclipse.m2e.jdt.IClasspathDescriptor;
 import org.eclipse.m2e.jdt.IJavaProjectConfigurator;
 import org.everit.e4.eosgi.plugin.ui.Activator;
+import org.everit.e4.eosgi.plugin.ui.EOSGiLog;
 import org.everit.e4.eosgi.plugin.ui.nature.EosgiNature;
 import org.everit.e4.eosgi.plugin.ui.util.ProjectNatureUtils;
 
@@ -26,6 +27,13 @@ import org.everit.e4.eosgi.plugin.ui.util.ProjectNatureUtils;
  */
 public class EosgiDistProjectConfigurator extends AbstractProjectConfigurator
     implements IJavaProjectConfigurator {
+
+  private EOSGiLog log;
+
+  public EosgiDistProjectConfigurator() {
+    super();
+    log = new EOSGiLog(Activator.getDefault().getLog());
+  }
 
   private void addEosgiNature(final IProgressMonitor monitor, final IProject project)
       throws CoreException {
@@ -53,7 +61,7 @@ public class EosgiDistProjectConfigurator extends AbstractProjectConfigurator
       eosgiManager.letDistProject(project);
     }
 
-    Activator.getDefault().info(project.getName() + " configured as EOSGI dist project.");
+    log.info(project.getName() + " configured as dist project.");
   }
 
   @Override
@@ -96,8 +104,7 @@ public class EosgiDistProjectConfigurator extends AbstractProjectConfigurator
           eosgiManager.updateEnvironments(project, configuration, monitor);
         }
       } catch (CoreException e) {
-        Activator.getDefault()
-            .error("Configuration change handling failed for project: " + e.getMessage());
+        log.error("Configuration change handling failed for project: " + e.getMessage());
       }
     }
     return super.hasConfigurationChanged(newFacade, oldProjectConfiguration, key, monitor);

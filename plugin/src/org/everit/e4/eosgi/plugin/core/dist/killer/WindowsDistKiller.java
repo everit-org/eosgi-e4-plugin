@@ -6,6 +6,7 @@ import java.util.List;
 /**
  * DistKiller implementation for Windows.
  */
+@Deprecated
 public class WindowsDistKiller extends DistKiller {
 
   protected WindowsDistKiller(final List<String> processFilters) {

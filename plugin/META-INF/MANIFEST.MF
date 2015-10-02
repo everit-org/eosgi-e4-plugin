@@ -21,3 +21,5 @@ Require-Bundle: org.eclipse.ui,
 Bundle-ActivationPolicy: lazy
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Bundle-Vendor: Zsolt Doma, Everit Kft.
+Bundle-Classpath: .,lib/wrapper.jar,lib/srvmgr.jar,lib/jna.jar,lib/ahessian.jar
+

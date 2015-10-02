@@ -4,16 +4,21 @@ import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.core.commands.IHandler;
 import org.eclipse.core.commands.IHandlerListener;
-import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.Status;
-import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.TreeSelection;
 import org.eclipse.ui.handlers.HandlerUtil;
 import org.everit.e4.eosgi.plugin.ui.Activator;
+import org.everit.e4.eosgi.plugin.ui.EOSGiLog;
+import org.everit.e4.eosgi.plugin.ui.jobs.DistGenerationJob;
 
 public class CreateDistHandler extends AbstractDistHandler implements IHandler {
+
+  private EOSGiLog log;
+
+  public CreateDistHandler() {
+    super();
+    log = new EOSGiLog(Activator.getDefault().getLog());
+  }
 
   @Override
   public void addHandlerListener(final IHandlerListener handlerListener) {
@@ -42,19 +47,9 @@ public class CreateDistHandler extends AbstractDistHandler implements IHandler {
     processTreeSelection(treeSelection);
 
     if (project != null && environmentName != null) {
-      LOGGER.info(project + ", " + environmentName + " dist generate");
-      Job job = new Job(
-          "EOSGI plugin: create distribution for " + project.getName() + "/" + environmentName) {
-
-        @Override
-        protected IStatus run(final IProgressMonitor monitor) {
-          Activator.getDefault().getEosgiManager().generateDistFor(project, environmentName,
-              monitor);
-          return Status.OK_STATUS;
-        }
-      };
-      job.setPriority(Job.SHORT);
-      job.schedule();
+      new DistGenerationJob(project, environmentName).schedule();
+    } else {
+      log.warning("Can't identified the project or name of the environment.");
     }
 
     return null;

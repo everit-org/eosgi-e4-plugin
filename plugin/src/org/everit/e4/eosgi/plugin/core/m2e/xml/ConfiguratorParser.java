@@ -10,35 +10,40 @@ import org.everit.e4.eosgi.plugin.core.m2e.model.Bundle;
 import org.everit.e4.eosgi.plugin.core.m2e.model.BundleSettings;
 import org.everit.e4.eosgi.plugin.core.m2e.model.Environment;
 import org.everit.e4.eosgi.plugin.core.m2e.model.Environments;
+import org.everit.e4.eosgi.plugin.ui.Activator;
+import org.everit.e4.eosgi.plugin.ui.EOSGiLog;
 
 public class ConfiguratorParser {
 
-  private static final String BUNDLE_TAG = "bundle";
-
-  private static final String VM_OPTIONS_TAG = "vmOptions";
-
   private static final String BUNDLE_SETTINGS_TAG = "bundleSettings";
 
-  private static final String SYSTEM_PROPERTIES_TAG = "systemProperties";
-
-  private static final String FRAMEWORK_TAG = "framework";
+  private static final String BUNDLE_TAG = "bundle";
 
   private static final String ENVIRONMENT_ID_TAG = "id";
 
   private static final String ENVIRONMENTS_TAG = "environments";
 
+  private static final String FRAMEWORK_TAG = "framework";
+
+  private static final String SYSTEM_PROPERTIES_TAG = "systemProperties";
+
+  private static final String VM_OPTIONS_TAG = "vmOptions";
+
   private Xpp3Dom configurationDom;
 
   private Environments environments;
 
+  private EOSGiLog log;
+
   public ConfiguratorParser() {
     super();
+    log = new EOSGiLog(Activator.getDefault().getLog());
   }
 
   // TODO refactor
   public Environments parse(final Xpp3Dom configurationDom) {
     if (configurationDom == null) {
-      // TODO log this
+      log.warning("configuration DOM is null");
       return new Environments();
     }
 
