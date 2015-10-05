@@ -10,6 +10,7 @@ public class DistNode extends AbstractNode {
   private IProject project;
 
   public DistNode(final IProject project, final EosgiNodeChangeListener listener) {
+    super("ESOGI Configuration", listener, null);
     Objects.requireNonNull(project, "project cannot be null");
     this.project = project;
     setListener(listener);
@@ -32,7 +33,7 @@ public class DistNode extends AbstractNode {
 
   @Override
   public String getText() {
-    return "ESOGI Configuration";
+    return getName();
   }
 
 }

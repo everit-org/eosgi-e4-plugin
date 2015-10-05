@@ -61,10 +61,6 @@ public class DistContentProvider extends TreeNodeContentProvider
 
   @Override
   public Object getParent(final Object element) {
-    // TODO ez így jó?
-    // if (element instanceof DistNode) {
-    // return ((DistNode) element).getProject();
-    // }
     return null;
   }
 
@@ -142,7 +138,7 @@ public class DistContentProvider extends TreeNodeContentProvider
   }
 
   @Override
-  public void nodeChanged(final EosgiNodeChangeEvent event) {
+  public synchronized void nodeChanged(final EosgiNodeChangeEvent event) {
     if (event != null && event.getNode() != null) {
       AbstractNode node = event.getNode();
 

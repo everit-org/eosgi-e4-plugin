@@ -1,12 +1,12 @@
 package org.everit.e4.eosgi.plugin.core.m2e;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Observable;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -25,18 +25,20 @@ import org.eclipse.m2e.core.project.IMavenProjectChangedListener;
 import org.eclipse.m2e.core.project.IMavenProjectFacade;
 import org.eclipse.m2e.core.project.IMavenProjectRegistry;
 import org.eclipse.m2e.core.project.MavenProjectChangedEvent;
-import org.everit.e4.eosgi.plugin.core.dist.DistManager;
+import org.everit.e4.eosgi.plugin.core.EventType;
+import org.everit.e4.eosgi.plugin.core.ModelChangeEvent;
+import org.everit.e4.eosgi.plugin.core.dist.DistRunner;
+import org.everit.e4.eosgi.plugin.core.dist.EOSGiDistRunner;
 import org.everit.e4.eosgi.plugin.core.m2e.model.Environment;
 import org.everit.e4.eosgi.plugin.core.m2e.model.Environments;
 import org.everit.e4.eosgi.plugin.core.m2e.xml.ConfiguratorParser;
-import org.everit.e4.eosgi.plugin.ui.Activator;
 import org.everit.e4.eosgi.plugin.ui.EOSGiLog;
 import org.everit.e4.eosgi.plugin.ui.nature.EosgiNature;
 
 /**
  * Default implementation for {@link EosgiManager}.
  */
-public class DefaultEosgiManager
+public class DefaultEosgiManager extends Observable
     implements EosgiManager, IMavenConfigurationChangeListener,
     IMavenProjectChangedListener {
 
@@ -62,11 +64,9 @@ public class DefaultEosgiManager
 
   private IMaven maven;
 
-  private Set<EosgiModelChangeListener> modelChangeListeners = new HashSet<>();
+  private Map<String, IProject> projectIdMap = new ConcurrentHashMap<>();
 
-  private Map<String, IProject> projectIdMap = new HashMap<>();
-
-  private Map<IProject, ProjectDescriptor> projectMap = new HashMap<>();
+  private Map<IProject, ProjectDescriptor> projectMap = new ConcurrentHashMap<>();
 
   private IMavenProjectRegistry projectRegistry;
 
@@ -84,11 +84,6 @@ public class DefaultEosgiManager
     MavenPlugin.getMavenProjectRegistry().addMavenProjectChangedListener(this);
   }
 
-  @Override
-  public void addModelChangeListener(final EosgiModelChangeListener listener) {
-    modelChangeListeners.add(listener);
-  }
-
   private void addProjectToIdMap(final String projectId, final IProject relevantProject) {
     if (!projectIdMap.containsKey(projectId)) {
       projectIdMap.put(projectId, relevantProject);
@@ -102,6 +97,17 @@ public class DefaultEosgiManager
       projectMap.put(project, projectDescriptor);
     } else {
       log.error("Update project with relevant project failed");
+    }
+  }
+
+  private void createUpdateDistRunner(final IProject project, final String environmentId) {
+    DistRunner distRunner = null;
+    ProjectDescriptor projectDescriptor = projectMap.get(project);
+    Environment environment = projectDescriptor.getEnvironment(environmentId);
+    if (environment != null && environment.getDistRunner() == null) {
+      distRunner = new EOSGiDistRunner(projectDescriptor.getBuildDirectory(), environmentId);
+      environment.setDistRunner(distRunner);
+      setChanged();
     }
   }
 
@@ -230,13 +236,41 @@ public class DefaultEosgiManager
         monitor.setTaskName("creating dist...");
         maven.execute(mavenProject, execution, monitor);
 
-        DistManager distManager = Activator.getDefault().getDistManager();
-        distManager.updateDistStatus(project, environmentId);
+        createUpdateDistRunner(project, environmentId);
       } catch (CoreException e) {
         log.error("dist generation failed for: " + project.getName() + "/"
             + environmentId, e);
       }
     }
+    notifyObservers(new ModelChangeEvent()
+        .eventType(EventType.ENVIRONMENT)
+        .arg(environmentId));
+  }
+
+  /**
+   * Get a {@link DistRunner} by project and environment name.
+   * 
+   * @param project
+   *          project reference.
+   * @param environmentName
+   *          name of the environment.
+   * @return {@link DistRunner} instance or <code>null</code> if runner not found.
+   */
+  @Override
+  public synchronized DistRunner getDistRunner(final IProject project,
+      final String environmentName) {
+    Objects.requireNonNull(project, " project must be nut null");
+    Objects.requireNonNull(environmentName, "environmentName must be nut null");
+
+    ProjectDescriptor projectDescriptor = projectMap.get(project);
+    if (projectDescriptor == null) {
+      return null;
+    }
+    Environment environment = projectDescriptor.getEnvironment(environmentName);
+    if (environment == null) {
+      return null;
+    }
+    return environment.getDistRunner();
   }
 
   private boolean hasProject(final IProject project) {
@@ -265,12 +299,6 @@ public class DefaultEosgiManager
       final IProgressMonitor monitor) {
     for (MavenProjectChangedEvent mavenProjectChangedEvent : events) {
       processMavenProjectChange(monitor, mavenProjectChangedEvent);
-    }
-  }
-
-  private void notifyModelChange(final IProject project) {
-    for (EosgiModelChangeListener listener : modelChangeListeners) {
-      listener.modelChanged(project);
     }
   }
 
@@ -348,11 +376,6 @@ public class DefaultEosgiManager
     }
   }
 
-  @Override
-  public void removeModelChangeListener(final EosgiModelChangeListener listener) {
-    modelChangeListeners.remove(listener);
-  }
-
   private void removeProject(final IProject project, final MavenProject mavenProject) {
     Objects.requireNonNull(project, "project cannot be null");
     ProjectDescriptor projectDescriptor = projectMap.get(project);
@@ -370,7 +393,7 @@ public class DefaultEosgiManager
       }
       projectIdMap.remove(projectId);
     }
-    notifyModelChange(project);
+    notifyObservers(new ModelChangeEvent().eventType(EventType.PROJECT).arg(project));
   }
 
   private void updateBundleProject(final ProjectDescriptor projectDescriptor,
@@ -412,16 +435,15 @@ public class DefaultEosgiManager
     if (environments != null) {
       ProjectDescriptor projectDescriptor = projectMap.get(project);
       if (projectDescriptor.isDistProject()) {
-        DistManager distManager = Activator.getDefault().getDistManager();
         projectDescriptor.clearEnvironments();
         for (Environment environment : environments.getEnvironments()) {
           projectDescriptor.addEnvironments(environment);
-          if (projectDescriptor.getBuildDirectory() != null) {
-            distManager.registerDist(project, environment.getId(),
-                projectDescriptor.getBuildDirectory());
-          }
         }
-        notifyModelChange(project);
+        setChanged();
+        notifyObservers(
+            new ModelChangeEvent()
+                .eventType(EventType.ENVIRONMENTS)
+                .arg(project));
       }
     }
   }
@@ -439,6 +461,10 @@ public class DefaultEosgiManager
       updateBundleProject(projectDescriptor, mavenProject, monitor);
     }
 
-    notifyModelChange(project);
+    setChanged();
+    notifyObservers(
+        new ModelChangeEvent()
+            .eventType(EventType.PROJECT)
+            .arg(project));
   }
 }

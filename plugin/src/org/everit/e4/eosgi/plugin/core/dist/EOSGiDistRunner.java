@@ -2,11 +2,15 @@ package org.everit.e4.eosgi.plugin.core.dist;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Locale;
+import java.util.Observable;
+import java.util.concurrent.atomic.AtomicBoolean;
 
-import org.eclipse.core.resources.IProject;
 import org.eclipse.ui.console.MessageConsoleStream;
+import org.everit.e4.eosgi.plugin.core.EventType;
+import org.everit.e4.eosgi.plugin.core.ModelChangeEvent;
 import org.everit.e4.eosgi.plugin.core.util.DistUtils;
 import org.everit.e4.eosgi.plugin.ui.Activator;
 import org.everit.e4.eosgi.plugin.ui.EOSGiLog;
@@ -16,11 +20,29 @@ import org.rzo.yajsw.os.ProcessManager;
 import org.rzo.yajsw.os.ms.win.w32.WindowsXPProcess;
 import org.rzo.yajsw.os.posix.linux.LinuxProcess;
 
-public class EOSGiDistRunner implements DistRunner {
+public class EOSGiDistRunner extends Observable implements DistRunner {
+
+  /**
+   * A shutdown hook that stops the started OSGi container.
+   */
+  private class ShutdownHook extends Thread {
+
+    private final Process process;
+
+    private final int shutdownTimeout;
+
+    public ShutdownHook(final Process process, final int shutdownTimeout) {
+      this.process = process;
+      this.shutdownTimeout = shutdownTimeout;
+    }
+
+    @Override
+    public void run() {
+      shutdownProcess(process, shutdownTimeout, 0);
+    }
+  }
 
   private AutoCloseable closeable;
-
-  private boolean createdStatus;
 
   private String directory;
 
@@ -30,18 +52,12 @@ public class EOSGiDistRunner implements DistRunner {
 
   private Process process;
 
-  private IProject project;
+  private AtomicBoolean running = new AtomicBoolean(false);
 
-  private DistChangeListener statusListener;
-
-  // FIXME ne keljen a project!
-  public EOSGiDistRunner(final String directory, final String environmentName,
-      final DistChangeListener statusListener, IProject project) {
+  public EOSGiDistRunner(final String directory, final String environmentName) {
     super();
     this.directory = directory;
     this.environmentName = environmentName;
-    this.statusListener = statusListener;
-    this.project = project;
     this.log = new EOSGiLog(Activator.getDefault().getLog());
   }
 
@@ -55,6 +71,7 @@ public class EOSGiDistRunner implements DistRunner {
     process.setVisible(false);
     process.setTeeName(null);
     process.setPipeStreams(true, false);
+    // process.setLogger(Logger.getLogger(EOSGiDistRunner.class.getName()));
 
     // TODO put environment settings too
     return process;
@@ -62,32 +79,27 @@ public class EOSGiDistRunner implements DistRunner {
 
   private Process createOsSpecificProcess() {
     OperatingSystem operatingSystem = OperatingSystem.instance();
-
-    log.info("Operating system is " + operatingSystem.getOperatingSystemName());
-
     String lowerCaseOperatingSystemName = operatingSystem.getOperatingSystemName()
         .toLowerCase(Locale.getDefault());
-
     Process process;
     if (lowerCaseOperatingSystemName.contains("linux")
         || lowerCaseOperatingSystemName.startsWith("mac os x")) {
-      log.info("Creating Linux process");
       process = new LinuxProcess();
     } else {
       ProcessManager processManager = operatingSystem.processManagerInstance();
       process = processManager.createProcess();
     }
-
     return process;
   }
 
-  private Closeable createRedirecter(final Process process) {
+  private void createRedirecter(final Process process) {
     MessageConsoleStream messageConsoleStream = Activator.getDefault()
         .getConsoleWithName(environmentName);
 
-    DaemonStreamRedirector daemonStreamRedirector = new DaemonStreamRedirector(
-        process.getInputStream(), new OutputStream[] { messageConsoleStream },
-        Activator.getDefault().getLog());
+    InputStream inputStream = process.getInputStream();
+    OutputStream[] outputStreams = new OutputStream[] { messageConsoleStream };
+    DaemonStreamRedirector daemonStreamRedirector = new DaemonStreamRedirector(inputStream,
+        outputStreams, log);
 
     try {
       daemonStreamRedirector.start();
@@ -99,7 +111,7 @@ public class EOSGiDistRunner implements DistRunner {
       }
       log.error("Could not start stream redirector.", e);
     }
-    return new Closeable() {
+    closeable = new Closeable() {
 
       @Override
       public void close() throws IOException {
@@ -109,17 +121,23 @@ public class EOSGiDistRunner implements DistRunner {
   }
 
   @Override
-  public boolean isCreated() {
-    return createdStatus;
+  public void forcedStop() {
+    // TODO implement it!
   }
 
   @Override
-  public void setCreatedStatus(boolean createdStatus) {
-    this.createdStatus = createdStatus;
+  public boolean isRunning() {
+    return running.get();
   }
 
-  private void shutdownProcess(final Process process, final int shutdownTimeout, final int code) {
-    log.info("Stopping dist process: " + process.getPid());
+  private void registerShutdownHook(Process process) {
+    ShutdownHook shutdownHook = new ShutdownHook(process, 5000);
+    Runtime.getRuntime().addShutdownHook(shutdownHook);
+  }
+
+  private void shutdownProcess(final Process process, final int shutdownTimeout,
+      final int code) {
+    int pid = process.getPid();
     if (process.isRunning()) {
       if (process instanceof WindowsXPProcess) {
         // In case of windows xp process we must kill the process with a command as there is no
@@ -137,7 +155,10 @@ public class EOSGiDistRunner implements DistRunner {
         killProcess.start();
         process.waitFor(shutdownTimeout);
       } else {
-        process.stop(shutdownTimeout, code);
+        boolean stopped = process.stop(shutdownTimeout, code);
+        if (!stopped) {
+          log.warning("Could not stop process with PID " + pid);
+        }
       }
     }
   }
@@ -147,16 +168,15 @@ public class EOSGiDistRunner implements DistRunner {
     Process process = createDistProcess();
     boolean started = process.start();
     if (started) {
-      closeable = createRedirecter(process);
-      statusListener.statusChangeEvent(
-          new DistStatusEvent()
-              .environmentName(environmentName)
-              .distStatus(DistStatus.RUNNING)
-              .project(project));
+      registerShutdownHook(process);
+      createRedirecter(process);
+      running.set(true);
+      setChanged();
     } else {
       log.error("Could not start dist process.");
     }
-
+    notifyObservers(new ModelChangeEvent()
+        .eventType(EventType.ENVIRONMENT).arg(environmentName));
   }
 
   @Override
@@ -169,11 +189,10 @@ public class EOSGiDistRunner implements DistRunner {
         log.error("Could not close process stream(s).", e);
       }
     }
-    statusListener.statusChangeEvent(
-        new DistStatusEvent()
-            .environmentName(environmentName)
-            .distStatus(DistStatus.STOPPED)
-            .project(project));
+    running.set(false);
+    setChanged();
+    notifyObservers(new ModelChangeEvent()
+        .eventType(EventType.ENVIRONMENT).arg(environmentName));
   }
 
 }

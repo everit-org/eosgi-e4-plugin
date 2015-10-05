@@ -1,15 +1,18 @@
 package org.everit.e4.eosgi.plugin.ui.command;
 
-import java.util.logging.Logger;
-
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.core.commands.IHandler;
 import org.eclipse.core.commands.IHandlerListener;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.TreeSelection;
 import org.eclipse.ui.handlers.HandlerUtil;
-import org.everit.e4.eosgi.plugin.core.dist.DistManager;
+import org.everit.e4.eosgi.plugin.core.dist.DistRunner;
+import org.everit.e4.eosgi.plugin.core.m2e.EosgiManager;
 import org.everit.e4.eosgi.plugin.ui.Activator;
 
 /**
@@ -17,15 +20,12 @@ import org.everit.e4.eosgi.plugin.ui.Activator;
  */
 public class StopDistHandler extends AbstractDistHandler implements IHandler {
 
-  private static final Logger LOGGER = Logger.getLogger(StopDistHandler.class.getName());
-
   @Override
   public void addHandlerListener(final IHandlerListener handlerListener) {
   }
 
   @Override
   public void dispose() {
-    LOGGER.info("dispose");
   }
 
   @Override
@@ -47,16 +47,26 @@ public class StopDistHandler extends AbstractDistHandler implements IHandler {
     processTreeSelection(treeSelection);
 
     if (project != null && environmentName != null) {
-      LOGGER.info("stop environment: " + environmentName);
-      DistManager distManager = Activator.getDefault().getDistManager();
-      distManager.stopDist(project, environmentName);
-      // EosgiProject eosgiProject = Activator.getDefault().getEosgiProjectController()
-      // .getProject(project);
-      // if (eosgiProject != null) {
-      // eosgiProject.stopDist(environmentName);
-      // } else {
-      // LOGGER.info("Dont't have dist for selected project: " + project.getName());
-      // }
+      EosgiManager eosgiManager = Activator.getDefault().getEosgiManager();
+      DistRunner distRunner = eosgiManager.getDistRunner(project, environmentName);
+      if (distRunner != null) {
+        Job job = new Job("Stopping '" + environmentName + "' EOSGI environment...") {
+          @Override
+          protected void canceling() {
+            distRunner.forcedStop();
+            super.canceling();
+          }
+
+          @Override
+          protected IStatus run(final IProgressMonitor monitor) {
+            distRunner.stop();
+            return Status.OK_STATUS;
+          }
+        };
+        job.setPriority(Job.SHORT);
+        job.schedule();
+      }
+
     }
     return null;
   }

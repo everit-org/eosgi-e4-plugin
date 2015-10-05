@@ -3,8 +3,12 @@ package org.everit.e4.eosgi.plugin.core.m2e.model;
 import java.util.List;
 import java.util.Map;
 
+import org.everit.e4.eosgi.plugin.core.dist.DistRunner;
+
 public class Environment {
   private BundleSettings bundleSettings;
+
+  private DistRunner distRunner;
 
   private String framework;
 
@@ -16,6 +20,10 @@ public class Environment {
 
   public BundleSettings getBundleSettings() {
     return bundleSettings;
+  }
+
+  public DistRunner getDistRunner() {
+    return distRunner;
   }
 
   public String getFramework() {
@@ -38,6 +46,10 @@ public class Environment {
     this.bundleSettings = bundleSettings;
   }
 
+  public void setDistRunner(DistRunner distRunner) {
+    this.distRunner = distRunner;
+  }
+
   public void setFramework(final String framework) {
     this.framework = framework;
   }
@@ -56,9 +68,9 @@ public class Environment {
 
   @Override
   public String toString() {
-    return "Environment [id=" + id + ", framework=" + framework + ", systemProperties="
-        + systemProperties
-        + ", vmOptions=" + vmOptions + ", bundleSettings=" + bundleSettings + "]";
+    return "Environment [bundleSettings=" + bundleSettings + ", framework=" + framework + ", id="
+        + id + ", systemProperties=" + systemProperties + ", vmOptions=" + vmOptions
+        + ", distRunner=" + distRunner + "]";
   }
 
 }

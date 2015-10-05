@@ -16,8 +16,6 @@ import org.eclipse.ui.console.IConsoleManager;
 import org.eclipse.ui.console.MessageConsole;
 import org.eclipse.ui.console.MessageConsoleStream;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
-import org.everit.e4.eosgi.plugin.core.dist.DefaultDistManager;
-import org.everit.e4.eosgi.plugin.core.dist.DistManager;
 import org.everit.e4.eosgi.plugin.core.m2e.DefaultEosgiManager;
 import org.everit.e4.eosgi.plugin.core.m2e.EosgiManager;
 import org.everit.e4.eosgi.plugin.ui.nature.EosgiNature;
@@ -36,8 +34,6 @@ public class Activator extends AbstractUIPlugin {
   public static ImageDescriptor getImageDescriptor(final String path) {
     return AbstractUIPlugin.imageDescriptorFromPlugin(PLUGIN_ID, path);
   }
-
-  private DistManager distManager;
 
   private EosgiManager eosgiManager;
 
@@ -76,11 +72,7 @@ public class Activator extends AbstractUIPlugin {
     return console.newMessageStream();
   }
 
-  public DistManager getDistManager() {
-    return distManager;
-  }
-
-  public EosgiManager getEosgiManager() {
+  public synchronized EosgiManager getEosgiManager() {
     return eosgiManager;
   }
 
@@ -89,7 +81,6 @@ public class Activator extends AbstractUIPlugin {
     super.start(context);
     plugin = this;
 
-    distManager = new DefaultDistManager(log);
     eosgiManager = new DefaultEosgiManager(log);
 
     Job job = new Job("Initializing EOSGI manager") {
@@ -120,7 +111,6 @@ public class Activator extends AbstractUIPlugin {
   public void stop(final BundleContext context) throws Exception {
     plugin = null;
     eosgiManager = null;
-    distManager = null;
     super.stop(context);
   }
 

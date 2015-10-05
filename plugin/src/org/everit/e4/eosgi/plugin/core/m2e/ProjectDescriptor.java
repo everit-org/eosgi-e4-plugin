@@ -55,6 +55,11 @@ public class ProjectDescriptor {
     return buildDirectory;
   }
 
+  public Environment getEnvironment(String environmentName) {
+    Objects.requireNonNull(environmentName, "environmentName must be not null");
+    return environments.get(environmentName);
+  }
+
   public List<String> getEnvironments() {
     List<String> list = new ArrayList<>();
     for (String env : environments.keySet()) {

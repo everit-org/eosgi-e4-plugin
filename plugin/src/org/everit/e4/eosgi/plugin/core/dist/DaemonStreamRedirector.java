@@ -25,7 +25,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import org.eclipse.core.runtime.ILog;
 import org.everit.e4.eosgi.plugin.ui.EOSGiLog;
 
 /**
@@ -92,9 +91,9 @@ public class DaemonStreamRedirector implements Closeable {
    *          A logger that is used to log unexpected behavior.
    */
   public DaemonStreamRedirector(final InputStream inputStream, final OutputStream[] outputStreams,
-      final ILog log) {
+      final EOSGiLog log) {
     this.inputStream = inputStream;
-    this.log = new EOSGiLog(log);
+    this.log = log;
     outputStreamList = new ArrayList<OutputStream>(Arrays.asList(outputStreams));
   }
 

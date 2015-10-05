@@ -1,6 +1,12 @@
 package org.everit.e4.eosgi.plugin.ui.navigator.nodes;
 
+import org.everit.e4.eosgi.plugin.ui.navigator.EosgiNodeChangeListener;
+
 public class LeafNode extends AbstractNode {
+
+  public LeafNode(String name, EosgiNodeChangeListener listener, String label) {
+    super(name, listener, label);
+  }
 
   @Override
   public AbstractNode[] getChildren() {

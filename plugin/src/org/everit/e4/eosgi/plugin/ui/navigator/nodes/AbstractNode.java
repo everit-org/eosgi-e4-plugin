@@ -18,6 +18,17 @@ public abstract class AbstractNode {
 
   protected String value;
 
+  public AbstractNode(String name, EosgiNodeChangeListener listener, String label) {
+    super();
+    this.name = name;
+    this.listener = listener;
+    this.label = label;
+  }
+
+  public void dispose() {
+    listener = null;
+  }
+
   public abstract AbstractNode[] getChildren();
 
   public abstract String getIcon();
