@@ -53,7 +53,7 @@ public class DistStartJob extends Job {
   @Override
   protected IStatus run(final IProgressMonitor monitor) {
     this.monitor = monitor;
-    runner.start(monitor);
+    runner.start();
     return Status.OK_STATUS;
   }
 

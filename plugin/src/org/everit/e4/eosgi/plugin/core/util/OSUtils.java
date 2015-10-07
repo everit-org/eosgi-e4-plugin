@@ -15,6 +15,8 @@
  */
 package org.everit.e4.eosgi.plugin.core.util;
 
+import java.util.Locale;
+
 /**
  * Utility method for OS specific staffs.
  */
@@ -37,7 +39,7 @@ public final class OSUtils {
    * @return {@link OSType} instance by current OS.
    */
   public static OSType currentOS() {
-    String osName = System.getProperty("os.name").toLowerCase();
+    String osName = System.getProperty("os.name").toLowerCase(Locale.getDefault());
     if (osName.contains(LINUX)) {
       return OSType.LINUX;
     } else if (osName.contains(WIN)) {

@@ -35,8 +35,8 @@ import org.eclipse.m2e.jdt.IJavaProjectConfigurator;
 import org.everit.e4.eosgi.plugin.core.ContextChange;
 import org.everit.e4.eosgi.plugin.core.EOSGiContext;
 import org.everit.e4.eosgi.plugin.core.EOSGiContextManager;
-import org.everit.e4.eosgi.plugin.ui.EOSGiPluginActivator;
 import org.everit.e4.eosgi.plugin.ui.EOSGiLog;
+import org.everit.e4.eosgi.plugin.ui.EOSGiPluginActivator;
 import org.everit.e4.eosgi.plugin.ui.nature.EosgiNature;
 import org.everit.e4.eosgi.plugin.ui.util.ProjectNatureUtils;
 
@@ -80,11 +80,7 @@ public class EosgiDistProjectConfigurator extends AbstractProjectConfigurator
     }
 
     addEosgiNature(monitor, project);
-
-    if (project != null) {
-      eosgiManager.findOrCreate(project);
-    }
-
+    eosgiManager.findOrCreate(project);
     log.info(project.getName() + " configured as dist project.");
   }
 

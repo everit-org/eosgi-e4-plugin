@@ -20,33 +20,31 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.StructuredViewer;
 import org.eclipse.jface.viewers.TreeNodeContentProvider;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.swt.widgets.Control;
 import org.everit.e4.eosgi.plugin.core.EOSGiContext;
 import org.everit.e4.eosgi.plugin.core.EOSGiContextManager;
+import org.everit.e4.eosgi.plugin.ui.EOSGiLog;
 import org.everit.e4.eosgi.plugin.ui.EOSGiPluginActivator;
 import org.everit.e4.eosgi.plugin.ui.nature.EosgiNature;
 import org.everit.e4.eosgi.plugin.ui.navigator.nodes.AbstractNode;
 import org.everit.e4.eosgi.plugin.ui.navigator.nodes.RootNode;
 
 /**
- * {@link ITreeContentProvider} implementation for manage the EOSGI nodes in ProjectExplorer.
+ * TreeNodeContentProvider implementation for manage the EOSGI nodes in ProjectExplorer.
  */
 public class DistContentProvider extends TreeNodeContentProvider
-    implements ITreeContentProvider, EosgiNodeChangeListener {
-  static final Logger LOGGER = Logger.getLogger(DistContentProvider.class.getName());
-
+    implements EosgiNodeChangeListener {
   private static final Object[] NO_CHILDREN = new Object[] {};
 
   private Map<AbstractNode, AbstractNode[]> eosgiNodeCache = new HashMap<>();
+
+  private EOSGiLog log = new EOSGiLog(EOSGiPluginActivator.getDefault().getLog());
 
   private EOSGiPluginActivator plugin = EOSGiPluginActivator.getDefault();
 
@@ -104,15 +102,15 @@ public class DistContentProvider extends TreeNodeContentProvider
   }
 
   // FIXME unused
-  @SuppressWarnings("unused")
-  private Runnable getUpdateRunnable(final AbstractNode resource) {
-    return new Runnable() {
-      @Override
-      public void run() {
-        viewer.update(resource, null);
-      }
-    };
-  }
+  // @SuppressWarnings("unused")
+  // private Runnable getUpdateRunnable(final AbstractNode resource) {
+  // return new Runnable() {
+  // @Override
+  // public void run() {
+  // viewer.update(resource, null);
+  // }
+  // };
+  // }
 
   private Object[] handleEosgiNode(final Object parentElement) {
     if (eosgiNodeCache.containsKey(parentElement)) {
@@ -135,7 +133,7 @@ public class DistContentProvider extends TreeNodeContentProvider
     try {
       eosgiNature = project.hasNature(EosgiNature.NATURE_ID);
     } catch (CoreException e) {
-      LOGGER.log(Level.WARNING, "get project nature", e);
+      log.error("get project nature", e);
     }
 
     EOSGiContextManager manager = plugin.getEOSGiManager();

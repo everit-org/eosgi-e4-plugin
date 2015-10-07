@@ -23,8 +23,9 @@ import org.everit.e4.eosgi.plugin.ui.navigator.EosgiNodeChangeListener;
  * Abstract node for EOSGi nodes.
  */
 public abstract class AbstractNode implements Observer {
+  protected static final AbstractNode[] NO_CHILDREN = new AbstractNode[] {};
 
-  protected AbstractNode[] children;
+  protected AbstractNode[] children = NO_CHILDREN;
 
   protected String icon;
 

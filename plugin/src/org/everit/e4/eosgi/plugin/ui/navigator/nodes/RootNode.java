@@ -52,7 +52,7 @@ public class RootNode extends AbstractNode {
       children = new AbstractNode[] { new EnvironmentsNode(context, getListener()) };
       outdated = false;
     }
-    return children;
+    return children.clone();
   }
 
   @Override

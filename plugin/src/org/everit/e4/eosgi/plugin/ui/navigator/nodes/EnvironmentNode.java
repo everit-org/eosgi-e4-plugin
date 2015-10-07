@@ -15,8 +15,8 @@
  */
 package org.everit.e4.eosgi.plugin.ui.navigator.nodes;
 
+import java.util.Locale;
 import java.util.Observable;
-import java.util.Observer;
 
 import org.everit.e4.eosgi.plugin.core.EOSGiContext;
 import org.everit.e4.eosgi.plugin.core.EventType;
@@ -29,7 +29,7 @@ import org.everit.e4.eosgi.plugin.ui.navigator.EosgiNodeChangeListener;
 /**
  * Project explorer node for show environment.
  */
-public class EnvironmentNode extends AbstractNode implements Observer {
+public class EnvironmentNode extends AbstractNode {
 
   private EOSGiContext context;
 
@@ -63,7 +63,7 @@ public class EnvironmentNode extends AbstractNode implements Observer {
 
   @Override
   public AbstractNode[] getChildren() {
-    return null;
+    return NO_CHILDREN;
   }
 
   public DistStatus getDistStatus() {
@@ -71,7 +71,7 @@ public class EnvironmentNode extends AbstractNode implements Observer {
   }
 
   public String getDistStatusString() {
-    return " " + distStatus.name().toLowerCase();
+    return " " + distStatus.name().toLowerCase(Locale.getDefault());
   }
 
   @Override

@@ -47,13 +47,14 @@ public class DistStopJob extends Job {
   @Override
   protected void canceling() {
     monitor.setCanceled(true);
+    cancel();
     super.canceling();
   }
 
   @Override
   protected IStatus run(final IProgressMonitor monitor) {
     this.monitor = monitor;
-    runner.stop(monitor);
+    runner.stop();
     return Status.OK_STATUS;
   }
 

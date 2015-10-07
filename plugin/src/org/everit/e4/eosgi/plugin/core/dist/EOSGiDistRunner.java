@@ -21,9 +21,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Locale;
 import java.util.Observable;
-import java.util.concurrent.atomic.AtomicBoolean;
 
-import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.ui.console.MessageConsoleStream;
 import org.everit.e4.eosgi.plugin.core.EventType;
 import org.everit.e4.eosgi.plugin.core.ModelChangeEvent;
@@ -37,8 +35,7 @@ import org.rzo.yajsw.os.ms.win.w32.WindowsXPProcess;
 import org.rzo.yajsw.os.posix.linux.LinuxProcess;
 
 /**
- * A {@link DistRunner} implementation that used the YAJSW {@link Process} for running a dist
- * instance.
+ * A {@link DistRunner} implementation that used the YAJSW {@link Process} for lock a dist instance.
  */
 public class EOSGiDistRunner extends Observable implements DistRunner {
 
@@ -51,7 +48,15 @@ public class EOSGiDistRunner extends Observable implements DistRunner {
 
     private final int shutdownTimeout;
 
-    public ShutdownHook(final Process process, final int shutdownTimeout) {
+    /**
+     * Constuctor with process and timeout.
+     * 
+     * @param process
+     *          process instance.
+     * @param shutdownTimeout
+     *          timeout in milisec.
+     */
+    ShutdownHook(final Process process, final int shutdownTimeout) {
       this.process = process;
       this.shutdownTimeout = shutdownTimeout;
     }
@@ -62,6 +67,10 @@ public class EOSGiDistRunner extends Observable implements DistRunner {
     }
   }
 
+  private static final int DEFAULT_SHUTDOWN_HOOK_TIMEOUT = 5000;
+
+  private static final int PROCESS_SHUTDOWN_TIMEOUT = 10000;
+
   private AutoCloseable closeable;
 
   private String directory;
@@ -71,8 +80,6 @@ public class EOSGiDistRunner extends Observable implements DistRunner {
   private EOSGiLog log;
 
   private Process process;
-
-  private AtomicBoolean running = new AtomicBoolean(false);
 
   /**
    * Constructor with build directory and environment id.
@@ -90,7 +97,7 @@ public class EOSGiDistRunner extends Observable implements DistRunner {
   }
 
   private Process createDistProcess() {
-    process = createOsSpecificProcess();
+    Process process = createOsSpecificProcess();
     process.setTitle(environmentName);
 
     String distStartCommand = DistUtils.getDistStartCommand(directory, environmentName);
@@ -149,17 +156,20 @@ public class EOSGiDistRunner extends Observable implements DistRunner {
   }
 
   @Override
-  public void forcedStop() {
+  public synchronized void forcedStop() {
     // TODO implement it!
+    // if (isRunning()) {
+    // shutdownProcess(process, 0, 9);
+    // }
   }
 
   @Override
-  public boolean isRunning() {
-    return running.get();
+  public synchronized boolean isRunning() {
+    return process != null && process.isRunning();
   }
 
   private void registerShutdownHook(final Process process) {
-    ShutdownHook shutdownHook = new ShutdownHook(process, 5000);
+    ShutdownHook shutdownHook = new ShutdownHook(process, DEFAULT_SHUTDOWN_HOOK_TIMEOUT);
     Runtime.getRuntime().addShutdownHook(shutdownHook);
   }
 
@@ -192,13 +202,16 @@ public class EOSGiDistRunner extends Observable implements DistRunner {
   }
 
   @Override
-  public void start(final IProgressMonitor monitor) {
-    Process process = createDistProcess();
-    boolean started = process.start();
+  public synchronized void start() {
+    if (process != null && process.isRunning()) {
+      return;
+    }
+    Process newProcess = createDistProcess();
+    boolean started = newProcess.start();
     if (started) {
-      registerShutdownHook(process);
-      createRedirecter(process);
-      running.set(true);
+      registerShutdownHook(newProcess);
+      createRedirecter(newProcess);
+      this.process = newProcess;
       setChanged();
     } else {
       log.error("Could not start dist process.");
@@ -207,9 +220,31 @@ public class EOSGiDistRunner extends Observable implements DistRunner {
         .eventType(EventType.ENVIRONMENT).arg(environmentName));
   }
 
+  // private void startThreadForCancelSignal(final IProgressMonitor monitor) {
+  // new Thread(() -> {
+  // while (!monitor.isCanceled()) {
+  // try {
+  // Thread.sleep(200);
+  // } catch (Exception e) {
+  // if (Thread.currentThread().isInterrupted()) {
+  // Thread.currentThread().interrupt();
+  // }
+  // }
+  // }
+  // if (monitor.isCanceled()) {
+  // this.forcedStop();
+  // }
+  // }).start();
+  // }
+
   @Override
-  public void stop(final IProgressMonitor monitor) {
-    shutdownProcess(process, 10000, 9);
+  public synchronized void stop() {
+    if (process == null || !process.isRunning()) {
+      return;
+    }
+    // startThreadForCancelSignal(monitor);
+
+    shutdownProcess(process, PROCESS_SHUTDOWN_TIMEOUT, -1);
     if (process.isRunning()) {
       try {
         closeable.close();
@@ -217,7 +252,6 @@ public class EOSGiDistRunner extends Observable implements DistRunner {
         log.error("Could not close process stream(s).", e);
       }
     }
-    running.set(false);
     setChanged();
     notifyObservers(new ModelChangeEvent()
         .eventType(EventType.ENVIRONMENT).arg(environmentName));

@@ -27,6 +27,7 @@ import java.util.Optional;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.m2e.core.project.IMavenProjectFacade;
 import org.eclipse.m2e.core.project.MavenProjectChangedEvent;
@@ -68,7 +69,7 @@ public class EOSGiProject extends Observable implements EOSGiContext {
   public void dispose() {
     environments.forEach((key, value) -> {
       value.getDistRunner().ifPresent(runner -> {
-        runner.stop(null);
+        runner.stop();
       });
     });
     deleteObservers();
@@ -90,16 +91,20 @@ public class EOSGiProject extends Observable implements EOSGiContext {
   }
 
   @Override
-  public void generate(final String environmentName, final IProgressMonitor monitor) {
-    Objects.requireNonNull(environmentName, "environmentName must be not null!");
+  public void generate(final String environmentId, final IProgressMonitor monitor) {
+    Objects.requireNonNull(environmentId, "environmentName must be not null!");
 
-    M2EGoalExecutor executor = new M2EGoalExecutor(log);
-    boolean generated = executor.executeOn(project, environmentName, monitor);
+    boolean generated = false;
+    try {
+      generated = new M2EGoalExecutor(project).execute(monitor);
+    } catch (CoreException e) {
+      log.error("Couldn't generate dist for '" + environmentId + "' environment.", e);
+    }
 
     if (generated) {
-      Environment environment = environments.get(environmentName);
+      Environment environment = environments.get(environmentId);
       if ((environment != null) && (buildDirectory != null)) {
-        DistRunner distRunner = new EOSGiDistRunner(buildDirectory, environmentName);
+        DistRunner distRunner = new EOSGiDistRunner(buildDirectory, environmentId);
         environment.setDistRunner(distRunner);
         setChanged();
       }
@@ -107,19 +112,18 @@ public class EOSGiProject extends Observable implements EOSGiContext {
 
     notifyObservers(new ModelChangeEvent()
         .eventType(EventType.ENVIRONMENT)
-        .arg(environmentName));
+        .arg(environmentId));
   }
 
   @Override
   public void mavenProjectChanged(final MavenProjectChangedEvent[] changedEvents,
       final IProgressMonitor monitor) {
     for (MavenProjectChangedEvent mavenProjectChangedEvent : changedEvents) {
-      processEvents(mavenProjectChangedEvent, monitor);
+      processEvents(mavenProjectChangedEvent);
     }
   }
 
-  private void processEvents(final MavenProjectChangedEvent mavenProjectChangedEvent,
-      final IProgressMonitor monitor) {
+  private void processEvents(final MavenProjectChangedEvent mavenProjectChangedEvent) {
     IMavenProjectFacade mavenProjectFacade = mavenProjectChangedEvent.getMavenProject();
     // IMavenProjectFacade oldMavenProjectFacade = mavenProjectChangedEvent.getOldMavenProject();
 
@@ -142,10 +146,17 @@ public class EOSGiProject extends Observable implements EOSGiContext {
     Objects.requireNonNull(contextChange, "contextChange must be not null!");
     if (contextChange.buildDirectory != null) {
       buildDirectory = contextChange.buildDirectory;
+      setChanged();
     }
     if (contextChange.configuration != null) {
       updateEnvironments(contextChange.configuration);
+      setChanged();
     }
+    notifyObservers(
+        new ModelChangeEvent()
+            .eventType(EventType.ENVIRONMENTS)
+            .arg(this));
+
   }
 
   @Override
@@ -162,6 +173,12 @@ public class EOSGiProject extends Observable implements EOSGiContext {
       log.error("Couldn't find environment with name " + environmentName);
       return Optional.empty();
     }
+  }
+
+  @Override
+  public String toString() {
+    return "EOSGiProject [buildDirectory=" + buildDirectory + ", environments=" + environments
+        + ", project=" + project + "]";
   }
 
   private void updateEnvironments(final Xpp3Dom configuration) {
@@ -184,10 +201,6 @@ public class EOSGiProject extends Observable implements EOSGiContext {
     }
 
     setChanged();
-    notifyObservers(
-        new ModelChangeEvent()
-            .eventType(EventType.ENVIRONMENTS)
-            .arg(this));
   }
 
 }

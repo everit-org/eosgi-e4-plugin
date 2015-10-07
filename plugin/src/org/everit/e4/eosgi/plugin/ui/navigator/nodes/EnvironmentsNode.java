@@ -18,7 +18,6 @@ package org.everit.e4.eosgi.plugin.ui.navigator.nodes;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Observable;
-import java.util.Observer;
 
 import org.everit.e4.eosgi.plugin.core.EOSGiContext;
 import org.everit.e4.eosgi.plugin.core.EventType;
@@ -29,7 +28,7 @@ import org.everit.e4.eosgi.plugin.ui.navigator.EosgiNodeChangeListener;
 /**
  * Project explorer node for show environments.
  */
-public class EnvironmentsNode extends AbstractNode implements Observer {
+public class EnvironmentsNode extends AbstractNode {
 
   private EOSGiContext context;
 
@@ -69,7 +68,7 @@ public class EnvironmentsNode extends AbstractNode implements Observer {
       children = nodes.toArray(new EnvironmentNode[] {});
       outdated = false;
     }
-    return children;
+    return children.clone();
   }
 
   @Override

@@ -16,7 +16,6 @@
 package org.everit.e4.eosgi.plugin.ui.navigator;
 
 import org.eclipse.jface.viewers.DelegatingStyledCellLabelProvider.IStyledLabelProvider;
-import org.eclipse.jface.viewers.ILabelProvider;
 import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.jface.viewers.StyledString;
 import org.eclipse.swt.graphics.Image;
@@ -25,9 +24,9 @@ import org.everit.e4.eosgi.plugin.ui.EOSGiPluginActivator;
 import org.everit.e4.eosgi.plugin.ui.navigator.nodes.AbstractNode;
 
 /**
- * {@link ILabelProvider} implementation.
+ * LabelProvider implementation.
  */
-public class DistLabelProvider extends LabelProvider implements ILabelProvider,
+public class DistLabelProvider extends LabelProvider implements
     IDescriptionProvider, IStyledLabelProvider {
 
   @Override

@@ -46,7 +46,7 @@ public class EOSGiContextManagerImpl implements EOSGiContextManager {
   }
 
   @Override
-  public void dispose() {
+  public synchronized void dispose() {
     projectContexts.forEach((t, u) -> {
       projectRegistry.removeMavenProjectChangedListener(u);
       u.dispose();
@@ -55,7 +55,7 @@ public class EOSGiContextManagerImpl implements EOSGiContextManager {
   }
 
   @Override
-  public EOSGiContext findOrCreate(final IProject project) {
+  public synchronized EOSGiContext findOrCreate(final IProject project) {
     if (projectContexts.containsKey(project)) {
       return projectContexts.get(project);
     } else {
@@ -80,7 +80,7 @@ public class EOSGiContextManagerImpl implements EOSGiContextManager {
   }
 
   @Override
-  public boolean refresh(final IProject project, final ContextChange contextChange) {
+  public synchronized boolean refresh(final IProject project, final ContextChange contextChange) {
     Objects.requireNonNull(project, "project must be not null!");
     EOSGiContext eosGiContext = projectContexts.get(project);
     eosGiContext.refresh(contextChange);
@@ -88,7 +88,7 @@ public class EOSGiContextManagerImpl implements EOSGiContextManager {
   }
 
   @Override
-  public void remove(final IProject project) {
+  public synchronized void remove(final IProject project) {
     EOSGiContext context = projectContexts.remove(project);
     if (context != null) {
       projectRegistry.removeMavenProjectChangedListener(context);

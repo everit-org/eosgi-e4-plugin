@@ -30,7 +30,7 @@ public class LeafNode extends AbstractNode {
 
   @Override
   public AbstractNode[] getChildren() {
-    return null;
+    return NO_CHILDREN;
   }
 
   @Override

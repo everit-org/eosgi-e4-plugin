@@ -26,7 +26,6 @@ import org.eclipse.m2e.core.MavenPlugin;
 import org.eclipse.m2e.core.embedder.IMaven;
 import org.eclipse.m2e.core.project.IMavenProjectFacade;
 import org.eclipse.m2e.core.project.IMavenProjectRegistry;
-import org.everit.e4.eosgi.plugin.ui.EOSGiLog;
 
 /**
  * Class for executing maven goals.
@@ -39,74 +38,51 @@ public class M2EGoalExecutor {
 
   private static final String EOSGI_MAVEN_PLUGIN_GROUP_ID = "org.everit.osgi.dev";
 
-  private EOSGiLog log;
-
   private IMaven maven;
+
+  private IMavenProjectFacade mavenProjectFacade;
 
   private IMavenProjectRegistry projectRegistry;
 
   /**
-   * Constructor with log wrapper.
+   * Constructor.
    * 
-   * @param log
-   *          EOSGiLog instance.
+   * @param project
+   *          target {@link IProject} reference.
    */
-  public M2EGoalExecutor(final EOSGiLog log) {
+  public M2EGoalExecutor(final IProject project) {
     super();
-    this.log = log;
-    projectRegistry = MavenPlugin.getMavenProjectRegistry();
     maven = MavenPlugin.getMaven();
+    projectRegistry = MavenPlugin.getMavenProjectRegistry();
+    mavenProjectFacade = projectRegistry.getProject(project);
   }
 
   /**
    * Execute a dist generation goal on the given environment of the given project. Polling the
    * monitor for canceling event.
    * 
-   * @param project
-   *          target {@link IProject} reference.
-   * @param environmentId
-   *          target environment id.
    * @param monitor
    *          {@link IProgressMonitor} instance.
    * @return <code>true</code> is success, <code>false</code> otherwise.
+   * @throws CoreException
+   *           throws when maven error occurred.
    */
-  public boolean executeOn(final IProject project, final String environmentId,
-      final IProgressMonitor monitor) {
-    if (monitor.isCanceled()) {
-      return false;
-    }
-    monitor.setTaskName("fetching project information...");
-    IMavenProjectFacade mavenProjectFacade = projectRegistry.getProject(project);
+  public boolean execute(final IProgressMonitor monitor) throws CoreException {
     MavenProject mavenProject = null;
-
-    if (monitor.isCanceled()) {
-      return false;
-    }
-    try {
+    if (isNotCancelled(monitor)) {
       mavenProject = mavenProjectFacade.getMavenProject(monitor);
-    } catch (CoreException e) {
-      log.error("dist generation failed for: " + project.getName() + "/"
-          + environmentId, e);
     }
 
-    if (mavenProject != null) {
-      try {
-        if (monitor.isCanceled()) {
-          return false;
-        }
-        monitor.setTaskName("fetching execution information...");
-        MojoExecution execution = fetchDistMojoExecution(mavenProjectFacade, monitor);
+    MojoExecution execution = null;
+    if (mavenProject != null && isNotCancelled(monitor)) {
+      monitor.setTaskName("fetching execution information...");
+      execution = fetchDistMojoExecution(mavenProjectFacade, monitor);
+    }
 
-        if (monitor.isCanceled()) {
-          return false;
-        }
-        monitor.setTaskName("creating dist...");
-        maven.execute(mavenProject, execution, monitor);
-        return true;
-      } catch (CoreException e) {
-        log.error("dist generation failed for: " + project.getName() + "/"
-            + environmentId, e);
-      }
+    if (execution != null && isNotCancelled(monitor)) {
+      monitor.setTaskName("creating dist...");
+      maven.execute(mavenProject, execution, monitor);
+      return true;
     }
     return false;
   }
@@ -121,5 +97,9 @@ public class M2EGoalExecutor {
     } else {
       return null;
     }
+  }
+
+  private boolean isNotCancelled(final IProgressMonitor monitor) {
+    return monitor != null && !monitor.isCanceled();
   }
 }
