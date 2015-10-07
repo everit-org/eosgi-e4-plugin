@@ -1,5 +1,7 @@
 package org.everit.e4.eosgi.plugin.ui.navigator.nodes;
 
+import java.util.Observable;
+
 import org.everit.e4.eosgi.plugin.ui.navigator.EosgiNodeChangeListener;
 
 public class LeafNode extends AbstractNode {
@@ -25,6 +27,10 @@ public class LeafNode extends AbstractNode {
       text += " (" + getLabel() + ")";
     }
     return text;
+  }
+
+  @Override
+  public void update(Observable o, Object arg) {
   }
 
 }

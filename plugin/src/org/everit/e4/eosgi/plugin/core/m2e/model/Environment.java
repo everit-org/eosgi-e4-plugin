@@ -2,6 +2,7 @@ package org.everit.e4.eosgi.plugin.core.m2e.model;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.everit.e4.eosgi.plugin.core.dist.DistRunner;
 
@@ -22,8 +23,8 @@ public class Environment {
     return bundleSettings;
   }
 
-  public DistRunner getDistRunner() {
-    return distRunner;
+  public Optional<DistRunner> getDistRunner() {
+    return Optional.ofNullable(distRunner);
   }
 
   public String getFramework() {

@@ -8,6 +8,7 @@ import java.util.Locale;
 import java.util.Observable;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.ui.console.MessageConsoleStream;
 import org.everit.e4.eosgi.plugin.core.EventType;
 import org.everit.e4.eosgi.plugin.core.ModelChangeEvent;
@@ -164,7 +165,7 @@ public class EOSGiDistRunner extends Observable implements DistRunner {
   }
 
   @Override
-  public void start() {
+  public void start(IProgressMonitor monitor) {
     Process process = createDistProcess();
     boolean started = process.start();
     if (started) {
@@ -180,7 +181,7 @@ public class EOSGiDistRunner extends Observable implements DistRunner {
   }
 
   @Override
-  public void stop() {
+  public void stop(IProgressMonitor monitor) {
     shutdownProcess(process, 10000, 9);
     if (process.isRunning()) {
       try {

@@ -5,24 +5,37 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
+import org.everit.e4.eosgi.plugin.core.EOSGiContext;
+import org.everit.e4.eosgi.plugin.core.EOSGiManager;
 import org.everit.e4.eosgi.plugin.ui.Activator;
 
 public final class DistGenerationJob extends Job {
 
   private String environmentName;
+  private IProgressMonitor monitor;
   private IProject project;
 
   public DistGenerationJob(IProject project, String environmentName) {
-    super("Genearate distribution");
+    super("Generate dist for " + environmentName);
     this.project = project;
     this.environmentName = environmentName;
-    setPriority(Job.SHORT);
+    setPriority(Job.BUILD);
+  }
+
+  @Override
+  protected void canceling() {
+    this.monitor.setCanceled(true);
+    super.canceling();
   }
 
   @Override
   protected IStatus run(final IProgressMonitor monitor) {
-    Activator.getDefault().getEosgiManager().generateDistFor(project, environmentName,
-        monitor);
+    this.monitor = monitor;
+    EOSGiManager eosgiManager2 = Activator.getDefault().getEOSGiManager();
+    EOSGiContext eosgiProject = eosgiManager2.findOrCreate(project);
+    if (eosgiProject != null) {
+      eosgiProject.generate(environmentName, monitor);
+    }
     return Status.OK_STATUS;
   }
 }

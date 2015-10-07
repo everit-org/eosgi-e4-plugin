@@ -16,8 +16,8 @@ import org.eclipse.ui.console.IConsoleManager;
 import org.eclipse.ui.console.MessageConsole;
 import org.eclipse.ui.console.MessageConsoleStream;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
-import org.everit.e4.eosgi.plugin.core.m2e.DefaultEosgiManager;
-import org.everit.e4.eosgi.plugin.core.m2e.EosgiManager;
+import org.everit.e4.eosgi.plugin.core.EOSGiManager;
+import org.everit.e4.eosgi.plugin.core.m2e.EOSGiManagerImpl;
 import org.everit.e4.eosgi.plugin.ui.nature.EosgiNature;
 import org.osgi.framework.BundleContext;
 
@@ -35,7 +35,7 @@ public class Activator extends AbstractUIPlugin {
     return AbstractUIPlugin.imageDescriptorFromPlugin(PLUGIN_ID, path);
   }
 
-  private EosgiManager eosgiManager;
+  private EOSGiManager eosgiManager;
 
   private EOSGiLog log;
 
@@ -72,7 +72,7 @@ public class Activator extends AbstractUIPlugin {
     return console.newMessageStream();
   }
 
-  public synchronized EosgiManager getEosgiManager() {
+  public synchronized EOSGiManager getEOSGiManager() {
     return eosgiManager;
   }
 
@@ -81,18 +81,18 @@ public class Activator extends AbstractUIPlugin {
     super.start(context);
     plugin = this;
 
-    eosgiManager = new DefaultEosgiManager(log);
+    eosgiManager = new EOSGiManagerImpl(log);
 
-    Job job = new Job("Initializing EOSGI manager") {
+    Job job = new Job("Initializing EOSGI eosgiManager") {
       @Override
       protected IStatus run(final IProgressMonitor monitor) {
         IProject[] projects = ResourcesPlugin.getWorkspace().getRoot().getProjects();
-        monitor.beginTask("Register projects for EOSGI manager...", projects.length);
+        monitor.beginTask("Register projects for EOSGI eosgiManager...", projects.length);
         int i = 0;
         for (IProject project : projects) {
           try {
             if (project.isOpen() && project.hasNature(EosgiNature.NATURE_ID)) {
-              eosgiManager.registerProject(project, monitor);
+              eosgiManager.findOrCreate(project);
             }
           } catch (CoreException e) {
             log.error("Couldn't register project with name " + project.getName(), e);
@@ -110,6 +110,7 @@ public class Activator extends AbstractUIPlugin {
   @Override
   public void stop(final BundleContext context) throws Exception {
     plugin = null;
+    eosgiManager.dispose();
     eosgiManager = null;
     super.stop(context);
   }

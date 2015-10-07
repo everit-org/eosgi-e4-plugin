@@ -4,16 +4,13 @@ import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.core.commands.IHandler;
 import org.eclipse.core.commands.IHandlerListener;
-import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.Status;
-import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.TreeSelection;
 import org.eclipse.ui.handlers.HandlerUtil;
-import org.everit.e4.eosgi.plugin.core.dist.DistRunner;
-import org.everit.e4.eosgi.plugin.core.m2e.EosgiManager;
+import org.everit.e4.eosgi.plugin.core.EOSGiContext;
+import org.everit.e4.eosgi.plugin.core.EOSGiManager;
 import org.everit.e4.eosgi.plugin.ui.Activator;
+import org.everit.e4.eosgi.plugin.ui.jobs.DistStopJob;
 
 /**
  * Handler implementation for stop the current selected dist project.
@@ -47,26 +44,7 @@ public class StopDistHandler extends AbstractDistHandler implements IHandler {
     processTreeSelection(treeSelection);
 
     if (project != null && environmentName != null) {
-      EosgiManager eosgiManager = Activator.getDefault().getEosgiManager();
-      DistRunner distRunner = eosgiManager.getDistRunner(project, environmentName);
-      if (distRunner != null) {
-        Job job = new Job("Stopping '" + environmentName + "' EOSGI environment...") {
-          @Override
-          protected void canceling() {
-            distRunner.forcedStop();
-            super.canceling();
-          }
-
-          @Override
-          protected IStatus run(final IProgressMonitor monitor) {
-            distRunner.stop();
-            return Status.OK_STATUS;
-          }
-        };
-        job.setPriority(Job.SHORT);
-        job.schedule();
-      }
-
+      tryToStop();
     }
     return null;
   }
@@ -83,6 +61,16 @@ public class StopDistHandler extends AbstractDistHandler implements IHandler {
 
   @Override
   public void removeHandlerListener(final IHandlerListener handlerListener) {
+  }
+
+  private void tryToStop() {
+    EOSGiManager eosgiManager = Activator.getDefault().getEOSGiManager();
+    EOSGiContext eosgiProject = eosgiManager.findOrCreate(project);
+    if (eosgiProject != null) {
+      eosgiProject.runner(environmentName).ifPresent((runner) -> {
+        new DistStopJob(environmentName, runner).schedule();
+      });
+    }
   }
 
 }

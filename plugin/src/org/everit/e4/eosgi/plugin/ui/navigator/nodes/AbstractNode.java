@@ -1,8 +1,10 @@
 package org.everit.e4.eosgi.plugin.ui.navigator.nodes;
 
+import java.util.Observer;
+
 import org.everit.e4.eosgi.plugin.ui.navigator.EosgiNodeChangeListener;
 
-public abstract class AbstractNode {
+public abstract class AbstractNode implements Observer {
 
   protected AbstractNode[] children;
 

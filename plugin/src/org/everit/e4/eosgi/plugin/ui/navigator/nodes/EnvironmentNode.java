@@ -3,12 +3,11 @@ package org.everit.e4.eosgi.plugin.ui.navigator.nodes;
 import java.util.Observable;
 import java.util.Observer;
 
-import org.eclipse.core.resources.IProject;
+import org.everit.e4.eosgi.plugin.core.EOSGiContext;
 import org.everit.e4.eosgi.plugin.core.EventType;
 import org.everit.e4.eosgi.plugin.core.ModelChangeEvent;
 import org.everit.e4.eosgi.plugin.core.dist.DistRunner;
 import org.everit.e4.eosgi.plugin.core.dist.DistStatus;
-import org.everit.e4.eosgi.plugin.ui.Activator;
 import org.everit.e4.eosgi.plugin.ui.navigator.EosgiNodeChangeEvent;
 import org.everit.e4.eosgi.plugin.ui.navigator.EosgiNodeChangeListener;
 
@@ -17,13 +16,11 @@ import org.everit.e4.eosgi.plugin.ui.navigator.EosgiNodeChangeListener;
  */
 public class EnvironmentNode extends AbstractNode implements Observer {
 
+  private EOSGiContext context;
+
   private DistStatus distStatus = DistStatus.NONE;
 
   private String environmentId;
-
-  private Activator plugin = Activator.getDefault();
-
-  private IProject project;
 
   /**
    * Constructor.
@@ -34,20 +31,18 @@ public class EnvironmentNode extends AbstractNode implements Observer {
    *          id of the environment.
    * @param eosgiNodeChangeListener
    */
-  public EnvironmentNode(final IProject project, final String environmentId,
+  public EnvironmentNode(final EOSGiContext context, final String environmentId,
       final EosgiNodeChangeListener eosgiNodeChangeListener) {
     super(environmentId, eosgiNodeChangeListener, null);
-    this.project = project;
+    this.context = context;
     this.environmentId = environmentId;
-
-    Observable observable = (Observable) plugin.getEosgiManager();
-    observable.addObserver(this);
+    context.delegateObserver(this);
   }
 
   @Override
   public void dispose() {
-    Observable eosgiManager = (Observable) plugin.getEosgiManager();
-    eosgiManager.deleteObserver(this);
+    context.removeObserver(this);
+    System.out.println("remove node: " + this);
     super.dispose();
   }
 
@@ -84,7 +79,8 @@ public class EnvironmentNode extends AbstractNode implements Observer {
 
   @Override
   public String toString() {
-    return "EnvironmentNode [distStatus=" + distStatus + ", environmentId=" + environmentId + "]";
+    return "EnvironmentNode [context=" + context + ", distStatus=" + distStatus + ", environmentId="
+        + environmentId + "]";
   }
 
   @Override
@@ -105,7 +101,7 @@ public class EnvironmentNode extends AbstractNode implements Observer {
   }
 
   private void updateDistStatus() {
-    DistRunner distRunner = plugin.getEosgiManager().getDistRunner(project, environmentId);
+    DistRunner distRunner = context.runner(environmentId).get();
     if (distRunner == null) {
       distStatus = DistStatus.NONE;
     } else {

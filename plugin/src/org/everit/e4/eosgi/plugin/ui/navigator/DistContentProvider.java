@@ -15,6 +15,9 @@ import org.eclipse.jface.viewers.StructuredViewer;
 import org.eclipse.jface.viewers.TreeNodeContentProvider;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.swt.widgets.Control;
+import org.everit.e4.eosgi.plugin.core.EOSGiContext;
+import org.everit.e4.eosgi.plugin.core.EOSGiManager;
+import org.everit.e4.eosgi.plugin.ui.Activator;
 import org.everit.e4.eosgi.plugin.ui.nature.EosgiNature;
 import org.everit.e4.eosgi.plugin.ui.navigator.nodes.AbstractNode;
 import org.everit.e4.eosgi.plugin.ui.navigator.nodes.DistNode;
@@ -30,14 +33,26 @@ public class DistContentProvider extends TreeNodeContentProvider
 
   private Map<AbstractNode, AbstractNode[]> eosgiNodeCache = new HashMap<>();
 
+  private Activator plugin = Activator.getDefault();
+
   private Map<IProject, AbstractNode[]> projectCache = new HashMap<>();
 
   private StructuredViewer viewer;
 
   @Override
   public void dispose() {
-    projectCache = null;
+    eosgiNodeCache.forEach((key, value) -> {
+      for (AbstractNode abstractNode : value) {
+        abstractNode.dispose();
+      }
+    });
+    projectCache.forEach((key, value) -> {
+      for (AbstractNode abstractNode : value) {
+        abstractNode.dispose();
+      }
+    });
     eosgiNodeCache = null;
+    projectCache = null;
   }
 
   @Override
@@ -106,11 +121,14 @@ public class DistContentProvider extends TreeNodeContentProvider
       LOGGER.log(Level.WARNING, "get project nature", e);
     }
 
-    if (eosgiNature) {
+    EOSGiManager manager = plugin.getEOSGiManager();
+    EOSGiContext context = manager.findOrCreate(project);
+
+    if (eosgiNature && context != null) {
       if (projectCache.containsKey(project)) {
         return projectCache.get(project);
       } else {
-        DistNode[] nodes = new DistNode[] { new DistNode(project, this) };
+        DistNode[] nodes = new DistNode[] { new DistNode(context, this) };
         projectCache.put(project, nodes);
         return nodes;
       }

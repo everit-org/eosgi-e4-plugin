@@ -1,5 +1,7 @@
 package org.everit.e4.eosgi.plugin.core.dist;
 
+import org.eclipse.core.runtime.IProgressMonitor;
+
 /**
  * Interface for running EOSGI dists.
  */
@@ -9,7 +11,7 @@ public interface DistRunner {
 
   boolean isRunning();
 
-  void start();
+  void start(IProgressMonitor monitor);
 
-  void stop();
+  void stop(IProgressMonitor monitor);
 }
