@@ -1,3 +1,18 @@
+/*
+ * Copyright (C) 2011 Everit Kft. (http://www.everit.org)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.everit.e4.eosgi.plugin.ui.navigator;
 
 import java.util.Arrays;
@@ -16,11 +31,11 @@ import org.eclipse.jface.viewers.TreeNodeContentProvider;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.swt.widgets.Control;
 import org.everit.e4.eosgi.plugin.core.EOSGiContext;
-import org.everit.e4.eosgi.plugin.core.EOSGiManager;
-import org.everit.e4.eosgi.plugin.ui.Activator;
+import org.everit.e4.eosgi.plugin.core.EOSGiContextManager;
+import org.everit.e4.eosgi.plugin.ui.EOSGiPluginActivator;
 import org.everit.e4.eosgi.plugin.ui.nature.EosgiNature;
 import org.everit.e4.eosgi.plugin.ui.navigator.nodes.AbstractNode;
-import org.everit.e4.eosgi.plugin.ui.navigator.nodes.DistNode;
+import org.everit.e4.eosgi.plugin.ui.navigator.nodes.RootNode;
 
 /**
  * {@link ITreeContentProvider} implementation for manage the EOSGI nodes in ProjectExplorer.
@@ -33,7 +48,7 @@ public class DistContentProvider extends TreeNodeContentProvider
 
   private Map<AbstractNode, AbstractNode[]> eosgiNodeCache = new HashMap<>();
 
-  private Activator plugin = Activator.getDefault();
+  private EOSGiPluginActivator plugin = EOSGiPluginActivator.getDefault();
 
   private Map<IProject, AbstractNode[]> projectCache = new HashMap<>();
 
@@ -88,6 +103,8 @@ public class DistContentProvider extends TreeNodeContentProvider
     };
   }
 
+  // FIXME unused
+  @SuppressWarnings("unused")
   private Runnable getUpdateRunnable(final AbstractNode resource) {
     return new Runnable() {
       @Override
@@ -121,14 +138,14 @@ public class DistContentProvider extends TreeNodeContentProvider
       LOGGER.log(Level.WARNING, "get project nature", e);
     }
 
-    EOSGiManager manager = plugin.getEOSGiManager();
+    EOSGiContextManager manager = plugin.getEOSGiManager();
     EOSGiContext context = manager.findOrCreate(project);
 
     if (eosgiNature && context != null) {
       if (projectCache.containsKey(project)) {
         return projectCache.get(project);
       } else {
-        DistNode[] nodes = new DistNode[] { new DistNode(context, this) };
+        RootNode[] nodes = new RootNode[] { new RootNode(context, this) };
         projectCache.put(project, nodes);
         return nodes;
       }
@@ -189,6 +206,8 @@ public class DistContentProvider extends TreeNodeContentProvider
     }
   }
 
+  // FIXME rawtypes
+  @SuppressWarnings("rawtypes")
   private void runUpdates(final Collection runnables) {
     Iterator runnableIterator = runnables.iterator();
     while (runnableIterator.hasNext()) {

@@ -1,3 +1,18 @@
+/*
+ * Copyright (C) 2011 Everit Kft. (http://www.everit.org)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.everit.e4.eosgi.plugin.core.m2e;
 
 import org.apache.maven.plugin.MojoExecution;
@@ -19,8 +34,8 @@ import org.eclipse.m2e.jdt.IClasspathDescriptor;
 import org.eclipse.m2e.jdt.IJavaProjectConfigurator;
 import org.everit.e4.eosgi.plugin.core.ContextChange;
 import org.everit.e4.eosgi.plugin.core.EOSGiContext;
-import org.everit.e4.eosgi.plugin.core.EOSGiManager;
-import org.everit.e4.eosgi.plugin.ui.Activator;
+import org.everit.e4.eosgi.plugin.core.EOSGiContextManager;
+import org.everit.e4.eosgi.plugin.ui.EOSGiPluginActivator;
 import org.everit.e4.eosgi.plugin.ui.EOSGiLog;
 import org.everit.e4.eosgi.plugin.ui.nature.EosgiNature;
 import org.everit.e4.eosgi.plugin.ui.util.ProjectNatureUtils;
@@ -31,13 +46,16 @@ import org.everit.e4.eosgi.plugin.ui.util.ProjectNatureUtils;
 public class EosgiDistProjectConfigurator extends AbstractProjectConfigurator
     implements IJavaProjectConfigurator {
 
-  private EOSGiManager eosgiManager;
+  private EOSGiContextManager eosgiManager;
 
   private EOSGiLog log;
 
+  /**
+   * Constructor.
+   */
   public EosgiDistProjectConfigurator() {
     super();
-    Activator plugin = Activator.getDefault();
+    EOSGiPluginActivator plugin = EOSGiPluginActivator.getDefault();
     log = new EOSGiLog(plugin.getLog());
     eosgiManager = plugin.getEOSGiManager();
   }

@@ -1,3 +1,18 @@
+/*
+ * Copyright (C) 2011 Everit Kft. (http://www.everit.org)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.everit.e4.eosgi.plugin.ui.command;
 
 import org.eclipse.core.commands.ExecutionEvent;
@@ -8,8 +23,8 @@ import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.TreeSelection;
 import org.eclipse.ui.handlers.HandlerUtil;
 import org.everit.e4.eosgi.plugin.core.EOSGiContext;
-import org.everit.e4.eosgi.plugin.core.EOSGiManager;
-import org.everit.e4.eosgi.plugin.ui.Activator;
+import org.everit.e4.eosgi.plugin.core.EOSGiContextManager;
+import org.everit.e4.eosgi.plugin.ui.EOSGiPluginActivator;
 import org.everit.e4.eosgi.plugin.ui.jobs.DistStopJob;
 
 /**
@@ -64,7 +79,7 @@ public class StopDistHandler extends AbstractDistHandler implements IHandler {
   }
 
   private void tryToStop() {
-    EOSGiManager eosgiManager = Activator.getDefault().getEOSGiManager();
+    EOSGiContextManager eosgiManager = EOSGiPluginActivator.getDefault().getEOSGiManager();
     EOSGiContext eosgiProject = eosgiManager.findOrCreate(project);
     if (eosgiProject != null) {
       eosgiProject.runner(environmentName).ifPresent((runner) -> {

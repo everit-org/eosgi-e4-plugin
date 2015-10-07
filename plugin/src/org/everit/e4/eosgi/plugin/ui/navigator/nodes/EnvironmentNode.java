@@ -1,3 +1,18 @@
+/*
+ * Copyright (C) 2011 Everit Kft. (http://www.everit.org)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.everit.e4.eosgi.plugin.ui.navigator.nodes;
 
 import java.util.Observable;
@@ -24,12 +39,13 @@ public class EnvironmentNode extends AbstractNode implements Observer {
 
   /**
    * Constructor.
-   * 
-   * @param project
+   *
+   * @param context
    *          listener for model changes.
    * @param environmentId
    *          id of the environment.
    * @param eosgiNodeChangeListener
+   *          node change listener.
    */
   public EnvironmentNode(final EOSGiContext context, final String environmentId,
       final EosgiNodeChangeListener eosgiNodeChangeListener) {
@@ -42,7 +58,6 @@ public class EnvironmentNode extends AbstractNode implements Observer {
   @Override
   public void dispose() {
     context.removeObserver(this);
-    System.out.println("remove node: " + this);
     super.dispose();
   }
 
@@ -84,13 +99,13 @@ public class EnvironmentNode extends AbstractNode implements Observer {
   }
 
   @Override
-  public void update(Observable o, Object arg) {
+  public void update(final Observable o, final Object arg) {
     ModelChangeEvent event = null;
-    if (arg != null && arg instanceof ModelChangeEvent) {
+    if ((arg != null) && (arg instanceof ModelChangeEvent)) {
       event = (ModelChangeEvent) arg;
     }
 
-    if (event != null && event.eventType == EventType.ENVIRONMENT) {
+    if ((event != null) && (event.eventType == EventType.ENVIRONMENT)) {
       String environmentName = (String) event.arg;
       if (environmentName.equals(environmentId)) {
         outdated = true;

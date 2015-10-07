@@ -1,3 +1,18 @@
+/*
+ * Copyright (C) 2011 Everit Kft. (http://www.everit.org)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.everit.e4.eosgi.plugin.ui.navigator;
 
 import org.eclipse.jface.viewers.DelegatingStyledCellLabelProvider.IStyledLabelProvider;
@@ -6,24 +21,14 @@ import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.jface.viewers.StyledString;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.ui.navigator.IDescriptionProvider;
-import org.everit.e4.eosgi.plugin.ui.Activator;
+import org.everit.e4.eosgi.plugin.ui.EOSGiPluginActivator;
 import org.everit.e4.eosgi.plugin.ui.navigator.nodes.AbstractNode;
 
+/**
+ * {@link ILabelProvider} implementation.
+ */
 public class DistLabelProvider extends LabelProvider implements ILabelProvider,
     IDescriptionProvider, IStyledLabelProvider {
-
-  // public DistLabelProvider() {
-  // super();
-  // if (!isListenerAttached()) {
-  // addListener(new ILabelProviderListener() {
-  //
-  // @Override
-  // public void labelProviderChanged(LabelProviderChangedEvent event) {
-  // event.getElement();
-  // }
-  // });
-  // }
-  // }
 
   @Override
   public String getDescription(final Object element) {
@@ -39,7 +44,7 @@ public class DistLabelProvider extends LabelProvider implements ILabelProvider,
   public Image getImage(final Object element) {
     if (element instanceof AbstractNode) {
       AbstractNode node = (AbstractNode) element;
-      return Activator.getImageDescriptor(node.getIcon()).createImage();
+      return EOSGiPluginActivator.getImageDescriptor(node.getIcon()).createImage();
     } else {
       return super.getImage(element);
     }

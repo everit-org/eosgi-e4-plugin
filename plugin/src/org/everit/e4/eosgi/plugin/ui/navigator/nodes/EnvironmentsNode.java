@@ -1,3 +1,18 @@
+/*
+ * Copyright (C) 2011 Everit Kft. (http://www.everit.org)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.everit.e4.eosgi.plugin.ui.navigator.nodes;
 
 import java.util.ArrayList;
@@ -5,7 +20,6 @@ import java.util.List;
 import java.util.Observable;
 import java.util.Observer;
 
-import org.eclipse.core.resources.IProject;
 import org.everit.e4.eosgi.plugin.core.EOSGiContext;
 import org.everit.e4.eosgi.plugin.core.EventType;
 import org.everit.e4.eosgi.plugin.core.ModelChangeEvent;
@@ -21,9 +35,9 @@ public class EnvironmentsNode extends AbstractNode implements Observer {
 
   /**
    * Constructor.
-   * 
-   * @param project
-   *          relevant {@link IProject} reference.
+   *
+   * @param context
+   *          relevant {@link EOSGiContext} reference.
    * @param listener
    *          listener for changes.
    */
@@ -78,12 +92,12 @@ public class EnvironmentsNode extends AbstractNode implements Observer {
   }
 
   @Override
-  public void update(Observable o, Object arg) {
+  public void update(final Observable o, final Object arg) {
     ModelChangeEvent event = null;
-    if (arg != null && arg instanceof ModelChangeEvent) {
+    if ((arg != null) && (arg instanceof ModelChangeEvent)) {
       event = (ModelChangeEvent) arg;
     }
-    if (event != null && event.eventType == EventType.ENVIRONMENTS && event.arg != null) {
+    if ((event != null) && (event.eventType == EventType.ENVIRONMENTS) && (event.arg != null)) {
       EOSGiContext context = (EOSGiContext) event.arg;
       if (this.context.equals(context)) {
         outdated = true;

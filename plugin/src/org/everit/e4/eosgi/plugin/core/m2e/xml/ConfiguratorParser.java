@@ -1,3 +1,18 @@
+/*
+ * Copyright (C) 2011 Everit Kft. (http://www.everit.org)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.everit.e4.eosgi.plugin.core.m2e.xml;
 
 import java.util.ArrayList;
@@ -10,9 +25,12 @@ import org.everit.e4.eosgi.plugin.core.m2e.model.Bundle;
 import org.everit.e4.eosgi.plugin.core.m2e.model.BundleSettings;
 import org.everit.e4.eosgi.plugin.core.m2e.model.Environment;
 import org.everit.e4.eosgi.plugin.core.m2e.model.Environments;
-import org.everit.e4.eosgi.plugin.ui.Activator;
 import org.everit.e4.eosgi.plugin.ui.EOSGiLog;
+import org.everit.e4.eosgi.plugin.ui.EOSGiPluginActivator;
 
+/**
+ * XML parser for configuration XML part.
+ */
 public class ConfiguratorParser {
 
   private static final String BUNDLE_SETTINGS_TAG = "bundleSettings";
@@ -37,9 +55,16 @@ public class ConfiguratorParser {
 
   public ConfiguratorParser() {
     super();
-    log = new EOSGiLog(Activator.getDefault().getLog());
+    log = new EOSGiLog(EOSGiPluginActivator.getDefault().getLog());
   }
 
+  /**
+   * Parsing the given configuration instance.
+   * 
+   * @param configurationDom
+   *          configuration in {@link Xpp3Dom} instance.
+   * @return filled {@link Environments} instance.
+   */
   // TODO refactor
   public Environments parse(final Xpp3Dom configurationDom) {
     if (configurationDom == null) {

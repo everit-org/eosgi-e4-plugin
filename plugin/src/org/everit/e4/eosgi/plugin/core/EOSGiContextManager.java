@@ -13,27 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.everit.e4.eosgi.plugin.core.m2e.model;
+package org.everit.e4.eosgi.plugin.core;
 
-import java.util.List;
+import org.eclipse.core.resources.IProject;
 
 /**
- * Model class for storing bundle settings about an environment.
+ * Interface for EOSGI contexts manager.
  */
-public class BundleSettings {
-  private List<Bundle> bundles;
+public interface EOSGiContextManager {
 
-  public List<Bundle> getBundles() {
-    return bundles;
-  }
+  void dispose();
 
-  public void setBundles(final List<Bundle> bundles) {
-    this.bundles = bundles;
-  }
+  EOSGiContext findOrCreate(IProject project);
 
-  @Override
-  public String toString() {
-    return "BundleSettings [bundles=" + bundles + "]";
-  }
+  boolean refresh(IProject project, ContextChange contextParam);
 
+  void remove(IProject project);
 }

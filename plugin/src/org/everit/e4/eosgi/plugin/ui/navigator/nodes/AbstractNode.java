@@ -1,9 +1,27 @@
+/*
+ * Copyright (C) 2011 Everit Kft. (http://www.everit.org)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.everit.e4.eosgi.plugin.ui.navigator.nodes;
 
 import java.util.Observer;
 
 import org.everit.e4.eosgi.plugin.ui.navigator.EosgiNodeChangeListener;
 
+/**
+ * Abstract node for EOSGi nodes.
+ */
 public abstract class AbstractNode implements Observer {
 
   protected AbstractNode[] children;
@@ -20,7 +38,18 @@ public abstract class AbstractNode implements Observer {
 
   protected String value;
 
-  public AbstractNode(String name, EosgiNodeChangeListener listener, String label) {
+  /**
+   * Constructor with name and a change listener.
+   * 
+   * @param name
+   *          name of the node.
+   * @param listener
+   *          listener for the node.
+   * @param label
+   *          label for the node.
+   */
+  public AbstractNode(final String name, final EosgiNodeChangeListener listener,
+      final String label) {
     super();
     this.name = name;
     this.listener = listener;

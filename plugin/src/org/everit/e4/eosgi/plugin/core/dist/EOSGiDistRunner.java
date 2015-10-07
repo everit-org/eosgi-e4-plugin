@@ -1,3 +1,18 @@
+/*
+ * Copyright (C) 2011 Everit Kft. (http://www.everit.org)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.everit.e4.eosgi.plugin.core.dist;
 
 import java.io.Closeable;
@@ -13,14 +28,18 @@ import org.eclipse.ui.console.MessageConsoleStream;
 import org.everit.e4.eosgi.plugin.core.EventType;
 import org.everit.e4.eosgi.plugin.core.ModelChangeEvent;
 import org.everit.e4.eosgi.plugin.core.util.DistUtils;
-import org.everit.e4.eosgi.plugin.ui.Activator;
 import org.everit.e4.eosgi.plugin.ui.EOSGiLog;
+import org.everit.e4.eosgi.plugin.ui.EOSGiPluginActivator;
 import org.rzo.yajsw.os.OperatingSystem;
 import org.rzo.yajsw.os.Process;
 import org.rzo.yajsw.os.ProcessManager;
 import org.rzo.yajsw.os.ms.win.w32.WindowsXPProcess;
 import org.rzo.yajsw.os.posix.linux.LinuxProcess;
 
+/**
+ * A {@link DistRunner} implementation that used the YAJSW {@link Process} for running a dist
+ * instance.
+ */
 public class EOSGiDistRunner extends Observable implements DistRunner {
 
   /**
@@ -55,11 +74,19 @@ public class EOSGiDistRunner extends Observable implements DistRunner {
 
   private AtomicBoolean running = new AtomicBoolean(false);
 
-  public EOSGiDistRunner(final String directory, final String environmentName) {
+  /**
+   * Constructor with build directory and environment id.
+   *
+   * @param directory
+   *          build directory String.
+   * @param environmentId
+   *          environment id.
+   */
+  public EOSGiDistRunner(final String directory, final String environmentId) {
     super();
     this.directory = directory;
-    this.environmentName = environmentName;
-    this.log = new EOSGiLog(Activator.getDefault().getLog());
+    environmentName = environmentId;
+    log = new EOSGiLog(EOSGiPluginActivator.getDefault().getLog());
   }
 
   private Process createDistProcess() {
@@ -94,7 +121,7 @@ public class EOSGiDistRunner extends Observable implements DistRunner {
   }
 
   private void createRedirecter(final Process process) {
-    MessageConsoleStream messageConsoleStream = Activator.getDefault()
+    MessageConsoleStream messageConsoleStream = EOSGiPluginActivator.getDefault()
         .getConsoleWithName(environmentName);
 
     InputStream inputStream = process.getInputStream();
@@ -131,7 +158,7 @@ public class EOSGiDistRunner extends Observable implements DistRunner {
     return running.get();
   }
 
-  private void registerShutdownHook(Process process) {
+  private void registerShutdownHook(final Process process) {
     ShutdownHook shutdownHook = new ShutdownHook(process, 5000);
     Runtime.getRuntime().addShutdownHook(shutdownHook);
   }
@@ -165,7 +192,7 @@ public class EOSGiDistRunner extends Observable implements DistRunner {
   }
 
   @Override
-  public void start(IProgressMonitor monitor) {
+  public void start(final IProgressMonitor monitor) {
     Process process = createDistProcess();
     boolean started = process.start();
     if (started) {
@@ -181,7 +208,7 @@ public class EOSGiDistRunner extends Observable implements DistRunner {
   }
 
   @Override
-  public void stop(IProgressMonitor monitor) {
+  public void stop(final IProgressMonitor monitor) {
     shutdownProcess(process, 10000, 9);
     if (process.isRunning()) {
       try {
