@@ -26,7 +26,5 @@ public interface EOSGiContextManager {
 
   EOSGiContext findOrCreate(IProject project);
 
-  boolean refresh(IProject project, ContextChange contextParam);
-
   void remove(IProject project);
 }

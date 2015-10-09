@@ -51,14 +51,29 @@ public class EOSGiProject extends Observable implements EOSGiContext {
 
   private Map<String, Environment> environments = new HashMap<>();
 
-  private EOSGiLog log;
+  private final EOSGiLog log;
 
-  private IProject project;
+  private final IProject project;
 
   public EOSGiProject(final IProject project, final EOSGiLog log) {
     this.project = project;
     this.log = log;
   }
+
+  // private boolean checkBuildDirectory(final String environmentId) {
+  // if (buildDirectory == null) {
+  // log.error("The build directory not satisfied.");
+  // return false;
+  // }
+  //
+  // try {
+  // DistUtils.getDistStartCommand(buildDirectory, environmentId);
+  // return true;
+  // } catch (IOException e) {
+  // log.error("Start file for the environment not found!", e);
+  // return false;
+  // }
+  // }
 
   @Override
   public void delegateObserver(final Observer observer) {
@@ -67,17 +82,17 @@ public class EOSGiProject extends Observable implements EOSGiContext {
 
   @Override
   public void dispose() {
+    deleteObservers();
     environments.forEach((key, value) -> {
       value.getDistRunner().ifPresent(runner -> {
         runner.stop();
       });
     });
-    deleteObservers();
     environments.clear();
   }
 
   @Override
-  public List<String> environmentNames() {
+  public List<String> environmentIds() {
     final List<String> environmentList = new ArrayList<>();
     environments.keySet().forEach((name) -> {
       environmentList.add(name);
@@ -94,6 +109,12 @@ public class EOSGiProject extends Observable implements EOSGiContext {
   public void generate(final String environmentId, final IProgressMonitor monitor) {
     Objects.requireNonNull(environmentId, "environmentName must be not null!");
 
+    Environment environment = environments.get(environmentId);
+    if (environment == null) {
+      log.error("Could not found environment with name '" + environmentId + "'");
+      return;
+    }
+
     boolean generated = false;
     try {
       generated = new M2EGoalExecutor(project).execute(monitor);
@@ -102,12 +123,9 @@ public class EOSGiProject extends Observable implements EOSGiContext {
     }
 
     if (generated) {
-      Environment environment = environments.get(environmentId);
-      if ((environment != null) && (buildDirectory != null)) {
-        DistRunner distRunner = new EOSGiDistRunner(buildDirectory, environmentId);
-        environment.setDistRunner(distRunner);
-        setChanged();
-      }
+      DistRunner distRunner = new EOSGiDistRunner(buildDirectory, environmentId);
+      environment.setDistRunner(distRunner);
+      setChanged();
     }
 
     notifyObservers(new ModelChangeEvent()
@@ -144,7 +162,12 @@ public class EOSGiProject extends Observable implements EOSGiContext {
   @Override
   public void refresh(final ContextChange contextChange) {
     Objects.requireNonNull(contextChange, "contextChange must be not null!");
-    if (contextChange.buildDirectory != null) {
+
+    if (buildDirectory == null) {
+      buildDirectory = contextChange.buildDirectory;
+      setChanged();
+    } else if (contextChange.buildDirectory != null
+        && !contextChange.buildDirectory.equals(buildDirectory)) {
       buildDirectory = contextChange.buildDirectory;
       setChanged();
     }
@@ -152,6 +175,7 @@ public class EOSGiProject extends Observable implements EOSGiContext {
       updateEnvironments(contextChange.configuration);
       setChanged();
     }
+
     notifyObservers(
         new ModelChangeEvent()
             .eventType(EventType.ENVIRONMENTS)
@@ -190,17 +214,28 @@ public class EOSGiProject extends Observable implements EOSGiContext {
       return;
     }
 
-    // for (Environment environment : this.environments.values()) {
-    // if (environment.getDistRunner() != null) {
-    // delegateObserver(environment);
-    // }
-    // }
-    this.environments.clear();
-    for (Environment environment : environments.getEnvironments()) {
-      this.environments.put(environment.getId(), environment);
-    }
-
-    setChanged();
+    Map<String, Environment> newEnvironments = new HashMap<>();
+    environments.getEnvironments().forEach((newEnvironment) -> {
+      Environment environment = null;
+      if (this.environments.containsKey(newEnvironment.getId())) {
+        environment = this.environments.remove(newEnvironment.getId());
+        environment.setBundleSettings(newEnvironment.getBundleSettings());
+        environment.setFramework(newEnvironment.getFramework());
+        environment.setSystemProperties(newEnvironment.getSystemProperties());
+        environment.setVmOptions(newEnvironment.getVmOptions());
+        newEnvironments.put(environment.getId(), environment);
+      } else {
+        newEnvironments.put(newEnvironment.getId(), newEnvironment);
+      }
+    });
+    this.environments.forEach((key, environment) -> {
+      if (environment.getDistRunner().isPresent()
+          && environment.getDistRunner().get().isRunning()) {
+        environment.setOutdated(true);
+        newEnvironments.put(key, environment);
+      }
+    });
+    this.environments = newEnvironments;
   }
 
 }

@@ -33,6 +33,8 @@ public class Environment {
 
   private String id;
 
+  private boolean outdated;
+
   private Map<String, String> systemProperties;
 
   private List<String> vmOptions;
@@ -61,6 +63,10 @@ public class Environment {
     return vmOptions;
   }
 
+  public boolean isOutdated() {
+    return outdated;
+  }
+
   public void setBundleSettings(final BundleSettings bundleSettings) {
     this.bundleSettings = bundleSettings;
   }
@@ -75,6 +81,10 @@ public class Environment {
 
   public void setId(final String id) {
     this.id = id;
+  }
+
+  public void setOutdated(final boolean outdated) {
+    this.outdated = outdated;
   }
 
   public void setSystemProperties(final Map<String, String> systemProperties) {

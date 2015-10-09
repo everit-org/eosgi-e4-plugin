@@ -138,7 +138,6 @@ public class DistContentProvider extends TreeNodeContentProvider
 
     EOSGiContextManager manager = plugin.getEOSGiManager();
     EOSGiContext context = manager.findOrCreate(project);
-
     if (eosgiNature && context != null) {
       if (projectCache.containsKey(project)) {
         return projectCache.get(project);

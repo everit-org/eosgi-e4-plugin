@@ -19,6 +19,7 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.UncheckedIOException;
 import java.util.Locale;
 import java.util.Observable;
 
@@ -75,7 +76,7 @@ public class EOSGiDistRunner extends Observable implements DistRunner {
 
   private String directory;
 
-  private String environmentName;
+  private String environmentId;
 
   private EOSGiLog log;
 
@@ -92,15 +93,20 @@ public class EOSGiDistRunner extends Observable implements DistRunner {
   public EOSGiDistRunner(final String directory, final String environmentId) {
     super();
     this.directory = directory;
-    environmentName = environmentId;
+    this.environmentId = environmentId;
     log = new EOSGiLog(EOSGiPluginActivator.getDefault().getLog());
   }
 
   private Process createDistProcess() {
     Process process = createOsSpecificProcess();
-    process.setTitle(environmentName);
+    process.setTitle(environmentId);
 
-    String distStartCommand = DistUtils.getDistStartCommand(directory, environmentName);
+    String distStartCommand = null;
+    try {
+      distStartCommand = DistUtils.getDistStartCommand(directory, environmentId);
+    } catch (IOException e) {
+      throw new UncheckedIOException(e);
+    }
 
     process.setCommand(distStartCommand);
     process.setVisible(false);
@@ -129,7 +135,7 @@ public class EOSGiDistRunner extends Observable implements DistRunner {
 
   private void createRedirecter(final Process process) {
     MessageConsoleStream messageConsoleStream = EOSGiPluginActivator.getDefault()
-        .getConsoleWithName(environmentName);
+        .getConsoleWithName(environmentId);
 
     InputStream inputStream = process.getInputStream();
     OutputStream[] outputStreams = new OutputStream[] { messageConsoleStream };
@@ -158,9 +164,6 @@ public class EOSGiDistRunner extends Observable implements DistRunner {
   @Override
   public synchronized void forcedStop() {
     // TODO implement it!
-    // if (isRunning()) {
-    // shutdownProcess(process, 0, 9);
-    // }
   }
 
   @Override
@@ -211,39 +214,22 @@ public class EOSGiDistRunner extends Observable implements DistRunner {
     if (started) {
       registerShutdownHook(newProcess);
       createRedirecter(newProcess);
+    }
+    if (started) {
       this.process = newProcess;
       setChanged();
     } else {
       log.error("Could not start dist process.");
     }
     notifyObservers(new ModelChangeEvent()
-        .eventType(EventType.ENVIRONMENT).arg(environmentName));
+        .eventType(EventType.ENVIRONMENT).arg(environmentId));
   }
-
-  // private void startThreadForCancelSignal(final IProgressMonitor monitor) {
-  // new Thread(() -> {
-  // while (!monitor.isCanceled()) {
-  // try {
-  // Thread.sleep(200);
-  // } catch (Exception e) {
-  // if (Thread.currentThread().isInterrupted()) {
-  // Thread.currentThread().interrupt();
-  // }
-  // }
-  // }
-  // if (monitor.isCanceled()) {
-  // this.forcedStop();
-  // }
-  // }).start();
-  // }
 
   @Override
   public synchronized void stop() {
     if (process == null || !process.isRunning()) {
       return;
     }
-    // startThreadForCancelSignal(monitor);
-
     shutdownProcess(process, PROCESS_SHUTDOWN_TIMEOUT, -1);
     if (process.isRunning()) {
       try {
@@ -254,7 +240,7 @@ public class EOSGiDistRunner extends Observable implements DistRunner {
     }
     setChanged();
     notifyObservers(new ModelChangeEvent()
-        .eventType(EventType.ENVIRONMENT).arg(environmentName));
+        .eventType(EventType.ENVIRONMENT).arg(environmentId));
   }
 
 }

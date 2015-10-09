@@ -15,13 +15,18 @@
  */
 package org.everit.e4.eosgi.plugin.core.m2e;
 
+import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.apache.maven.plugin.MojoExecution;
+import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.m2e.core.MavenPlugin;
+import org.eclipse.m2e.core.project.IMavenProjectFacade;
 import org.eclipse.m2e.core.project.IMavenProjectRegistry;
 import org.everit.e4.eosgi.plugin.core.ContextChange;
 import org.everit.e4.eosgi.plugin.core.EOSGiContext;
@@ -62,6 +67,38 @@ public class EOSGiContextManagerImpl implements EOSGiContextManager {
       if (isNatureOk(project)) {
         EOSGiContext context = new EOSGiProject(project, log);
         projectRegistry.addMavenProjectChangedListener(context);
+        Job job = Job.create("Fetch maven informations for EOSGi project...", monitor -> {
+          IMavenProjectFacade mavenProjectFacade = projectRegistry.getProject(project);
+
+          ContextChange contextChange = new ContextChange();
+          try {
+            String buildDirectory = mavenProjectFacade.getMavenProject(monitor).getBuild()
+                .getDirectory();
+            contextChange.buildDirectory = buildDirectory;
+          } catch (Exception e) {
+            log.error("Couldn't satisfied build directory for '" + project.getName() + "'",
+                e);
+          }
+
+          try {
+            List<MojoExecution> executions = mavenProjectFacade.getMojoExecutions(
+                M2EGoalExecutor.EOSGI_MAVEN_PLUGIN_GROUP_ID,
+                M2EGoalExecutor.EOSGI_MAVEN_PLUGIN_ARTIFACT_ID, monitor,
+                M2EGoalExecutor.DIST_GOAL);
+            if (!executions.isEmpty()) {
+              Xpp3Dom configuration = executions.get(0).getConfiguration();
+              if ((configuration != null)) {
+                context.refresh(contextChange.configuration(configuration));
+              }
+            }
+          } catch (Exception e) {
+            log.error("Couldn't fetch mojo configuration for project '" + project.getName() + "'",
+                e);
+          }
+          return Status.OK_STATUS;
+        });
+        job.setPriority(Job.SHORT);
+        job.schedule();
         projectContexts.put(project, context);
         return context;
       }
@@ -77,14 +114,6 @@ public class EOSGiContextManagerImpl implements EOSGiContextManager {
       log.error("Couldn't check EOSGI nature", e);
     }
     return eosgiNature;
-  }
-
-  @Override
-  public synchronized boolean refresh(final IProject project, final ContextChange contextChange) {
-    Objects.requireNonNull(project, "project must be not null!");
-    EOSGiContext eosGiContext = projectContexts.get(project);
-    eosGiContext.refresh(contextChange);
-    return true;
   }
 
   @Override

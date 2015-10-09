@@ -43,20 +43,20 @@ public interface EOSGiContext extends IMavenProjectChangedListener {
    *
    * @return List of the environment names.
    */
-  List<String> environmentNames();
+  List<String> environmentIds();
 
-  void forcedStop(String environmentName);
+  void forcedStop(String environmentId);
 
   /**
    * Generate a dist for this project by the given environment name. All argumentum must be not
    * null!
    *
-   * @param environmentName
-   *          name of the environment.
+   * @param environmentId
+   *          id of the environment.
    * @param monitor
    *          monitor for prigress bar (need for m2e).
    */
-  void generate(String environmentName, IProgressMonitor monitor);
+  void generate(String environmentId, IProgressMonitor monitor);
 
   /**
    * Refreshing the project state by the {@link ContextChange} instance.
@@ -76,12 +76,12 @@ public interface EOSGiContext extends IMavenProjectChangedListener {
   void removeObserver(Observer observer);
 
   /**
-   * Get an {@link DistRunner} instance by the environment name. The dist runner exists is not sure,
+   * Get an {@link DistRunner} instance by the environment id. The dist runner exists is not sure,
    * so return an {@link Optional} instance.
    *
-   * @param environment
+   * @param environmentId
    *          name of the envronment.
    * @return Optional DistRunner.
    */
-  Optional<DistRunner> runner(String environment);
+  Optional<DistRunner> runner(String environmentId);
 }

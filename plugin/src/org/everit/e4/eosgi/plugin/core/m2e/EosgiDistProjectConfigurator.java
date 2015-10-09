@@ -78,10 +78,8 @@ public class EosgiDistProjectConfigurator extends AbstractProjectConfigurator
     if (project == null) {
       return;
     }
-
     addEosgiNature(monitor, project);
     eosgiManager.findOrCreate(project);
-    log.info(project.getName() + " configured as dist project.");
   }
 
   @Override

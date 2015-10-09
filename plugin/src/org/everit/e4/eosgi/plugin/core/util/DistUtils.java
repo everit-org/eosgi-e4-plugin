@@ -16,6 +16,7 @@
 package org.everit.e4.eosgi.plugin.core.util;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Objects;
 
 import org.everit.e4.eosgi.plugin.core.util.OSUtils.OSType;
@@ -42,14 +43,17 @@ public final class DistUtils {
    * @param environmentId
    *          environment id.
    * @return command String.
+   * @throws IOException
+   *           throws if the full dist start folder not exists.
    */
   public static String getDistStartCommand(final String buildDirectory,
-      final String environmentId) {
+      final String environmentId) throws IOException {
     Objects.requireNonNull(environmentId, "environmentId cannot be null");
     Objects.requireNonNull(buildDirectory, "buildDirectory cannot be null");
 
     String binPath = buildDirectory + File.separator + DIST_FOLDER + File.separator
         + environmentId + File.separator + DIST_BIN + File.separator;
+
     if (OSType.WINDOWS == OSUtils.currentOS()) {
       binPath = binPath + WIN_START;
     } else {

@@ -58,7 +58,7 @@ public class EnvironmentsNode extends AbstractNode {
   @Override
   public AbstractNode[] getChildren() {
     if (outdated) {
-      List<String> environments = context.environmentNames();
+      List<String> environments = context.environmentIds();
       disposeChildren();
       List<EnvironmentNode> nodes = new ArrayList<>();
       for (String environment : environments) {

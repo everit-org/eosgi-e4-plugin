@@ -32,11 +32,11 @@ import org.eclipse.m2e.core.project.IMavenProjectRegistry;
  */
 public class M2EGoalExecutor {
 
-  private static final String DIST_GOAL = "dist";
+  public static final String DIST_GOAL = "dist";
 
-  private static final String EOSGI_MAVEN_PLUGIN_ARTIFACT_ID = "eosgi-maven-plugin";
+  public static final String EOSGI_MAVEN_PLUGIN_ARTIFACT_ID = "eosgi-maven-plugin";
 
-  private static final String EOSGI_MAVEN_PLUGIN_GROUP_ID = "org.everit.osgi.dev";
+  public static final String EOSGI_MAVEN_PLUGIN_GROUP_ID = "org.everit.osgi.dev";
 
   private IMaven maven;
 
