@@ -15,13 +15,13 @@
  */
 package org.everit.e4.eosgi.plugin.ui;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResourceDelta;
 import org.eclipse.core.resources.ResourcesPlugin;
-import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.resource.ImageDescriptor;
@@ -33,7 +33,6 @@ import org.eclipse.ui.console.MessageConsoleStream;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.everit.e4.eosgi.plugin.core.EOSGiContextManager;
 import org.everit.e4.eosgi.plugin.core.m2e.EOSGiContextManagerImpl;
-import org.everit.e4.eosgi.plugin.ui.nature.EosgiNature;
 import org.osgi.framework.BundleContext;
 
 /**
@@ -56,10 +55,6 @@ public class EOSGiPluginActivator extends AbstractUIPlugin {
   private EOSGiContextManager eosgiManager;
 
   private EOSGiLog log;
-
-  public EOSGiPluginActivator() {
-    log = new EOSGiLog(getLog());
-  }
 
   /**
    * Get or create (if don't exist) an IConsole with the given name and return with an
@@ -94,35 +89,47 @@ public class EOSGiPluginActivator extends AbstractUIPlugin {
     return eosgiManager;
   }
 
+  private void handleProjectChanges(final List<IProject> projects) {
+    Job job = Job.create("Handle project changes...", (monitor) -> {
+      for (IProject project : projects) {
+        if (project.isOpen()) {
+          eosgiManager.findOrCreate(project);
+        } else {
+          eosgiManager.remove(project);
+        }
+      }
+      return Status.OK_STATUS;
+    });
+    job.setPriority(Job.BUILD);
+    job.schedule();
+  }
+
   @Override
   public void start(final BundleContext context) throws Exception {
     super.start(context);
     plugin = this;
-
+    log = new EOSGiLog(getLog());
     eosgiManager = new EOSGiContextManagerImpl(log);
 
-    Job job = new Job("Initializing EOSGI eosgiManager") {
-      @Override
-      protected IStatus run(final IProgressMonitor monitor) {
-        IProject[] projects = ResourcesPlugin.getWorkspace().getRoot().getProjects();
-        monitor.beginTask("Register projects for EOSGI eosgiManager...", projects.length);
-        int i = 0;
-        for (IProject project : projects) {
-          try {
-            if (project.isOpen() && project.hasNature(EosgiNature.NATURE_ID)) {
-              eosgiManager.findOrCreate(project);
-            }
-          } catch (CoreException e) {
-            log.error("Couldn't register project with name " + project.getName(), e);
-          }
-          monitor.worked(++i);
+    ResourcesPlugin.getWorkspace().addResourceChangeListener(changeEvent -> {
+      List<IProject> projects = new ArrayList<>();
+      if (changeEvent.getDelta() != null) {
+        IResourceDelta delta = changeEvent.getDelta();
+        IResourceDelta[] affectedChildrens = delta.getAffectedChildren();
+        if (affectedChildrens == null) {
+          return;
         }
-        monitor.done();
-        return Status.OK_STATUS;
+        for (IResourceDelta iResourceDelta : affectedChildrens) {
+          if (iResourceDelta.getResource() instanceof IProject) {
+            IProject project1 = (IProject) iResourceDelta.getResource();
+            projects.add(project1);
+          }
+        }
+        if (!projects.isEmpty()) {
+          handleProjectChanges(projects);
+        }
       }
-    };
-    job.setPriority(Job.BUILD);
-    job.schedule();
+    });
   }
 
   @Override

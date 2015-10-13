@@ -136,6 +136,10 @@ public class EOSGiDistRunner extends Observable implements DistRunner {
   private void createRedirecter(final Process process) {
     MessageConsoleStream messageConsoleStream = EOSGiPluginActivator.getDefault()
         .getConsoleWithName(environmentId);
+    if (messageConsoleStream == null) {
+      log.error("Could not open console for process (" + environmentId + ").");
+      return;
+    }
 
     InputStream inputStream = process.getInputStream();
     OutputStream[] outputStreams = new OutputStream[] { messageConsoleStream };
@@ -159,11 +163,6 @@ public class EOSGiDistRunner extends Observable implements DistRunner {
         daemonStreamRedirector.close();
       }
     };
-  }
-
-  @Override
-  public synchronized void forcedStop() {
-    // TODO implement it!
   }
 
   @Override
@@ -222,7 +221,7 @@ public class EOSGiDistRunner extends Observable implements DistRunner {
       log.error("Could not start dist process.");
     }
     notifyObservers(new ModelChangeEvent()
-        .eventType(EventType.ENVIRONMENT).arg(environmentId));
+        .eventType(EventType.ENVIRONMENT).arg(new Object[] { environmentId, DistStatus.RUNNING }));
   }
 
   @Override
@@ -240,7 +239,7 @@ public class EOSGiDistRunner extends Observable implements DistRunner {
     }
     setChanged();
     notifyObservers(new ModelChangeEvent()
-        .eventType(EventType.ENVIRONMENT).arg(environmentId));
+        .eventType(EventType.ENVIRONMENT).arg(new Object[] { environmentId, DistStatus.STOPPED }));
   }
 
 }

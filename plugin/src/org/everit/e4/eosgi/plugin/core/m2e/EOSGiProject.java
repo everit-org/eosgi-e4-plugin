@@ -15,6 +15,7 @@
  */
 package org.everit.e4.eosgi.plugin.core.m2e;
 
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -36,6 +37,7 @@ import org.everit.e4.eosgi.plugin.core.EOSGiContext;
 import org.everit.e4.eosgi.plugin.core.EventType;
 import org.everit.e4.eosgi.plugin.core.ModelChangeEvent;
 import org.everit.e4.eosgi.plugin.core.dist.DistRunner;
+import org.everit.e4.eosgi.plugin.core.dist.DistStatus;
 import org.everit.e4.eosgi.plugin.core.dist.EOSGiDistRunner;
 import org.everit.e4.eosgi.plugin.core.m2e.model.Environment;
 import org.everit.e4.eosgi.plugin.core.m2e.model.Environments;
@@ -59,21 +61,6 @@ public class EOSGiProject extends Observable implements EOSGiContext {
     this.project = project;
     this.log = log;
   }
-
-  // private boolean checkBuildDirectory(final String environmentId) {
-  // if (buildDirectory == null) {
-  // log.error("The build directory not satisfied.");
-  // return false;
-  // }
-  //
-  // try {
-  // DistUtils.getDistStartCommand(buildDirectory, environmentId);
-  // return true;
-  // } catch (IOException e) {
-  // log.error("Start file for the environment not found!", e);
-  // return false;
-  // }
-  // }
 
   @Override
   public void delegateObserver(final Observer observer) {
@@ -119,18 +106,22 @@ public class EOSGiProject extends Observable implements EOSGiContext {
     try {
       generated = new M2EGoalExecutor(project).execute(monitor);
     } catch (CoreException e) {
-      log.error("Couldn't generate dist for '" + environmentId + "' environment.", e);
+      log.error(
+          MessageFormat.format("Couldn''t generate dist for ''{0}'' environment.", environmentId),
+          e);
     }
 
+    DistStatus newDistStatus = DistStatus.NONE;
     if (generated) {
       DistRunner distRunner = new EOSGiDistRunner(buildDirectory, environmentId);
       environment.setDistRunner(distRunner);
+      newDistStatus = DistStatus.STOPPED;
       setChanged();
     }
 
     notifyObservers(new ModelChangeEvent()
         .eventType(EventType.ENVIRONMENT)
-        .arg(environmentId));
+        .arg(new Object[] { environmentId, newDistStatus }));
   }
 
   @Override
@@ -223,17 +214,21 @@ public class EOSGiProject extends Observable implements EOSGiContext {
         environment.setFramework(newEnvironment.getFramework());
         environment.setSystemProperties(newEnvironment.getSystemProperties());
         environment.setVmOptions(newEnvironment.getVmOptions());
+        environment.setOutdated(false);
         newEnvironments.put(environment.getId(), environment);
       } else {
+        // setChanged();
         newEnvironments.put(newEnvironment.getId(), newEnvironment);
       }
     });
+    // if (!this.environments.isEmpty()) {
+    // setChanged(); // environments changes if some env deleted.
+    // }
     this.environments.forEach((key, environment) -> {
-      if (environment.getDistRunner().isPresent()
-          && environment.getDistRunner().get().isRunning()) {
-        environment.setOutdated(true);
-        newEnvironments.put(key, environment);
-      }
+      Optional<DistRunner> distRunner = environment.getDistRunner();
+      distRunner.ifPresent((runner) -> {
+        runner.stop();
+      });
     });
     this.environments = newEnvironments;
   }

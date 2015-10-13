@@ -17,6 +17,7 @@ package org.everit.e4.eosgi.plugin.ui.navigator.nodes;
 
 import java.util.Observer;
 
+import org.everit.e4.eosgi.plugin.ui.navigator.EosgiNodeChangeEvent;
 import org.everit.e4.eosgi.plugin.ui.navigator.EosgiNodeChangeListener;
 
 /**
@@ -57,8 +58,22 @@ public abstract class AbstractNode implements Observer {
     this.label = label;
   }
 
+  /**
+   * Notify {@link #setListener(EosgiNodeChangeListener)} listener about the changes with the given
+   * event.
+   * 
+   * @param event
+   *          event instance.
+   */
+  protected void changed(final EosgiNodeChangeEvent event) {
+    if (listener != null) {
+      listener.nodeChanged(event);
+    }
+  }
+
   public void dispose() {
     listener = null;
+    children = NO_CHILDREN;
   }
 
   public abstract AbstractNode[] getChildren();

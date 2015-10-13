@@ -47,11 +47,18 @@ public class EnvironmentsNode extends AbstractNode {
     context.delegateObserver(this);
   }
 
+  @Override
+  public void dispose() {
+    context = null;
+    super.dispose();
+  }
+
   private void disposeChildren() {
-    if (children != null) {
-      for (AbstractNode child : children) {
-        child.dispose();
+    if (children.length > 0) {
+      for (AbstractNode abstractNode : children) {
+        abstractNode.dispose();
       }
+      children = NO_CHILDREN;
     }
   }
 
@@ -100,7 +107,7 @@ public class EnvironmentsNode extends AbstractNode {
       EOSGiContext context = (EOSGiContext) event.arg;
       if (this.context.equals(context)) {
         outdated = true;
-        getListener().nodeChanged(new EosgiNodeChangeEvent(this));
+        changed(new EosgiNodeChangeEvent(this));
       }
     }
   }

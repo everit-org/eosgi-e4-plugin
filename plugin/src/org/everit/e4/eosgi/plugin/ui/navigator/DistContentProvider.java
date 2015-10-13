@@ -22,7 +22,6 @@ import java.util.Iterator;
 import java.util.Map;
 
 import org.eclipse.core.resources.IProject;
-import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.viewers.StructuredViewer;
 import org.eclipse.jface.viewers.TreeNodeContentProvider;
 import org.eclipse.jface.viewers.Viewer;
@@ -31,7 +30,6 @@ import org.everit.e4.eosgi.plugin.core.EOSGiContext;
 import org.everit.e4.eosgi.plugin.core.EOSGiContextManager;
 import org.everit.e4.eosgi.plugin.ui.EOSGiLog;
 import org.everit.e4.eosgi.plugin.ui.EOSGiPluginActivator;
-import org.everit.e4.eosgi.plugin.ui.nature.EosgiNature;
 import org.everit.e4.eosgi.plugin.ui.navigator.nodes.AbstractNode;
 import org.everit.e4.eosgi.plugin.ui.navigator.nodes.RootNode;
 
@@ -44,24 +42,36 @@ public class DistContentProvider extends TreeNodeContentProvider
 
   private Map<AbstractNode, AbstractNode[]> eosgiNodeCache = new HashMap<>();
 
-  private EOSGiLog log = new EOSGiLog(EOSGiPluginActivator.getDefault().getLog());
+  private EOSGiLog log;
 
-  private EOSGiPluginActivator plugin = EOSGiPluginActivator.getDefault();
+  private EOSGiContextManager manager;
+
+  private EOSGiPluginActivator plugin;
 
   private Map<IProject, AbstractNode[]> projectCache = new HashMap<>();
 
   private StructuredViewer viewer;
 
+  /**
+   * Constructor.
+   */
+  public DistContentProvider() {
+    super();
+    plugin = EOSGiPluginActivator.getDefault();
+    if (plugin != null) {
+      log = new EOSGiLog(plugin.getLog());
+      manager = plugin.getEOSGiManager();
+    } else {
+      throw new IllegalStateException("EOSGI plugin context not found!");
+    }
+  }
+
   @Override
-  public void dispose() {
-    eosgiNodeCache.forEach((key, value) -> {
-      for (AbstractNode abstractNode : value) {
-        abstractNode.dispose();
-      }
-    });
+  public synchronized void dispose() {
     projectCache.forEach((key, value) -> {
       for (AbstractNode abstractNode : value) {
         abstractNode.dispose();
+        resolveNodesFor(key);
       }
     });
     eosgiNodeCache = null;
@@ -101,17 +111,6 @@ public class DistContentProvider extends TreeNodeContentProvider
     };
   }
 
-  // FIXME unused
-  // @SuppressWarnings("unused")
-  // private Runnable getUpdateRunnable(final AbstractNode resource) {
-  // return new Runnable() {
-  // @Override
-  // public void run() {
-  // viewer.update(resource, null);
-  // }
-  // };
-  // }
-
   private Object[] handleEosgiNode(final Object parentElement) {
     if (eosgiNodeCache.containsKey(parentElement)) {
       return eosgiNodeCache.get(parentElement);
@@ -126,19 +125,11 @@ public class DistContentProvider extends TreeNodeContentProvider
   private Object[] handleProject(final Object parentElement) {
     IProject project = (IProject) parentElement;
     if (!project.isOpen()) {
+      resolveNodesFor(project);
       return NO_CHILDREN;
     }
-
-    boolean eosgiNature = false;
-    try {
-      eosgiNature = project.hasNature(EosgiNature.NATURE_ID);
-    } catch (CoreException e) {
-      log.error("get project nature", e);
-    }
-
-    EOSGiContextManager manager = plugin.getEOSGiManager();
     EOSGiContext context = manager.findOrCreate(project);
-    if (eosgiNature && context != null) {
+    if (context != null) {
       if (projectCache.containsKey(project)) {
         return projectCache.get(project);
       } else {
@@ -150,6 +141,17 @@ public class DistContentProvider extends TreeNodeContentProvider
       return NO_CHILDREN;
     }
   }
+
+  // FIXME unused
+  // @SuppressWarnings("unused")
+  // private Runnable getUpdateRunnable(final AbstractNode resource) {
+  // return new Runnable() {
+  // @Override
+  // public void run() {
+  // viewer.update(resource, null);
+  // }
+  // };
+  // }
 
   @Override
   public boolean hasChildren(final Object element) {
@@ -199,6 +201,26 @@ public class DistContentProvider extends TreeNodeContentProvider
             runUpdates(refreshRunnables);
           }
         });
+      }
+    }
+  }
+
+  private void releaseNode(final AbstractNode abstractNode) {
+    AbstractNode[] children = abstractNode.getChildren();
+    if (children != null) {
+      for (AbstractNode child : children) {
+        releaseNode(child);
+      }
+    }
+    abstractNode.dispose();
+    eosgiNodeCache.remove(abstractNode);
+  }
+
+  private void resolveNodesFor(final IProject project) {
+    AbstractNode[] abstractNodes = projectCache.remove(project);
+    if (abstractNodes != null) {
+      for (AbstractNode abstractNode : abstractNodes) {
+        releaseNode(abstractNode);
       }
     }
   }

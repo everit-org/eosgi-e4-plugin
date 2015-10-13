@@ -57,7 +57,7 @@ public class EnvironmentNode extends AbstractNode {
 
   @Override
   public void dispose() {
-    context.removeObserver(this);
+    context = null;
     super.dispose();
   }
 
@@ -100,22 +100,32 @@ public class EnvironmentNode extends AbstractNode {
 
   @Override
   public void update(final Observable o, final Object arg) {
+    if (context == null) {
+      return;
+    }
+
     ModelChangeEvent event = null;
     if ((arg != null) && (arg instanceof ModelChangeEvent)) {
       event = (ModelChangeEvent) arg;
     }
 
-    if ((event != null) && (event.eventType == EventType.ENVIRONMENT)) {
-      String environmentName = (String) event.arg;
+    if ((event != null) && (event.eventType == EventType.ENVIRONMENT)
+        && (event.arg instanceof Object[])) {
+      Object[] args = (Object[]) event.arg;
+      String environmentName = (String) args[0];
+      distStatus = (DistStatus) args[1];
       if (environmentName.equals(environmentId)) {
         outdated = true;
         updateDistStatus();
-        getListener().nodeChanged(new EosgiNodeChangeEvent(this));
+        changed(new EosgiNodeChangeEvent(this));
       }
     }
   }
 
   private void updateDistStatus() {
+    if (context == null) {
+      return;
+    }
     DistRunner distRunner = context.runner(environmentId).get();
     if (distRunner == null) {
       distStatus = DistStatus.NONE;

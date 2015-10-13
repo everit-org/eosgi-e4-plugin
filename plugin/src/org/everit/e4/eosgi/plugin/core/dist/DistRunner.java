@@ -20,8 +20,6 @@ package org.everit.e4.eosgi.plugin.core.dist;
  */
 public interface DistRunner {
 
-  void forcedStop();
-
   boolean isRunning();
 
   void start();

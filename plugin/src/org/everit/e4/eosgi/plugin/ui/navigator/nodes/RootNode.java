@@ -38,12 +38,18 @@ public class RootNode extends AbstractNode {
    */
   public RootNode(final EOSGiContext context,
       final EosgiNodeChangeListener listener) {
-    super("ESOGI Configuration", listener, null);
+    super("Everit OSGi context", listener, null);
     Objects.requireNonNull(context, "context cannot be null");
     this.context = context;
     setListener(listener);
     outdated = true;
     this.context.delegateObserver(this);
+  }
+
+  @Override
+  public void dispose() {
+    context = null;
+    super.dispose();
   }
 
   @Override
