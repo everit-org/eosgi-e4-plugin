@@ -35,7 +35,7 @@
           point="org.eclipse.ui.navigator.navigatorContent">
         <navigatorContent
           id="org.everit.e4.eosgi.plugin.ui.navigator.dist"
-          name="Dist configurations node"
+          name="Everit OSGi context"
           activeByDefault="true"
           icon="icons/everit.gif"
           priority="normal"
