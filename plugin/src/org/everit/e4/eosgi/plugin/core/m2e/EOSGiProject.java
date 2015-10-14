@@ -26,7 +26,6 @@ import java.util.Observer;
 import java.util.Optional;
 
 import org.apache.maven.project.MavenProject;
-import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -37,12 +36,11 @@ import org.everit.e4.eosgi.plugin.core.EOSGiContext;
 import org.everit.e4.eosgi.plugin.core.EventType;
 import org.everit.e4.eosgi.plugin.core.ModelChangeEvent;
 import org.everit.e4.eosgi.plugin.core.dist.DistRunner;
-import org.everit.e4.eosgi.plugin.core.dist.DistStatus;
 import org.everit.e4.eosgi.plugin.core.dist.EOSGiDistRunner;
 import org.everit.e4.eosgi.plugin.core.m2e.model.Environment;
-import org.everit.e4.eosgi.plugin.core.m2e.model.Environments;
-import org.everit.e4.eosgi.plugin.core.m2e.xml.ConfiguratorParser;
+import org.everit.e4.eosgi.plugin.core.m2e.xml.EnvironmentsDTO;
 import org.everit.e4.eosgi.plugin.ui.EOSGiLog;
+import org.everit.e4.eosgi.plugin.ui.dto.EnvironmentNodeDTO;
 
 /**
  * {@link EOSGiContext} base implementation.
@@ -79,10 +77,14 @@ public class EOSGiProject extends Observable implements EOSGiContext {
   }
 
   @Override
-  public List<String> environmentIds() {
-    final List<String> environmentList = new ArrayList<>();
-    environments.keySet().forEach((name) -> {
-      environmentList.add(name);
+  public List<EnvironmentNodeDTO> fetchEnvironments() {
+    final List<EnvironmentNodeDTO> environmentList = new ArrayList<>();
+    environments.values().forEach((environment) -> {
+      environmentList.add(
+          new EnvironmentNodeDTO()
+              .id(environment.getId())
+              .outdated(environment.isOutdated())
+              .observable(environment));
     });
     return environmentList;
   }
@@ -95,6 +97,10 @@ public class EOSGiProject extends Observable implements EOSGiContext {
   @Override
   public void generate(final String environmentId, final IProgressMonitor monitor) {
     Objects.requireNonNull(environmentId, "environmentName must be not null!");
+
+    runner(environmentId).ifPresent(runner -> {
+      runner.stop();
+    });
 
     Environment environment = environments.get(environmentId);
     if (environment == null) {
@@ -111,17 +117,10 @@ public class EOSGiProject extends Observable implements EOSGiContext {
           e);
     }
 
-    DistStatus newDistStatus = DistStatus.NONE;
     if (generated) {
       DistRunner distRunner = new EOSGiDistRunner(buildDirectory, environmentId);
       environment.setDistRunner(distRunner);
-      newDistStatus = DistStatus.STOPPED;
-      setChanged();
     }
-
-    notifyObservers(new ModelChangeEvent()
-        .eventType(EventType.ENVIRONMENT)
-        .arg(new Object[] { environmentId, newDistStatus }));
   }
 
   @Override
@@ -163,15 +162,13 @@ public class EOSGiProject extends Observable implements EOSGiContext {
       setChanged();
     }
     if (contextChange.configuration != null) {
-      updateEnvironments(contextChange.configuration);
-      setChanged();
+      synchronized (environments) {
+        updateEnvironments(contextChange.configuration);
+      }
     }
 
-    notifyObservers(
-        new ModelChangeEvent()
-            .eventType(EventType.ENVIRONMENTS)
-            .arg(this));
-
+    // TODO replace ModelChangeEvent to a DTO only
+    notifyObservers(new ModelChangeEvent().eventType(EventType.ENVIRONMENTS).arg(this));
   }
 
   @Override
@@ -196,39 +193,32 @@ public class EOSGiProject extends Observable implements EOSGiContext {
         + ", project=" + project + "]";
   }
 
-  private void updateEnvironments(final Xpp3Dom configuration) {
-    Environments environments = null;
-    try {
-      environments = new ConfiguratorParser().parse(configuration);
-    } catch (Exception e) {
-      log.error("can't parse configuration", e);
-      return;
-    }
-
+  private void updateEnvironments(final EnvironmentsDTO environments) {
     Map<String, Environment> newEnvironments = new HashMap<>();
-    environments.getEnvironments().forEach((newEnvironment) -> {
+    environments.environments.forEach((newEnvironment) -> {
       Environment environment = null;
-      if (this.environments.containsKey(newEnvironment.getId())) {
-        environment = this.environments.remove(newEnvironment.getId());
-        environment.setBundleSettings(newEnvironment.getBundleSettings());
-        environment.setFramework(newEnvironment.getFramework());
-        environment.setSystemProperties(newEnvironment.getSystemProperties());
-        environment.setVmOptions(newEnvironment.getVmOptions());
-        environment.setOutdated(false);
-        newEnvironments.put(environment.getId(), environment);
+      if (this.environments.containsKey(newEnvironment.id)) {
+        environment = this.environments.remove(newEnvironment.id);
+        environment.update(newEnvironment);
       } else {
-        // setChanged();
-        newEnvironments.put(newEnvironment.getId(), newEnvironment);
+        environment = new Environment();
+        environment.setId(newEnvironment.id);
+        environment.setFramework(newEnvironment.framework);
+        setChanged();
       }
+      newEnvironments.put(newEnvironment.id, environment);
     });
-    // if (!this.environments.isEmpty()) {
-    // setChanged(); // environments changes if some env deleted.
-    // }
+    if (!this.environments.isEmpty()) {
+      setChanged();
+    }
     this.environments.forEach((key, environment) -> {
-      Optional<DistRunner> distRunner = environment.getDistRunner();
-      distRunner.ifPresent((runner) -> {
+      runner(key).ifPresent(runner -> {
         runner.stop();
       });
+      // Optional<DistRunner> distRunner = environment.getDistRunner();
+      // distRunner.ifPresent((runner) -> {
+      // runner.stop();
+      // });
     });
     this.environments = newEnvironments;
   }

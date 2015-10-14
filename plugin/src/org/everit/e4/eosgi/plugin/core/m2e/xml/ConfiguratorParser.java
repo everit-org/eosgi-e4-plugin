@@ -23,7 +23,6 @@ import java.util.Map;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.everit.e4.eosgi.plugin.core.m2e.model.Bundle;
 import org.everit.e4.eosgi.plugin.core.m2e.model.BundleSettings;
-import org.everit.e4.eosgi.plugin.core.m2e.model.Environment;
 import org.everit.e4.eosgi.plugin.core.m2e.model.Environments;
 import org.everit.e4.eosgi.plugin.ui.EOSGiLog;
 import org.everit.e4.eosgi.plugin.ui.EOSGiPluginActivator;
@@ -49,7 +48,7 @@ public class ConfiguratorParser {
 
   private Xpp3Dom configurationDom;
 
-  private Environments environments;
+  private EnvironmentsDTO environmentsDTO;
 
   private EOSGiLog log;
 
@@ -66,15 +65,15 @@ public class ConfiguratorParser {
    * @return filled {@link Environments} instance.
    */
   // TODO refactor
-  public Environments parse(final Xpp3Dom configurationDom) {
+  public EnvironmentsDTO parse(final Xpp3Dom configurationDom) {
     if (configurationDom == null) {
       log.warning("configuration DOM is null");
-      return new Environments();
+      return new EnvironmentsDTO();
     }
 
     this.configurationDom = configurationDom;
-    environments = new Environments();
-    environments.setEnvironments(new ArrayList<>());
+    environmentsDTO = new EnvironmentsDTO();
+    environmentsDTO.environments(new ArrayList<>());
 
     Xpp3Dom environmentsChild = this.configurationDom.getChild(ENVIRONMENTS_TAG);
     Xpp3Dom[] childrens = environmentsChild.getChildren();
@@ -85,7 +84,7 @@ public class ConfiguratorParser {
     }
 
     this.configurationDom = null;
-    return environments;
+    return environmentsDTO;
   }
 
   private Bundle processBundle(final Xpp3Dom bundlesDom) {
@@ -123,30 +122,30 @@ public class ConfiguratorParser {
   }
 
   private void processEnvironments(final Xpp3Dom children) {
-    Environment environment = new Environment();
+    EnvironmentDTO environment = new EnvironmentDTO();
     String id = processSimpleTextContentById(children, ENVIRONMENT_ID_TAG);
-    environment.setId(id);
+    environment.id(id);
     String framework = processSimpleTextContentById(children, FRAMEWORK_TAG);
-    environment.setFramework(framework);
+    environment.framework(framework);
 
     Map<String, String> systemProperties = new HashMap<>();
-    environment.setSystemProperties(systemProperties);
+    environment.systemProperties(systemProperties);
 
     Xpp3Dom systemPropertiesDom = children.getChild(SYSTEM_PROPERTIES_TAG);
     if (systemPropertiesDom != null) {
       Xpp3Dom[] xpp3Doms = systemPropertiesDom.getChildren();
       if (xpp3Doms != null) {
         for (Xpp3Dom xpp3Dom : xpp3Doms) {
-          environment.getSystemProperties().put(xpp3Dom.getName(), xpp3Dom.getValue());
+          environment.systemProperties.put(xpp3Dom.getName(), xpp3Dom.getValue());
         }
       }
     }
     List<String> vmOptions = processVmOptions(children);
-    environment.setVmOptions(vmOptions);
+    environment.vmOptions(vmOptions);
 
     BundleSettings bundleSettings = processBundleSettings(children);
-    environment.setBundleSettings(bundleSettings);
-    environments.getEnvironments().add(environment);
+    environment.bundleSettings(bundleSettings);
+    environmentsDTO.environments.add(environment);
   }
 
   private String processSimpleTextContentById(final Xpp3Dom domElement, final String id) {

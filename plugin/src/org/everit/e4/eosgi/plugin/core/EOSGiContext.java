@@ -22,6 +22,7 @@ import java.util.Optional;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.m2e.core.project.IMavenProjectChangedListener;
 import org.everit.e4.eosgi.plugin.core.dist.DistRunner;
+import org.everit.e4.eosgi.plugin.ui.dto.EnvironmentNodeDTO;
 
 /**
  * Interface for EOSGI context functionality.
@@ -39,11 +40,11 @@ public interface EOSGiContext extends IMavenProjectChangedListener {
   void dispose();
 
   /**
-   * Fetch the current environment names.
+   * Fetch the current environment informations.
    *
-   * @return List of the environment names.
+   * @return List of the environment change DTO.
    */
-  List<String> environmentIds();
+  List<EnvironmentNodeDTO> fetchEnvironments();
 
   void forcedStop(String environmentId);
 

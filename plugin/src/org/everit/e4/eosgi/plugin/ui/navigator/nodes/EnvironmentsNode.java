@@ -30,6 +30,7 @@ import org.everit.e4.eosgi.plugin.ui.navigator.EosgiNodeChangeListener;
  */
 public class EnvironmentsNode extends AbstractNode {
 
+  private static final String OUTDATED_LABEL = " (outdated)";
   private EOSGiContext context;
 
   /**
@@ -62,17 +63,36 @@ public class EnvironmentsNode extends AbstractNode {
     }
   }
 
+  private List<EnvironmentNode> generateChildNodes() {
+    List<EnvironmentNode> nodes = new ArrayList<>();
+
+    context.fetchEnvironments().forEach((environmentDTO) -> {
+      EnvironmentNode node = new EnvironmentNode(context, environmentDTO.id, getListener());
+      environmentDTO.observable.addObserver(node);
+      if (environmentDTO.outdated) {
+        node.setLabel(OUTDATED_LABEL);
+      }
+      nodes.add(node);
+    });
+    // List<EnvironmentNodeDTO> environmentsNodeDTO = context.environmentsNodeDTO();
+    // for (EnvironmentNodeDTO environment : environmentsNodeDTO) {
+    // EnvironmentNode node = new EnvironmentNode(context, environment.id, getListener());
+    // environment.observable.addObserver(node);
+    // if (environment.outdated) {
+    // node.setLabel(OUTDATED_LABEL);
+    // }
+    // nodes.add(node);
+    // }
+
+    return nodes;
+  }
+
   @Override
   public AbstractNode[] getChildren() {
     if (outdated) {
-      List<String> environments = context.environmentIds();
       disposeChildren();
-      List<EnvironmentNode> nodes = new ArrayList<>();
-      for (String environment : environments) {
-        EnvironmentNode node = new EnvironmentNode(context, environment, getListener());
-        nodes.add(node);
-      }
-      children = nodes.toArray(new EnvironmentNode[] {});
+      children = generateChildNodes()
+          .toArray(new EnvironmentNode[] {});
       outdated = false;
     }
     return children.clone();

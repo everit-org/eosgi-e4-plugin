@@ -35,6 +35,8 @@ import org.eclipse.m2e.jdt.IJavaProjectConfigurator;
 import org.everit.e4.eosgi.plugin.core.ContextChange;
 import org.everit.e4.eosgi.plugin.core.EOSGiContext;
 import org.everit.e4.eosgi.plugin.core.EOSGiContextManager;
+import org.everit.e4.eosgi.plugin.core.m2e.xml.ConfiguratorParser;
+import org.everit.e4.eosgi.plugin.core.m2e.xml.EnvironmentsDTO;
 import org.everit.e4.eosgi.plugin.ui.EOSGiLog;
 import org.everit.e4.eosgi.plugin.ui.EOSGiPluginActivator;
 import org.everit.e4.eosgi.plugin.ui.nature.EosgiNature;
@@ -119,9 +121,14 @@ public class EosgiDistProjectConfigurator extends AbstractProjectConfigurator
         MojoExecution mojoExecution = newFacade.getMojoExecution(key, monitor);
         Xpp3Dom configuration = mojoExecution.getConfiguration();
         if ((project != null) && (configuration != null)) {
-          EOSGiContext eosgiProject = eosgiManager.findOrCreate(project);
-          if (eosgiProject != null) {
-            eosgiProject.refresh(new ContextChange().configuration(configuration));
+          try {
+            EnvironmentsDTO environments = new ConfiguratorParser().parse(configuration);
+            EOSGiContext eosgiProject = eosgiManager.findOrCreate(project);
+            if (eosgiProject != null) {
+              eosgiProject.refresh(new ContextChange().configuration(environments));
+            }
+          } catch (Exception e) {
+            log.error("can't parse configuration", e);
           }
         }
       } catch (CoreException e) {

@@ -32,6 +32,8 @@ import org.eclipse.m2e.core.project.IMavenProjectRegistry;
 import org.everit.e4.eosgi.plugin.core.ContextChange;
 import org.everit.e4.eosgi.plugin.core.EOSGiContext;
 import org.everit.e4.eosgi.plugin.core.EOSGiContextManager;
+import org.everit.e4.eosgi.plugin.core.m2e.xml.ConfiguratorParser;
+import org.everit.e4.eosgi.plugin.core.m2e.xml.EnvironmentsDTO;
 import org.everit.e4.eosgi.plugin.ui.EOSGiLog;
 import org.everit.e4.eosgi.plugin.ui.nature.EosgiNature;
 
@@ -51,7 +53,7 @@ public class EOSGiContextManagerImpl implements EOSGiContextManager {
     projectRegistry = MavenPlugin.getMavenProjectRegistry();
   }
 
-  private void createAndStartMavenRefresh(final IProject project, final EOSGiContext context) {
+  private void createAndStartMavenRefresh(final IProject project, final EOSGiContext eosgiContext) {
     Job job = Job.create("Fetch maven informations for EOSGi project...", monitor -> {
       IMavenProjectFacade mavenProjectFacade = projectRegistry.getProject(project);
       if (mavenProjectFacade == null) {
@@ -76,8 +78,10 @@ public class EOSGiContextManagerImpl implements EOSGiContextManager {
             M2EGoalExecutor.DIST_GOAL);
         if (!executions.isEmpty()) {
           Xpp3Dom configuration = executions.get(0).getConfiguration();
-          if ((configuration != null)) {
-            context.refresh(contextChange.configuration(configuration));
+          EnvironmentsDTO environments = null;
+          if (configuration != null) {
+            environments = new ConfiguratorParser().parse(configuration);
+            eosgiContext.refresh(contextChange.configuration(environments));
           }
         }
       } catch (Exception e) {

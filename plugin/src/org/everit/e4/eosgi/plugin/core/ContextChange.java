@@ -15,7 +15,7 @@
  */
 package org.everit.e4.eosgi.plugin.core;
 
-import org.codehaus.plexus.util.xml.Xpp3Dom;
+import org.everit.e4.eosgi.plugin.core.m2e.xml.EnvironmentsDTO;
 
 /**
  * Class for maven changes. Containing the build directory and the configuration at now.
@@ -23,14 +23,14 @@ import org.codehaus.plexus.util.xml.Xpp3Dom;
 public class ContextChange {
   public String buildDirectory;
 
-  public Xpp3Dom configuration;
+  public EnvironmentsDTO configuration;
 
   public ContextChange buildDirectory(final String buildDirectory) {
     this.buildDirectory = buildDirectory;
     return this;
   }
 
-  public ContextChange configuration(final Xpp3Dom configuration) {
+  public ContextChange configuration(final EnvironmentsDTO configuration) {
     this.configuration = configuration;
     return this;
   }

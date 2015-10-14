@@ -29,6 +29,8 @@ import org.eclipse.m2e.core.project.configurator.MojoExecutionBuildParticipant;
 import org.everit.e4.eosgi.plugin.core.ContextChange;
 import org.everit.e4.eosgi.plugin.core.EOSGiContext;
 import org.everit.e4.eosgi.plugin.core.EOSGiContextManager;
+import org.everit.e4.eosgi.plugin.core.m2e.xml.ConfiguratorParser;
+import org.everit.e4.eosgi.plugin.core.m2e.xml.EnvironmentsDTO;
 
 /**
  * MojoExecutionBuildParticipant implementation for eosgi-maven-plugin.
@@ -84,11 +86,15 @@ public class EosgiDistBuildParticipant extends MojoExecutionBuildParticipant {
     if ((getMojoExecution() != null) && (getMojoExecution().getConfiguration() != null)) {
       monitor.subTask(project.getName() + ": processing dist configuration...");
       Xpp3Dom configuration = getMojoExecution().getConfiguration();
+
+      EnvironmentsDTO environments = null;
       if (configuration != null) {
-        EOSGiContext eosgiProject = eosgiManager.findOrCreate(project);
-        if (eosgiProject != null) {
-          eosgiProject.refresh(new ContextChange().configuration(configuration));
-        }
+        environments = new ConfiguratorParser().parse(configuration);
+      }
+
+      EOSGiContext eosgiProject = eosgiManager.findOrCreate(project);
+      if (eosgiProject != null) {
+        eosgiProject.refresh(new ContextChange().configuration(environments));
       }
     }
   }

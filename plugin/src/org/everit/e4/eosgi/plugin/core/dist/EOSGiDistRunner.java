@@ -29,6 +29,7 @@ import org.everit.e4.eosgi.plugin.core.ModelChangeEvent;
 import org.everit.e4.eosgi.plugin.core.util.DistUtils;
 import org.everit.e4.eosgi.plugin.ui.EOSGiLog;
 import org.everit.e4.eosgi.plugin.ui.EOSGiPluginActivator;
+import org.everit.e4.eosgi.plugin.ui.dto.EnvironmentNodeDTO;
 import org.rzo.yajsw.os.OperatingSystem;
 import org.rzo.yajsw.os.Process;
 import org.rzo.yajsw.os.ProcessManager;
@@ -220,8 +221,11 @@ public class EOSGiDistRunner extends Observable implements DistRunner {
     } else {
       log.error("Could not start dist process.");
     }
+
+    EnvironmentNodeDTO environmentNodeDTO = new EnvironmentNodeDTO().id(environmentId)
+        .distStatus(DistStatus.RUNNING);
     notifyObservers(new ModelChangeEvent()
-        .eventType(EventType.ENVIRONMENT).arg(new Object[] { environmentId, DistStatus.RUNNING }));
+        .eventType(EventType.ENVIRONMENT).arg(environmentNodeDTO));
   }
 
   @Override
@@ -238,8 +242,16 @@ public class EOSGiDistRunner extends Observable implements DistRunner {
       }
     }
     setChanged();
+    EnvironmentNodeDTO environmentNodeDTO = new EnvironmentNodeDTO().id(environmentId)
+        .distStatus(DistStatus.STOPPED);
     notifyObservers(new ModelChangeEvent()
-        .eventType(EventType.ENVIRONMENT).arg(new Object[] { environmentId, DistStatus.STOPPED }));
+        .eventType(EventType.ENVIRONMENT).arg(environmentNodeDTO));
+  }
+
+  @Override
+  public String toString() {
+    return "EOSGiDistRunner [directory=" + directory + ", environmentId=" + environmentId
+        + ", process=" + process + "]";
   }
 
 }

@@ -15,18 +15,20 @@
  */
 package org.everit.e4.eosgi.plugin.core.m2e.model;
 
-import java.util.List;
-import java.util.Map;
+import java.util.Observable;
 import java.util.Optional;
 
+import org.everit.e4.eosgi.plugin.core.EventType;
+import org.everit.e4.eosgi.plugin.core.ModelChangeEvent;
 import org.everit.e4.eosgi.plugin.core.dist.DistRunner;
+import org.everit.e4.eosgi.plugin.core.dist.DistStatus;
+import org.everit.e4.eosgi.plugin.core.m2e.xml.EnvironmentDTO;
+import org.everit.e4.eosgi.plugin.ui.dto.EnvironmentNodeDTO;
 
 /**
  * Model class for storing environment informations.
  */
-public class Environment {
-  private BundleSettings bundleSettings;
-
+public class Environment extends Observable {
   private DistRunner distRunner;
 
   private String framework;
@@ -34,14 +36,6 @@ public class Environment {
   private String id;
 
   private boolean outdated;
-
-  private Map<String, String> systemProperties;
-
-  private List<String> vmOptions;
-
-  public BundleSettings getBundleSettings() {
-    return bundleSettings;
-  }
 
   public Optional<DistRunner> getDistRunner() {
     return Optional.ofNullable(distRunner);
@@ -55,24 +49,16 @@ public class Environment {
     return id;
   }
 
-  public Map<String, String> getSystemProperties() {
-    return systemProperties;
-  }
-
-  public List<String> getVmOptions() {
-    return vmOptions;
-  }
-
   public boolean isOutdated() {
     return outdated;
   }
 
-  public void setBundleSettings(final BundleSettings bundleSettings) {
-    this.bundleSettings = bundleSettings;
-  }
-
   public void setDistRunner(final DistRunner distRunner) {
     this.distRunner = distRunner;
+    setChanged();
+    notifyObservers(new ModelChangeEvent().eventType(EventType.ENVIRONMENT)
+        .arg(new EnvironmentNodeDTO().id(id).distStatus(DistStatus.STOPPED).outdated(false)
+            .observable((Observable) distRunner)));
   }
 
   public void setFramework(final String framework) {
@@ -87,19 +73,28 @@ public class Environment {
     this.outdated = outdated;
   }
 
-  public void setSystemProperties(final Map<String, String> systemProperties) {
-    this.systemProperties = systemProperties;
-  }
-
-  public void setVmOptions(final List<String> vmOptions) {
-    this.vmOptions = vmOptions;
-  }
-
   @Override
   public String toString() {
-    return "Environment [bundleSettings=" + bundleSettings + ", distRunner=" + distRunner
-        + ", framework=" + framework + ", id=" + id + ", systemProperties=" + systemProperties
-        + ", vmOptions=" + vmOptions + "]";
+    return "Environment [distRunner=" + distRunner + ", framework=" + framework + ", id=" + id
+        + ", outdated=" + outdated + "]";
+  }
+
+  public void update(final EnvironmentDTO environmentDTO) {
+    if (!this.id.equals(environmentDTO.id)) {
+      id = environmentDTO.id;
+      outdated = true;
+      setChanged();
+    }
+    if (!this.framework.equals(environmentDTO.framework)) {
+      framework = environmentDTO.framework;
+      outdated = true;
+      setChanged();
+    }
+    EnvironmentNodeDTO environmentNodeDTO = new EnvironmentNodeDTO().id(id).outdated(outdated);
+    notifyObservers(
+        new ModelChangeEvent()
+            .eventType(EventType.ENVIRONMENT)
+            .arg(environmentNodeDTO));
   }
 
 }
