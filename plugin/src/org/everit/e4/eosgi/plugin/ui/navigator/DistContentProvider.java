@@ -28,7 +28,6 @@ import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.swt.widgets.Control;
 import org.everit.e4.eosgi.plugin.core.EOSGiContext;
 import org.everit.e4.eosgi.plugin.core.EOSGiContextManager;
-import org.everit.e4.eosgi.plugin.ui.EOSGiLog;
 import org.everit.e4.eosgi.plugin.ui.EOSGiPluginActivator;
 import org.everit.e4.eosgi.plugin.ui.navigator.nodes.AbstractNode;
 import org.everit.e4.eosgi.plugin.ui.navigator.nodes.RootNode;
@@ -41,8 +40,6 @@ public class DistContentProvider extends TreeNodeContentProvider
   private static final Object[] NO_CHILDREN = new Object[] {};
 
   private Map<AbstractNode, AbstractNode[]> eosgiNodeCache = new HashMap<>();
-
-  private EOSGiLog log;
 
   private EOSGiContextManager manager;
 
@@ -59,7 +56,6 @@ public class DistContentProvider extends TreeNodeContentProvider
     super();
     plugin = EOSGiPluginActivator.getDefault();
     if (plugin != null) {
-      log = new EOSGiLog(plugin.getLog());
       manager = plugin.getEOSGiManager();
     } else {
       throw new IllegalStateException("EOSGI plugin context not found!");
@@ -160,7 +156,7 @@ public class DistContentProvider extends TreeNodeContentProvider
     } else if (element instanceof AbstractNode) {
       AbstractNode node = (AbstractNode) element;
       AbstractNode[] children = node.getChildren();
-      return children != null && children.length > 0;
+      return (children != null) && (children.length > 0);
     } else {
       return false;
     }
@@ -173,13 +169,13 @@ public class DistContentProvider extends TreeNodeContentProvider
 
   @Override
   public synchronized void nodeChanged(final EosgiNodeChangeEvent event) {
-    if (event != null && event.getNode() != null) {
+    if ((event != null) && (event.getNode() != null)) {
       AbstractNode node = event.getNode();
 
       eosgiNodeCache.remove(node);
 
       Control ctrl = viewer.getControl();
-      if (ctrl == null || ctrl.isDisposed()) {
+      if ((ctrl == null) || ctrl.isDisposed()) {
         return;
       }
 
@@ -194,7 +190,7 @@ public class DistContentProvider extends TreeNodeContentProvider
           public void run() {
             // Abort if this happens after disposes
             Control ctrl = viewer.getControl();
-            if (ctrl == null || ctrl.isDisposed()) {
+            if ((ctrl == null) || ctrl.isDisposed()) {
               return;
             }
 

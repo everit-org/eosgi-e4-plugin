@@ -46,7 +46,7 @@ public class M2EGoalExecutor {
 
   /**
    * Constructor.
-   * 
+   *
    * @param project
    *          target {@link IProject} reference.
    */
@@ -60,7 +60,7 @@ public class M2EGoalExecutor {
   /**
    * Execute a dist generation goal on the given environment of the given project. Polling the
    * monitor for canceling event.
-   * 
+   *
    * @param monitor
    *          {@link IProgressMonitor} instance.
    * @return <code>true</code> is success, <code>false</code> otherwise.
@@ -74,12 +74,12 @@ public class M2EGoalExecutor {
     }
 
     MojoExecution execution = null;
-    if (mavenProject != null && isNotCancelled(monitor)) {
+    if ((mavenProject != null) && isNotCancelled(monitor)) {
       monitor.setTaskName("fetching execution information...");
       execution = fetchDistMojoExecution(mavenProjectFacade, monitor);
     }
 
-    if (execution != null && isNotCancelled(monitor)) {
+    if ((execution != null) && isNotCancelled(monitor)) {
       monitor.setTaskName("creating dist...");
       maven.execute(mavenProject, execution, monitor);
       return true;
@@ -100,6 +100,6 @@ public class M2EGoalExecutor {
   }
 
   private boolean isNotCancelled(final IProgressMonitor monitor) {
-    return monitor != null && !monitor.isCanceled();
+    return (monitor != null) && !monitor.isCanceled();
   }
 }

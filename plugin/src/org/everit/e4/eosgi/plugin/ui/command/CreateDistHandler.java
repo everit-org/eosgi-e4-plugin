@@ -64,7 +64,7 @@ public class CreateDistHandler extends AbstractDistHandler implements IHandler {
 
     processTreeSelection(treeSelection);
 
-    if (project != null && environmentName != null) {
+    if ((project != null) && (environmentName != null)) {
       new DistGenerationJob(project, environmentName).schedule();
     } else {
       log.warning("Can't identified the project or name of the environment.");

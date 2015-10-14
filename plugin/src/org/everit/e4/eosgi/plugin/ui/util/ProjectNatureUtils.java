@@ -22,7 +22,7 @@ public final class ProjectNatureUtils {
 
   /**
    * Add nature id to given array and return with them.
-   * 
+   *
    * @param natureIds
    *          original nature id array.
    * @param natureId
@@ -38,7 +38,7 @@ public final class ProjectNatureUtils {
       }
     }
 
-    if (notFound && natureId != null) {
+    if (notFound && (natureId != null)) {
       String[] newNatureIds = new String[natureIds.length + 1];
       System.arraycopy(natureIds, 0, newNatureIds, 1, natureIds.length);
       newNatureIds[0] = natureId;

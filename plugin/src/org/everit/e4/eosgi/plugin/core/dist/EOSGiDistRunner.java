@@ -52,7 +52,7 @@ public class EOSGiDistRunner extends Observable implements DistRunner {
 
     /**
      * Constuctor with process and timeout.
-     * 
+     *
      * @param process
      *          process instance.
      * @param shutdownTimeout
@@ -168,7 +168,7 @@ public class EOSGiDistRunner extends Observable implements DistRunner {
 
   @Override
   public synchronized boolean isRunning() {
-    return process != null && process.isRunning();
+    return (process != null) && process.isRunning();
   }
 
   private void registerShutdownHook(final Process process) {
@@ -206,7 +206,7 @@ public class EOSGiDistRunner extends Observable implements DistRunner {
 
   @Override
   public synchronized void start() {
-    if (process != null && process.isRunning()) {
+    if ((process != null) && process.isRunning()) {
       return;
     }
     Process newProcess = createDistProcess();
@@ -216,7 +216,7 @@ public class EOSGiDistRunner extends Observable implements DistRunner {
       createRedirecter(newProcess);
     }
     if (started) {
-      this.process = newProcess;
+      process = newProcess;
       setChanged();
     } else {
       log.error("Could not start dist process.");
@@ -230,7 +230,7 @@ public class EOSGiDistRunner extends Observable implements DistRunner {
 
   @Override
   public synchronized void stop() {
-    if (process == null || !process.isRunning()) {
+    if ((process == null) || !process.isRunning()) {
       return;
     }
     shutdownProcess(process, PROCESS_SHUTDOWN_TIMEOUT, -1);

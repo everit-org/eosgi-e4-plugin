@@ -58,7 +58,7 @@ public class StopDistHandler extends AbstractDistHandler implements IHandler {
 
     processTreeSelection(treeSelection);
 
-    if (project != null && environmentName != null) {
+    if ((project != null) && (environmentName != null)) {
       tryToStop();
     }
     return null;

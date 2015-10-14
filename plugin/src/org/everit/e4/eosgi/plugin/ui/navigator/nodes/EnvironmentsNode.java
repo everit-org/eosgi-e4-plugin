@@ -31,6 +31,7 @@ import org.everit.e4.eosgi.plugin.ui.navigator.EosgiNodeChangeListener;
 public class EnvironmentsNode extends AbstractNode {
 
   private static final String OUTDATED_LABEL = " (outdated)";
+
   private EOSGiContext context;
 
   /**

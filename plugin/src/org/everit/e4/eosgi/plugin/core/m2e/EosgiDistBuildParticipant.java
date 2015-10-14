@@ -42,7 +42,7 @@ public class EosgiDistBuildParticipant extends MojoExecutionBuildParticipant {
   /**
    * Constructor.<br>
    * The runOnConfiguration and runOnIncremental is <code>true</code>.
-   * 
+   *
    * @param execution
    *          {@link MojoExecution} instance.
    * @param eosgiManager

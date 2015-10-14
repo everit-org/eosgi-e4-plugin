@@ -29,7 +29,7 @@ public class EnvironmentNodePropertyTester extends PropertyTester {
   @Override
   public boolean test(final Object receiver, final String property, final Object[] args,
       final Object expectedValue) {
-    if (receiver == null || property == null || expectedValue == null) {
+    if ((receiver == null) || (property == null) || (expectedValue == null)) {
       return false;
     }
 

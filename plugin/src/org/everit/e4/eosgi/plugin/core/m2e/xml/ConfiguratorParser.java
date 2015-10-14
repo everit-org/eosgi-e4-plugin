@@ -23,7 +23,6 @@ import java.util.Map;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.everit.e4.eosgi.plugin.core.m2e.model.Bundle;
 import org.everit.e4.eosgi.plugin.core.m2e.model.BundleSettings;
-import org.everit.e4.eosgi.plugin.core.m2e.model.Environments;
 import org.everit.e4.eosgi.plugin.ui.EOSGiLog;
 import org.everit.e4.eosgi.plugin.ui.EOSGiPluginActivator;
 
@@ -59,10 +58,10 @@ public class ConfiguratorParser {
 
   /**
    * Parsing the given configuration instance.
-   * 
+   *
    * @param configurationDom
    *          configuration in {@link Xpp3Dom} instance.
-   * @return filled {@link Environments} instance.
+   * @return filled {@link EnvironmentsDTO} instance.
    */
   // TODO refactor
   public EnvironmentsDTO parse(final Xpp3Dom configurationDom) {

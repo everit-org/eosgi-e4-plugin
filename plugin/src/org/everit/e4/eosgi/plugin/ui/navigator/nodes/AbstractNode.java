@@ -42,7 +42,7 @@ public abstract class AbstractNode implements Observer {
 
   /**
    * Constructor with name and a change listener.
-   * 
+   *
    * @param name
    *          name of the node.
    * @param listener
@@ -61,7 +61,7 @@ public abstract class AbstractNode implements Observer {
   /**
    * Notify {@link #setListener(EosgiNodeChangeListener)} listener about the changes with the given
    * event.
-   * 
+   *
    * @param event
    *          event instance.
    */

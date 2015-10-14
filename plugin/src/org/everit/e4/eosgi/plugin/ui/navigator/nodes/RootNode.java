@@ -30,7 +30,7 @@ public class RootNode extends AbstractNode {
 
   /**
    * Constructor with {@link EOSGiContext} reference.
-   * 
+   *
    * @param context
    *          EOSGi context.
    * @param listener

@@ -37,7 +37,7 @@ public final class DistGenerationJob extends Job {
 
   /**
    * Constructor. Create a job with {@link Job#BUILD} priority.
-   * 
+   *
    * @param project
    *          project.
    * @param environmentId

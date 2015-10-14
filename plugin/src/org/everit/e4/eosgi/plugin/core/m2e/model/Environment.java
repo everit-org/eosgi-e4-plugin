@@ -53,6 +53,13 @@ public class Environment extends Observable {
     return outdated;
   }
 
+  /**
+   * Set the current {@link DistRunner} instance.<br>
+   * Notifing the observers.
+   *
+   * @param distRunner
+   *          dist runner instance.
+   */
   public void setDistRunner(final DistRunner distRunner) {
     this.distRunner = distRunner;
     setChanged();
@@ -79,13 +86,19 @@ public class Environment extends Observable {
         + ", outdated=" + outdated + "]";
   }
 
+  /**
+   * Update the environemnt state by {@link EnvironmentDTO}.
+   *
+   * @param environmentDTO
+   *          environemnt DTO instance.
+   */
   public void update(final EnvironmentDTO environmentDTO) {
-    if (!this.id.equals(environmentDTO.id)) {
+    if (!id.equals(environmentDTO.id)) {
       id = environmentDTO.id;
       outdated = true;
       setChanged();
     }
-    if (!this.framework.equals(environmentDTO.framework)) {
+    if (!framework.equals(environmentDTO.framework)) {
       framework = environmentDTO.framework;
       outdated = true;
       setChanged();

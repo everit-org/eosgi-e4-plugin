@@ -156,7 +156,7 @@ public class EOSGiProject extends Observable implements EOSGiContext {
     if (buildDirectory == null) {
       buildDirectory = contextChange.buildDirectory;
       setChanged();
-    } else if (contextChange.buildDirectory != null
+    } else if ((contextChange.buildDirectory != null)
         && !contextChange.buildDirectory.equals(buildDirectory)) {
       buildDirectory = contextChange.buildDirectory;
       setChanged();

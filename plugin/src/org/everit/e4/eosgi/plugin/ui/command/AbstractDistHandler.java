@@ -34,7 +34,7 @@ public class AbstractDistHandler {
   protected IProject project;
 
   private IProject findParentProject(final TreePath[] treePaths) {
-    if (treePaths == null || treePaths.length == 0) {
+    if ((treePaths == null) || (treePaths.length == 0)) {
       return null;
     }
 
@@ -54,7 +54,7 @@ public class AbstractDistHandler {
 
   /**
    * Process the TreeSelection element.
-   * 
+   *
    * @param treeSelection
    *          processed element.
    */

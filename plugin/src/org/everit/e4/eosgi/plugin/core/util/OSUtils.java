@@ -35,7 +35,7 @@ public final class OSUtils {
 
   /**
    * Detect the type of the current OS.
-   * 
+   *
    * @return {@link OSType} instance by current OS.
    */
   public static OSType currentOS() {

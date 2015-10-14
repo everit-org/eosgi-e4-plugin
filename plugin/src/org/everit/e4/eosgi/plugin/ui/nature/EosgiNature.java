@@ -36,15 +36,15 @@ public class EosgiNature implements IProjectNature {
   @Override
   public void configure() throws CoreException {
     if (project != null) {
-      this.name = project.getName();
+      name = project.getName();
       LOGGER.info(name + " project configured with EOSGI dist nature.");
     }
   }
 
   @Override
   public void deconfigure() throws CoreException {
-    this.project = null;
-    this.name = null;
+    project = null;
+    name = null;
     LOGGER.info("deconfigure");
   }
 

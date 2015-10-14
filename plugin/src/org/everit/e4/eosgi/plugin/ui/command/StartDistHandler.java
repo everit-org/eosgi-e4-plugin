@@ -59,7 +59,7 @@ public class StartDistHandler extends AbstractDistHandler implements IHandler {
 
     processTreeSelection(treeSelection);
 
-    if (project != null && environmentName != null) {
+    if ((project != null) && (environmentName != null)) {
       tryToStart();
     }
     return null;

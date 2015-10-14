@@ -32,7 +32,7 @@ public class DistStartJob extends Job {
 
   /**
    * Constructor. Create a job with {@link Job#SHORT} priority.
-   * 
+   *
    * @param name
    *          name of the envronment.
    * @param runner

@@ -37,7 +37,7 @@ public final class DistUtils {
 
   /**
    * Get a dist start command by build directory and environment id.
-   * 
+   *
    * @param buildDirectory
    *          build directory.
    * @param environmentId
