@@ -16,12 +16,9 @@
 package org.everit.e4.eosgi.plugin.core.m2e.model;
 
 import java.util.Observable;
-import java.util.Optional;
 
 import org.everit.e4.eosgi.plugin.core.EventType;
 import org.everit.e4.eosgi.plugin.core.ModelChangeEvent;
-import org.everit.e4.eosgi.plugin.core.dist.DistRunner;
-import org.everit.e4.eosgi.plugin.core.dist.DistStatus;
 import org.everit.e4.eosgi.plugin.core.m2e.xml.EnvironmentDTO;
 import org.everit.e4.eosgi.plugin.ui.dto.EnvironmentNodeDTO;
 
@@ -29,17 +26,11 @@ import org.everit.e4.eosgi.plugin.ui.dto.EnvironmentNodeDTO;
  * Model class for storing environment informations.
  */
 public class Environment extends Observable {
-  private DistRunner distRunner;
-
   private String framework;
 
   private String id;
 
   private boolean outdated;
-
-  public Optional<DistRunner> getDistRunner() {
-    return Optional.ofNullable(distRunner);
-  }
 
   public String getFramework() {
     return framework;
@@ -53,20 +44,20 @@ public class Environment extends Observable {
     return outdated;
   }
 
-  /**
-   * Set the current {@link DistRunner} instance.<br>
-   * Notifing the observers.
-   *
-   * @param distRunner
-   *          dist runner instance.
-   */
-  public void setDistRunner(final DistRunner distRunner) {
-    this.distRunner = distRunner;
-    setChanged();
-    notifyObservers(new ModelChangeEvent().eventType(EventType.ENVIRONMENT)
-        .arg(new EnvironmentNodeDTO().id(id).distStatus(DistStatus.STOPPED).outdated(false)
-            .observable((Observable) distRunner)));
-  }
+  // /**
+  // * Set the current {@link DistRunner} instance.<br>
+  // * Notifing the observers.
+  // *
+  // * @param distRunner
+  // * dist runner instance.
+  // */
+  // public void setDistRunner(final DistRunner distRunner) {
+  // this.distRunner = distRunner;
+  // setChanged();
+  // notifyObservers(new ModelChangeEvent().eventType(EventType.ENVIRONMENT)
+  // .arg(new EnvironmentNodeDTO().id(id).distStatus(DistStatus.STOPPED).outdated(false)
+  // .observable((Observable) distRunner)));
+  // }
 
   public void setFramework(final String framework) {
     this.framework = framework;
@@ -82,8 +73,7 @@ public class Environment extends Observable {
 
   @Override
   public String toString() {
-    return "Environment [distRunner=" + distRunner + ", framework=" + framework + ", id=" + id
-        + ", outdated=" + outdated + "]";
+    return "Environment [framework=" + framework + ", id=" + id + ", outdated=" + outdated + "]";
   }
 
   /**

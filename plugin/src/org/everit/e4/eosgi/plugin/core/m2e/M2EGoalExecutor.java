@@ -80,6 +80,16 @@ public class M2EGoalExecutor {
     }
 
     if ((execution != null) && isNotCancelled(monitor)) {
+      // MojoDescriptor mojoDescriptor = execution.getMojoDescriptor();
+      // Parameter parameter = new Parameter();
+      // "eosgi.eclipse=true"
+      // parameter.
+      // try {
+      // mojoDescriptor.addParameter(parameter);
+      // } catch (DuplicateParameterException e) {
+      // // TODO Auto-generated catch block
+      // e.printStackTrace();
+      // }
       monitor.setTaskName("creating dist...");
       maven.execute(mavenProject, execution, monitor);
       return true;

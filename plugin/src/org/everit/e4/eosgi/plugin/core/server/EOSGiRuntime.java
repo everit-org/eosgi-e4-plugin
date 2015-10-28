@@ -13,16 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.everit.e4.eosgi.plugin.core.dist;
+package org.everit.e4.eosgi.plugin.core.server;
 
-/**
- * Interface for running EOSGI dists.
- */
-public interface DistRunner {
+import org.eclipse.wst.server.core.model.RuntimeDelegate;
 
-  boolean isRunning();
+public class EOSGiRuntime extends RuntimeDelegate {
 
-  void start();
+  public static final String ID = "org.everit.eosgi.e4.runtime";
 
-  void stop();
+  @Override
+  protected void initialize() {
+    super.initialize();
+  }
+
+
 }

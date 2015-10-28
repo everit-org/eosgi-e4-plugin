@@ -17,11 +17,9 @@ package org.everit.e4.eosgi.plugin.core;
 
 import java.util.List;
 import java.util.Observer;
-import java.util.Optional;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.m2e.core.project.IMavenProjectChangedListener;
-import org.everit.e4.eosgi.plugin.core.dist.DistRunner;
 import org.everit.e4.eosgi.plugin.ui.dto.EnvironmentNodeDTO;
 
 /**
@@ -76,13 +74,13 @@ public interface EOSGiContext extends IMavenProjectChangedListener {
    */
   void removeObserver(Observer observer);
 
-  /**
-   * Get an {@link DistRunner} instance by the environment id. The dist runner exists is not sure,
-   * so return an {@link Optional} instance.
-   *
-   * @param environmentId
-   *          name of the envronment.
-   * @return Optional DistRunner.
-   */
-  Optional<DistRunner> runner(String environmentId);
+  // /**
+  // * Get an {@link DistRunner} instance by the environment id. The dist runner exists is not sure,
+  // * so return an {@link Optional} instance.
+  // *
+  // * @param environmentId
+  // * name of the envronment.
+  // * @return Optional DistRunner.
+  // */
+  // Optional<DistRunner> runner(String environmentId);
 }

@@ -16,7 +16,6 @@
 package org.everit.e4.eosgi.plugin.ui.command;
 
 import org.eclipse.core.expressions.PropertyTester;
-import org.everit.e4.eosgi.plugin.core.dist.DistStatus;
 import org.everit.e4.eosgi.plugin.ui.navigator.nodes.EnvironmentNode;
 
 /**
@@ -50,13 +49,14 @@ public class EnvironmentNodePropertyTester extends PropertyTester {
   }
 
   private boolean testType(final EnvironmentNode node, final Object expectedValue) {
-    DistStatus distStatus = null;
-    if (expectedValue instanceof String) {
-      distStatus = DistStatus.valueOf((String) expectedValue);
-    } else {
-      return false;
-    }
-    return distStatus == node.getDistStatus();
+    // DistStatus distStatus = null;
+    // if (expectedValue instanceof String) {
+    // distStatus = DistStatus.valueOf((String) expectedValue);
+    // } else {
+    // return false;
+    // }
+    // return distStatus == node.getDistStatus();
+    return false;
   }
 
 }
