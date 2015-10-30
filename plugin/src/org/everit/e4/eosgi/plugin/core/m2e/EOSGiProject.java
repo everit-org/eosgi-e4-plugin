@@ -66,11 +66,6 @@ public class EOSGiProject extends Observable implements EOSGiContext {
   @Override
   public void dispose() {
     deleteObservers();
-    // environments.forEach((key, value) -> {
-    // value.getDistRunner().ifPresent(runner -> {
-    // runner.stop();
-    // });
-    // });
     environments.clear();
   }
 
@@ -88,17 +83,12 @@ public class EOSGiProject extends Observable implements EOSGiContext {
   }
 
   @Override
-  public void forcedStop(final String environmentName) {
-    throw new UnsupportedOperationException("Not implemented, yet");
-  }
-
-  @Override
   public void generate(final String environmentId, final IProgressMonitor monitor) {
     Objects.requireNonNull(environmentId, "environmentName must be not null!");
 
-    // runner(environmentId).ifPresent(runner -> {
-    // runner.stop();
-    // });
+    ServerFactory serverFactory = new ServerFactory(project.getName(), buildDirectory,
+        environmentId);
+    serverFactory.deleteServer();
 
     Environment environment = environments.get(environmentId);
     if (environment == null) {
@@ -116,8 +106,8 @@ public class EOSGiProject extends Observable implements EOSGiContext {
     }
 
     if (generated) {
-      new ServerFactory(project.getName(), buildDirectory, environmentId)
-          .createServerWithLauncher(monitor);
+      environment.setGenerated(true);
+      serverFactory.createServer(monitor);
     }
   }
 
@@ -174,17 +164,6 @@ public class EOSGiProject extends Observable implements EOSGiContext {
     deleteObserver(observer);
   }
 
-  // @Override
-  // public Optional<DistRunner> runner(final String environmentName) {
-  // Objects.requireNonNull(environmentName, "environmentName must be not null!");
-  // if (environments.containsKey(environmentName)) {
-  // return environments.get(environmentName).getDistRunner();
-  // } else {
-  // log.error("Couldn't find environment with name " + environmentName);
-  // return Optional.empty();
-  // }
-  // }
-
   @Override
   public String toString() {
     return "EOSGiProject [buildDirectory=" + buildDirectory + ", environments=" + environments
@@ -198,24 +177,24 @@ public class EOSGiProject extends Observable implements EOSGiContext {
       if (this.environments.containsKey(newEnvironment.id)) {
         environment = this.environments.remove(newEnvironment.id);
         environment.update(newEnvironment);
-        // TODO update laucher
+        // TODO update laucher and server (if the dist exists)
       } else {
         environment = new Environment();
         environment.setId(newEnvironment.id);
         environment.setFramework(newEnvironment.framework);
-        // TODO create launcher
+        // TODO create launcher and server
+        // new ServerFactory(project.getName(), buildDirectory, newEnvironment.id)
+        // .createServer(new NullProgressMonitor());
         setChanged();
       }
       newEnvironments.put(newEnvironment.id, environment);
     });
+    this.environments.forEach((key, value) -> {
+      new ServerFactory(project.getName(), buildDirectory, key).deleteServer();
+    });
     if (!this.environments.isEmpty()) {
       setChanged();
     }
-    // this.environments.forEach((key, environment) -> {
-    // runner(key).ifPresent(runner -> {
-    // runner.stop();
-    // });
-    // });
     this.environments = newEnvironments;
   }
 

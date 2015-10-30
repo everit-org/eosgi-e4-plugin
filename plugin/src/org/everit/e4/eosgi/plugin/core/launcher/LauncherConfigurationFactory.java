@@ -25,12 +25,9 @@ import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 
-import org.apache.maven.project.MavenProject;
-import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.ILog;
 import org.eclipse.core.runtime.IPath;
-import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.debug.core.DebugPlugin;
 import org.eclipse.debug.core.ILaunchConfiguration;
@@ -40,8 +37,6 @@ import org.eclipse.debug.core.ILaunchManager;
 import org.eclipse.jdt.launching.IJavaLaunchConfigurationConstants;
 import org.eclipse.jdt.launching.IRuntimeClasspathEntry;
 import org.eclipse.jdt.launching.JavaRuntime;
-import org.eclipse.m2e.core.MavenPlugin;
-import org.eclipse.m2e.core.project.IMavenProjectFacade;
 import org.everit.e4.eosgi.plugin.core.server.EOSGILaunchConfigurationDelegate;
 import org.everit.e4.eosgi.plugin.ui.EOSGiLog;
 import org.everit.e4.eosgi.plugin.ui.EOSGiPluginActivator;
@@ -194,22 +189,6 @@ public class LauncherConfigurationFactory {
     return stringBuilder.toString();
   }
 
-  private String getDistRootDir(final IProject project, final String environmentId) {
-    IMavenProjectFacade mavenProjectFacade = MavenPlugin.getMavenProjectRegistry()
-        .getProject(project);
-    if (mavenProjectFacade != null) {
-      MavenProject mavenProject;
-      try {
-        mavenProject = mavenProjectFacade.getMavenProject(new NullProgressMonitor());
-        String buildDirectory = mavenProject.getBuild().getDirectory();
-        return buildDirectory + File.separator + "eosgi-dist" + File.separator + environmentId;
-      } catch (CoreException e) {
-        eosgiLog.error("Could not resolv build directory for project", e);
-      }
-    }
-    return null;
-  }
-
   private DistributionPackageType readDistConfig(final File distFolderFile) {
     File distConfigFile = new File(distFolderFile, "/eosgi.dist.xml");
     if (distConfigFile.exists()) {
@@ -217,7 +196,6 @@ public class LauncherConfigurationFactory {
         Unmarshaller unmarshaller = distConfigJAXBContext.createUnmarshaller();
         Object distributionPackage = unmarshaller.unmarshal(distConfigFile);
         if (distributionPackage instanceof JAXBElement) {
-
           @SuppressWarnings("unchecked")
           JAXBElement<DistributionPackageType> jaxbDistPack = (JAXBElement<DistributionPackageType>) distributionPackage;
           distributionPackage = jaxbDistPack.getValue();
@@ -255,8 +233,6 @@ public class LauncherConfigurationFactory {
 
     String vmArgsList = createVmArgs(launcherConfiguration);
 
-    wc.setAttribute(EOSGILaunchConfigurationDelegate.LAUNCHER_ATTR_ENVIRONMENT_ID,
-        launcherConfiguration.getEnvironmentName());
     wc.setAttribute(IJavaLaunchConfigurationConstants.ATTR_PROJECT_NAME, projectName);
     wc.setAttribute(IJavaLaunchConfigurationConstants.ATTR_MAIN_TYPE_NAME, mainClass);
     wc.setAttribute(IJavaLaunchConfigurationConstants.ATTR_WORKING_DIRECTORY, workingDirectory);
@@ -266,6 +242,9 @@ public class LauncherConfigurationFactory {
     wc.setAttribute(IJavaLaunchConfigurationConstants.ATTR_CLASSPATH,
         classPathList);
     wc.setAttribute(IJavaLaunchConfigurationConstants.ATTR_VM_ARGUMENTS, vmArgsList);
+
+    wc.setAttribute(EOSGILaunchConfigurationDelegate.LAUNCHER_ATTR_ENVIRONMENT_ID,
+        launcherConfiguration.getEnvironmentName());
 
     return wc;
   }

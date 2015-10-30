@@ -104,83 +104,6 @@
             </with>
           </visibleWhen>
         </command>
-        <command
-          commandId="org.everit.e4.eosgi.plugin.ui.command.launch"
-          label="Create launcher for dist">
-          <visibleWhen>
-            <with variable="selection">
-              <iterate ifEmpty="false">
-                <instanceof value="org.everit.e4.eosgi.plugin.ui.navigator.nodes.EnvironmentNode" />
-              </iterate>
-            </with>
-          </visibleWhen>
-        </command>
-        <command
-          commandId="org.everit.e4.eosgi.plugin.ui.command.refresh"
-          label="Refresh distribution">
-          <visibleWhen>
-            <with variable="selection">
-              <iterate ifEmpty="false">
-                <instanceof value="org.everit.e4.eosgi.plugin.ui.navigator.nodes.EnvironmentNode" />
-              </iterate>
-            </with>
-          </visibleWhen>
-        </command>
-        <command
-          commandId="org.everit.e4.eosgi.plugin.ui.command.start"
-          label="Start">
-          <visibleWhen>
-            <with variable="selection">
-              <iterate ifEmpty="false">
-                <instanceof value="org.everit.e4.eosgi.plugin.ui.navigator.nodes.EnvironmentNode" />
-              </iterate>
-            </with>
-          </visibleWhen>
-        </command>
-        <command
-          commandId="org.everit.e4.eosgi.plugin.ui.command.debug"
-          label="Debug">
-          <visibleWhen>
-            <with variable="selection">
-              <iterate ifEmpty="false">
-                <instanceof value="org.everit.e4.eosgi.plugin.ui.navigator.nodes.EnvironmentNode" />
-              </iterate>
-            </with>
-          </visibleWhen>
-        </command>
-        <command
-          commandId="org.everit.e4.eosgi.plugin.ui.command.update"
-          label="Refresh">
-          <visibleWhen>
-            <with variable="selection">
-              <iterate ifEmpty="false">
-                <instanceof value="org.everit.e4.eosgi.plugin.ui.navigator.nodes.EnvironmentNode" />
-              </iterate>
-            </with>
-          </visibleWhen>
-        </command>
-        <command
-          commandId="org.everit.e4.eosgi.plugin.ui.command.showLog"
-          label="Show log">
-          <visibleWhen>
-            <with variable="selection">
-              <iterate ifEmpty="false">
-                <instanceof value="org.everit.e4.eosgi.plugin.ui.navigator.nodes.EnvironmentNode" />
-              </iterate>
-            </with>
-          </visibleWhen>
-        </command>
-        <command
-          commandId="org.everit.e4.eosgi.plugin.ui.command.stop"
-          label="Stop">
-          <visibleWhen>
-            <with variable="selection">
-              <iterate ifEmpty="false">
-                <instanceof value="org.everit.e4.eosgi.plugin.ui.navigator.nodes.EnvironmentNode" />
-              </iterate>
-            </with>
-          </visibleWhen>
-        </command>
       </menuContribution>
     </extension>
 
@@ -188,20 +111,8 @@
       id="org.everit.e4.eosgi.plugin.ui.command"
       point="org.eclipse.ui.commands">
       <command
-        id="org.everit.e4.eosgi.plugin.ui.command.start"
-        name="startCommand">
-      </command>
-      <command
-        id="org.everit.e4.eosgi.plugin.ui.command.stop"
-        name="stopCommand">
-      </command>
-      <command
         id="org.everit.e4.eosgi.plugin.ui.command.create"
         name="distComand">
-      </command>
-      <command
-        id="org.everit.e4.eosgi.plugin.ui.command.launch"
-        name="startCommand">
       </command>
     </extension>
     
@@ -230,58 +141,6 @@
                   <test property="org.everit.e4.eosgi.plugin.properties.distStatus" value="RUNNING"/>
                 </or>
                 -->
-              </iterate>
-          </with>
-        </enabledWhen>
-      </handler>
-      <handler
-        commandId="org.everit.e4.eosgi.plugin.ui.command.launcher"
-        class="org.everit.e4.eosgi.plugin.ui.command.DistLauncherHandler">
-        <enabledWhen>
-          <with variable="selection">
-              <iterate ifEmpty="false">
-                <instanceof value="org.everit.e4.eosgi.plugin.ui.navigator.nodes.EnvironmentNode" />
-                <or>
-                  <test property="org.everit.e4.eosgi.plugin.properties.distStatus" value="NONE"/>
-                  <test property="org.everit.e4.eosgi.plugin.properties.distStatus" value="STOPPED"/>
-                  <test property="org.everit.e4.eosgi.plugin.properties.distStatus" value="RUNNING"/>
-                </or>
-              </iterate>
-          </with>
-        </enabledWhen>
-      </handler>
-      <handler
-        commandId="org.everit.e4.eosgi.plugin.ui.command.start"
-        class="org.everit.e4.eosgi.plugin.ui.command.StartDistHandler">
-        <enabledWhen>
-          <with variable="selection">
-              <iterate ifEmpty="false">
-                <instanceof value="org.everit.e4.eosgi.plugin.ui.navigator.nodes.EnvironmentNode" />
-                <test property="org.everit.e4.eosgi.plugin.properties.distStatus" value="STOPPED"/>
-              </iterate>
-          </with>
-        </enabledWhen>
-      </handler>
-      <handler
-        commandId="org.everit.e4.eosgi.plugin.ui.command.debug"
-        class="org.everit.e4.eosgi.plugin.ui.command.StartDistHandler">
-        <enabledWhen>
-          <with variable="selection">
-              <iterate ifEmpty="false">
-                <instanceof value="org.everit.e4.eosgi.plugin.ui.navigator.nodes.EnvironmentNode" />
-                <test property="org.everit.e4.eosgi.plugin.properties.distStatus" value="STOPPED"/>
-              </iterate>
-          </with>
-        </enabledWhen>
-      </handler>
-      <handler
-        commandId="org.everit.e4.eosgi.plugin.ui.command.stop"
-        class="org.everit.e4.eosgi.plugin.ui.command.StopDistHandler">
-        <enabledWhen>
-          <with variable="selection">
-              <iterate ifEmpty="false">
-                <instanceof value="org.everit.e4.eosgi.plugin.ui.navigator.nodes.EnvironmentNode" />
-                <test property="org.everit.e4.eosgi.plugin.properties.distStatus" value="RUNNING"/>
               </iterate>
           </with>
         </enabledWhen>

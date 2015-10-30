@@ -28,6 +28,8 @@ import org.everit.e4.eosgi.plugin.ui.dto.EnvironmentNodeDTO;
 public class Environment extends Observable {
   private String framework;
 
+  private boolean generated;
+
   private String id;
 
   private boolean outdated;
@@ -40,27 +42,24 @@ public class Environment extends Observable {
     return id;
   }
 
+  public boolean isGenerated() {
+    return generated;
+  }
+
   public boolean isOutdated() {
     return outdated;
   }
 
-  // /**
-  // * Set the current {@link DistRunner} instance.<br>
-  // * Notifing the observers.
-  // *
-  // * @param distRunner
-  // * dist runner instance.
-  // */
-  // public void setDistRunner(final DistRunner distRunner) {
-  // this.distRunner = distRunner;
-  // setChanged();
-  // notifyObservers(new ModelChangeEvent().eventType(EventType.ENVIRONMENT)
-  // .arg(new EnvironmentNodeDTO().id(id).distStatus(DistStatus.STOPPED).outdated(false)
-  // .observable((Observable) distRunner)));
-  // }
-
   public void setFramework(final String framework) {
     this.framework = framework;
+  }
+
+  public void setGenerated(boolean generated) {
+    this.outdated = false;
+    this.generated = generated;
+    setChanged();
+    notifyObservers(new ModelChangeEvent().eventType(EventType.ENVIRONMENT)
+        .arg(new EnvironmentNodeDTO().id(id).outdated(outdated)));
   }
 
   public void setId(final String id) {

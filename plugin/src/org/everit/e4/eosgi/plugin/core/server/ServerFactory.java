@@ -1,3 +1,18 @@
+/*
+ * Copyright (C) 2011 Everit Kft. (http://www.everit.org)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.everit.e4.eosgi.plugin.core.server;
 
 import java.util.Objects;
@@ -31,8 +46,6 @@ public class ServerFactory {
 
   private String projectName;
 
-  private boolean withLauncher;
-
   /**
    * Constructor.
    *
@@ -53,51 +66,6 @@ public class ServerFactory {
     this.buildDirectory = buildDirectory;
     this.environmentId = environmentId;
   }
-
-  // public void create(final IProject project, final String environmentId) {
-  // NullProgressMonitor nullProgressMonitor = new NullProgressMonitor();
-  //
-  // IRuntimeType runtime = ServerCore.findRuntimeType(RUNTIME_ID);
-  // try {
-  // IRuntimeWorkingCopy runtimeWorkingCopy = runtime.createRuntime("eosgi-runtime",
-  // nullProgressMonitor);
-  // IRuntime eosgiRuntime = runtimeWorkingCopy.save(true, nullProgressMonitor);
-  //
-  // IServerType serverType = ServerCore.findServerType(SERVER_TYPE_ID);
-  // IServerWorkingCopy serverWorkingCopy = serverType.createServer(environmentId, null,
-  // nullProgressMonitor);
-  // serverWorkingCopy.setRuntime(eosgiRuntime);
-  // serverWorkingCopy.setName(environmentId);
-  //
-  // IServer server = serverWorkingCopy.save(true, nullProgressMonitor);
-  // ILaunchConfiguration launchConfiguration2 = server.getLaunchConfiguration(true,
-  // nullProgressMonitor);
-  //
-  // new LauncherConfigurationFactory(launchConfiguration2.getWorkingCopy())
-  // .create(project, environmentId);
-  // } catch (CoreException e) {
-  // e.printStackTrace();
-  // }
-  // }
-
-  // public void create2(final IProject project, final String environmentId) {
-  // NullProgressMonitor nullProgressMonitor = new NullProgressMonitor();
-  //
-  // ILaunchConfiguration launchConfiguration = new LauncherConfigurationFactory().create(project,
-  // environmentId);
-  //
-  // try {
-  // ILaunchConfigurationWorkingCopy workingCopy = launchConfiguration.getWorkingCopy();
-  //
-  // IServer server = ServerUtil.getServer(launchConfiguration);
-  // EOSGiServerBehaviour previewServer = (EOSGiServerBehaviour) server
-  // .loadAdapter(EOSGiServerBehaviour.class, null);
-  // previewServer.setupLaunchConfiguration(workingCopy, nullProgressMonitor);
-  // } catch (CoreException e) {
-  // // TODO Auto-generated catch block
-  // e.printStackTrace();
-  // }
-  // }
 
   private IRuntime createRuntime(final IProgressMonitor monitor) {
     IRuntimeType runtime = ServerCore.findRuntimeType(RUNTIME_ID);
@@ -132,30 +100,48 @@ public class ServerFactory {
       return;
     }
 
-    if (withLauncher) {
-      ILaunchConfigurationWorkingCopy workingCopy = null;
-      try {
-        ILaunchConfiguration serverLaunchConfiguration = server.getLaunchConfiguration(true,
-            monitor);
-        workingCopy = serverLaunchConfiguration.getWorkingCopy();
-      } catch (CoreException e) {
-        log.error("Could not find launcher configuration for this server: " + server.getName(), e);
+    ILaunchConfigurationWorkingCopy workingCopy = null;
+    try {
+      ILaunchConfiguration serverLaunchConfiguration = server.getLaunchConfiguration(true,
+          monitor);
+      workingCopy = serverLaunchConfiguration.getWorkingCopy();
+    } catch (CoreException e) {
+      log.error("Could not find launcher configuration for this server: " + server.getName(), e);
+    }
+    if (workingCopy == null) {
+      return;
+    }
+    new LauncherConfigurationFactory(workingCopy)
+        .create(projectName, environmentId, buildDirectory);
+  }
+
+  /**
+   * Delete the server (stop it if currently running).
+   */
+  public void deleteServer() {
+    String serverId = generateServerId();
+    IServer server = ServerCore.findServer(serverId);
+    if (server == null) {
+      return;
+    }
+
+    try {
+      if (server.getLaunch() != null) {
+        EOSGiServerBehaviour eosgiServer = (EOSGiServerBehaviour) server
+            .loadAdapter(EOSGiServerBehaviour.class, null);
+        if (eosgiServer != null) {
+          eosgiServer.stop(true);
+        }
       }
-      if (workingCopy == null) {
-        return;
-      }
-      new LauncherConfigurationFactory(workingCopy)
-          .create(projectName, environmentId, buildDirectory);
+
+      server.delete();
+    } catch (CoreException e) {
+      log.error("Could not delete server (" + serverId + ")", e);
     }
   }
 
-  public void createServerWithLauncher(final IProgressMonitor monitor) {
-    withLauncher = true;
-    createServer(monitor);
-  }
-
   private IServer findServerToEnvironment(final IRuntime runtime, final IProgressMonitor monitor) {
-    String serverName = environmentId + "/" + projectName;
+    String serverName = generateServerId();
     IServer server = null;
     try {
       IServerType serverType = ServerCore.findServerType(SERVER_TYPE_ID);
@@ -169,6 +155,10 @@ public class ServerFactory {
     }
 
     return server;
+  }
+
+  private String generateServerId() {
+    return environmentId + "/" + projectName;
   }
 
 }

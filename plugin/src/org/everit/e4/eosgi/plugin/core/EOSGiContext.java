@@ -44,8 +44,6 @@ public interface EOSGiContext extends IMavenProjectChangedListener {
    */
   List<EnvironmentNodeDTO> fetchEnvironments();
 
-  void forcedStop(String environmentId);
-
   /**
    * Generate a dist for this project by the given environment name. All argumentum must be not
    * null!
@@ -73,14 +71,4 @@ public interface EOSGiContext extends IMavenProjectChangedListener {
    *          {@link Observer} instance.
    */
   void removeObserver(Observer observer);
-
-  // /**
-  // * Get an {@link DistRunner} instance by the environment id. The dist runner exists is not sure,
-  // * so return an {@link Optional} instance.
-  // *
-  // * @param environmentId
-  // * name of the envronment.
-  // * @return Optional DistRunner.
-  // */
-  // Optional<DistRunner> runner(String environmentId);
 }
