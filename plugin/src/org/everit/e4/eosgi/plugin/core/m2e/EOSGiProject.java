@@ -98,7 +98,7 @@ public class EOSGiProject extends Observable implements EOSGiContext {
 
     boolean generated = false;
     try {
-      generated = new M2EGoalExecutor(project).execute(monitor);
+      generated = new M2EGoalExecutor(project, environmentId).execute(monitor);
     } catch (CoreException e) {
       log.error(
           MessageFormat.format("Couldn't generate dist for ''{0}'' environment.", environmentId),

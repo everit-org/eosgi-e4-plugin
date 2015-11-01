@@ -105,18 +105,11 @@ public class EOSGiServerBehaviour extends ServerBehaviourDelegate {
     super();
     ILog iLog = EOSGiPluginActivator.getDefault().getLog();
     log = new EOSGiLog(iLog);
-    log.info("Server behavior created");
   }
 
   private void createAndStartPingThread() {
     serverStatusThread = new ServerStatusThread(this);
     serverStatusThread.start();
-  }
-
-  @Override
-  protected void finalize() throws Throwable {
-    log.info("server behaviour finalized");
-    super.finalize();
   }
 
   // public EOSGiRuntime getEOSGiRuntime() {
