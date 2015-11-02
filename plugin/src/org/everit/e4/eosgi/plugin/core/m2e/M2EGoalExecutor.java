@@ -16,6 +16,7 @@
 package org.everit.e4.eosgi.plugin.core.m2e;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.apache.maven.plugin.MojoExecution;
 import org.apache.maven.project.MavenProject;
@@ -201,14 +202,28 @@ public class M2EGoalExecutor {
    *          optional {@link IProgressMonitor} instance.
    * @return dist or integration-test goal configuration or <code>null</code>.
    */
-  public Xpp3Dom getConfiguration(final IProgressMonitor monitor) {
+  public Optional<Xpp3Dom> getConfiguration(final IProgressMonitor monitor) {
     MavenProject mavenProject = fetchMavenProject(monitor);
     MojoExecution execution = fetchDistExecutionFor(monitor, mavenProject);
-    if (execution == null) {
-      return null;
-    }
-    return execution.getConfiguration();
+    return Optional.ofNullable(execution.getConfiguration());
   }
+
+  // public Optional<Boolean> isLegacy(final IProgressMonitor monitor) {
+  // MavenProject mavenProject = fetchMavenProject(monitor);
+  // MojoExecution execution = fetchDistExecutionFor(monitor, mavenProject);
+  // if (execution == null) {
+  // return Optional.empty();
+  // }
+  // String version = execution.getVersion();
+  // if (version == null) {
+  // return Optional.empty();
+  // }
+  // if (version.startsWith("2") || version.startsWith("3")) {
+  // return Optional.ofNullable(true);
+  // } else {
+  // return Optional.ofNullable(false);
+  // }
+  // }
 
   private boolean isNotCancelled(final IProgressMonitor monitor) {
     return (monitor != null) && !monitor.isCanceled();

@@ -15,6 +15,7 @@
  */
 package org.everit.e4.eosgi.plugin.core.m2e;
 
+import java.io.File;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -39,6 +40,9 @@ import org.everit.e4.eosgi.plugin.core.m2e.xml.EnvironmentsDTO;
 import org.everit.e4.eosgi.plugin.core.server.ServerFactory;
 import org.everit.e4.eosgi.plugin.ui.EOSGiLog;
 import org.everit.e4.eosgi.plugin.ui.dto.EnvironmentNodeDTO;
+import org.everit.osgi.dev.eosgi.dist.schema.util.DistSchemaProvider;
+import org.everit.osgi.dev.eosgi.dist.schema.xsd.DistributionPackageType;
+import org.everit.osgi.dev.eosgi.dist.schema.xsd.EnvironmentConfigurationType;
 
 /**
  * {@link EOSGiContext} base implementation.
@@ -105,10 +109,23 @@ public class EOSGiProject extends Observable implements EOSGiContext {
           e);
     }
 
-    if (generated) {
-      environment.setGenerated(true);
-      serverFactory.createServer(monitor);
+    if (monitor != null) {
+      monitor.setTaskName("Check and load dist.xml.");
     }
+    EnvironmentConfigurationType environmentConfigurationType = loadEnvironmentConfiguration(
+        environmentId);
+    if (generated && environmentConfigurationType != null) {
+      environment.setGenerated(true);
+      serverFactory.createServer(environmentConfigurationType, monitor);
+    }
+  }
+
+  private EnvironmentConfigurationType loadEnvironmentConfiguration(final String environmentId) {
+    DistSchemaProvider distSchemaProvider = new DistSchemaProvider();
+    /// target/eosgi-dist/equinoxtest
+    DistributionPackageType distributionPackageType = distSchemaProvider
+        .readDistConfig(new File(buildDirectory + File.separator + ".."));
+    return distributionPackageType.getEnvironmentConfiguration();
   }
 
   @Override

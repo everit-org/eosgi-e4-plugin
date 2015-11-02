@@ -19,7 +19,6 @@ import java.text.MessageFormat;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.Status;
@@ -69,14 +68,24 @@ public class EOSGiContextManagerImpl implements EOSGiContextManager {
             project.getName()), e);
       }
 
-      Xpp3Dom configuration = new M2EGoalExecutor(project, null).getConfiguration(monitor);
-      if (configuration != null) {
+      M2EGoalExecutor executor = new M2EGoalExecutor(project, null);
+      executor.getConfiguration(monitor).ifPresent(configuration -> {
         EnvironmentsDTO environments = null;
         if (configuration != null) {
           environments = new ConfiguratorParser().parse(configuration);
           eosgiContext.refresh(contextChange.configuration(environments));
         }
-      }
+      });
+
+      // Xpp3Dom configuration = new M2EGoalExecutor(project, null).getConfiguration(monitor);
+      // if (configuration != null) {
+      // EnvironmentsDTO environments = null;
+      // if (configuration != null) {
+      // environments = new ConfiguratorParser().parse(configuration);
+      // eosgiContext.refresh(contextChange.configuration(environments));
+      // }
+      // }
+
       // try {
       // List<MojoExecution> executions = mavenProjectFacade.getMojoExecutions(
       // M2EGoalExecutor.EOSGI_MAVEN_PLUGIN_GROUP_ID,

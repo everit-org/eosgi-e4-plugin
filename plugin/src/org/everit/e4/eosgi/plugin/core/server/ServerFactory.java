@@ -29,9 +29,10 @@ import org.eclipse.wst.server.core.IServer;
 import org.eclipse.wst.server.core.IServerType;
 import org.eclipse.wst.server.core.IServerWorkingCopy;
 import org.eclipse.wst.server.core.ServerCore;
-import org.everit.e4.eosgi.plugin.core.launcher.LauncherConfigurationFactory;
+import org.everit.e4.eosgi.plugin.core.launcher.LaunchConfigurationBuilder;
 import org.everit.e4.eosgi.plugin.ui.EOSGiLog;
 import org.everit.e4.eosgi.plugin.ui.EOSGiPluginActivator;
+import org.everit.osgi.dev.eosgi.dist.schema.xsd.EnvironmentConfigurationType;
 
 public class ServerFactory {
   public static final String RUNTIME_ID = "org.everit.e4.eosgi.plugin.runtime";
@@ -82,10 +83,13 @@ public class ServerFactory {
   /**
    * Create an IServer instance for project/environmentId pair.
    *
+   * @param environmentConfigurationType
+   *          TODO
    * @param monitor
    *          optional {@link IProgressMonitor} instance.
    */
-  public void createServer(final IProgressMonitor monitor) {
+  public void createServer(final EnvironmentConfigurationType environmentConfigurationType,
+      final IProgressMonitor monitor) {
     if (monitor != null) {
       monitor.setTaskName("Creating Server...");
     }
@@ -111,8 +115,10 @@ public class ServerFactory {
     if (workingCopy == null) {
       return;
     }
-    new LauncherConfigurationFactory(workingCopy)
-        .create(projectName, environmentId, buildDirectory);
+    new LaunchConfigurationBuilder(projectName, environmentId, buildDirectory)
+        .addLauncherConfigurationWorkingCopy(workingCopy)
+        .addEnvironmentConfigurationType(environmentConfigurationType)
+        .build();
   }
 
   /**
