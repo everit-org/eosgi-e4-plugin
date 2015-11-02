@@ -17,14 +17,11 @@ package org.everit.e4.eosgi.plugin.core.server;
 
 import org.eclipse.wst.server.core.model.RuntimeDelegate;
 
+/**
+ * Empty runtime implementation.
+ */
 public class EOSGiRuntime extends RuntimeDelegate {
 
   public static final String ID = "org.everit.eosgi.e4.runtime";
-
-  @Override
-  protected void initialize() {
-    super.initialize();
-  }
-
 
 }

@@ -16,39 +16,39 @@
 package org.everit.e4.eosgi.plugin.ui.command;
 
 import org.eclipse.core.expressions.PropertyTester;
-import org.everit.e4.eosgi.plugin.ui.navigator.nodes.EnvironmentNode;
 
 /**
  * Dist status property tester implementation.
  */
+// TODO Remove it if not necessary.
 public class EnvironmentNodePropertyTester extends PropertyTester {
 
-  private static final String DIST_STATUS = "distStatus";
+  // private static final String DIST_STATUS = "distStatus";
 
   @Override
   public boolean test(final Object receiver, final String property, final Object[] args,
       final Object expectedValue) {
-    if ((receiver == null) || (property == null) || (expectedValue == null)) {
-      return false;
-    }
-
-    EnvironmentNode node = null;
-    if (receiver instanceof EnvironmentNode) {
-      node = (EnvironmentNode) receiver;
-    }
-
-    if (node == null) {
-      return false;
-    }
-
-    if (DIST_STATUS.equals(property)) {
-      return testType(node, expectedValue);
-    }
+    // if ((receiver == null) || (property == null) || (expectedValue == null)) {
+    // return false;
+    // }
+    //
+    // EnvironmentNode node = null;
+    // if (receiver instanceof EnvironmentNode) {
+    // node = (EnvironmentNode) receiver;
+    // }
+    //
+    // if (node == null) {
+    // return false;
+    // }
+    //
+    // if (DIST_STATUS.equals(property)) {
+    // return testType(node, expectedValue);
+    // }
 
     return false;
   }
 
-  private boolean testType(final EnvironmentNode node, final Object expectedValue) {
+  // private boolean testType(final EnvironmentNode node, final Object expectedValue) {
     // DistStatus distStatus = null;
     // if (expectedValue instanceof String) {
     // distStatus = DistStatus.valueOf((String) expectedValue);
@@ -56,7 +56,7 @@ public class EnvironmentNodePropertyTester extends PropertyTester {
     // return false;
     // }
     // return distStatus == node.getDistStatus();
-    return false;
-  }
+  //// return false;
+  // }
 
 }

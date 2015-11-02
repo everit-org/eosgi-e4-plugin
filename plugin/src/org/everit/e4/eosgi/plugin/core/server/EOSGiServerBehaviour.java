@@ -53,7 +53,7 @@ public class EOSGiServerBehaviour extends ServerBehaviourDelegate {
      * @param serverBehaviour
      *          server behaviour implementation.
      */
-    public ServerStatusThread(final EOSGiServerBehaviour serverBehaviour) {
+    ServerStatusThread(final EOSGiServerBehaviour serverBehaviour) {
       this.serverBehaviour = serverBehaviour;
     }
 
@@ -191,7 +191,7 @@ public class EOSGiServerBehaviour extends ServerBehaviourDelegate {
           launch.terminate();
           setServerState(IServer.STATE_STOPPED);
         } catch (DebugException e) {
-          e.printStackTrace();
+          log.error("Could not terminate dist launcher.", e);
         }
       }
     }

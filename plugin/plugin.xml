@@ -147,6 +147,7 @@
       </handler>
     </extension>
 
+  <!--
   <extension
     point="org.eclipse.core.expressions.propertyTesters">
     <propertyTester
@@ -157,6 +158,7 @@
       class="org.everit.e4.eosgi.plugin.ui.command.EnvironmentNodePropertyTester">
     </propertyTester>
   </extension>
+  -->
     
   <!-- Server runtime staffs -->
   <extension point="org.eclipse.wst.server.core.runtimeTypes">

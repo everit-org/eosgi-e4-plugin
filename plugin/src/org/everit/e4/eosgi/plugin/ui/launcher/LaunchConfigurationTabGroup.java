@@ -20,8 +20,14 @@ import org.eclipse.debug.ui.CommonTab;
 import org.eclipse.debug.ui.ILaunchConfigurationDialog;
 import org.eclipse.debug.ui.ILaunchConfigurationTab;
 
+/**
+ * Basic launcher tab group implemention.
+ */
 public class LaunchConfigurationTabGroup extends AbstractLaunchConfigurationTabGroup {
 
+  /**
+   * Create tabs for EOSGi dist launcher with only a common tab.
+   */
   @Override
   public void createTabs(final ILaunchConfigurationDialog dialog, final String mode) {
     ILaunchConfigurationTab[] tabs = new ILaunchConfigurationTab[1];
