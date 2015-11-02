@@ -94,16 +94,6 @@ public class M2EGoalExecutor {
     this.environmentId = environmentId;
   }
 
-  // private Xpp3Dom addParamsToConfiuration(final Xpp3Dom configuration,
-  // final Map<String, String> parameters) {
-  // parameters.forEach((key, value) -> {
-  // Xpp3Dom xpp3Dom = new Xpp3Dom(key);
-  // xpp3Dom.setValue(value);
-  // configuration.addChild(xpp3Dom);
-  // });
-  // return configuration;
-  // }
-
   /**
    * Execute a dist generation goal on the given environment of the given project. Polling the
    * monitor for canceling event.
@@ -120,21 +110,13 @@ public class M2EGoalExecutor {
     MojoExecution execution = fetchDistExecutionFor(monitor, mavenProject);
 
     if ((execution != null) && isNotCancelled(monitor)) {
-      // Map<String, String> parameters = new HashMap<>();
       if (MavenGoal.INTEGRATION_TEST.getGoalName().equals(execution.getGoal())) {
-        // parameters.put(EOSGI_DIST_ONLY, Boolean.TRUE.toString());
         mavenProject.getProperties().put(EOSGI_DIST_ONLY, true);
       }
       if (environmentId != null) {
         mavenProject.getProperties().put(EOSGI_ENVIRONMENT_ID, environmentId);
-        // parameters.put(EOSGI_ENVIRONMENT_ID, environmentId);
       }
       mavenProject.getProperties().put(EOSGI_ANALYTICS_REFERER_PARAMETER, EOSGI_E4_PLUGIN);
-      // parameters.put(EOSGI_ANALYTICS_REFERER_PARAMETER, Boolean.TRUE.toString());
-
-      // Xpp3Dom configuration = execution.getConfiguration();
-      // removeParamsFromConfiguration(configuration, parameters);
-      // addParamsToConfiuration(configuration, parameters);
 
       monitor.setTaskName("Dist generation is running...");
       maven.execute(mavenProject, execution, monitor);
@@ -142,7 +124,6 @@ public class M2EGoalExecutor {
       mavenProject.getProperties().remove(EOSGI_ANALYTICS_REFERER_PARAMETER);
       mavenProject.getProperties().remove(EOSGI_ENVIRONMENT_ID);
       mavenProject.getProperties().remove(EOSGI_DIST_ONLY);
-      // removeParamsFromConfiguration(configuration, parameters);
       return true;
     }
     return false;
@@ -208,38 +189,7 @@ public class M2EGoalExecutor {
     return Optional.ofNullable(execution.getConfiguration());
   }
 
-  // public Optional<Boolean> isLegacy(final IProgressMonitor monitor) {
-  // MavenProject mavenProject = fetchMavenProject(monitor);
-  // MojoExecution execution = fetchDistExecutionFor(monitor, mavenProject);
-  // if (execution == null) {
-  // return Optional.empty();
-  // }
-  // String version = execution.getVersion();
-  // if (version == null) {
-  // return Optional.empty();
-  // }
-  // if (version.startsWith("2") || version.startsWith("3")) {
-  // return Optional.ofNullable(true);
-  // } else {
-  // return Optional.ofNullable(false);
-  // }
-  // }
-
   private boolean isNotCancelled(final IProgressMonitor monitor) {
     return (monitor != null) && !monitor.isCanceled();
   }
-
-  // private void removeParamsFromConfiguration(final Xpp3Dom configuration,
-  // final Map<String, String> parameters) {
-  // parameters.forEach((key, value) -> {
-  // List<Integer> toRemoveList = new LinkedList<>();
-  // Xpp3Dom[] children = configuration.getChildren();
-  // for (int i = 0; i < children.length; i++) {
-  // if (key.equals(children[i].getName())) {
-  // toRemoveList.add(i);
-  // }
-  // }
-  // toRemoveList.forEach(removeIndex -> configuration.removeChild(removeIndex));
-  // });
-  // }
 }
