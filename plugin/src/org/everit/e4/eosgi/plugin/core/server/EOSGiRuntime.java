@@ -15,6 +15,12 @@
  */
 package org.everit.e4.eosgi.plugin.core.server;
 
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.wst.server.core.IRuntime;
+import org.eclipse.wst.server.core.IRuntimeType;
+import org.eclipse.wst.server.core.IRuntimeWorkingCopy;
+import org.eclipse.wst.server.core.ServerCore;
 import org.eclipse.wst.server.core.model.RuntimeDelegate;
 
 /**
@@ -22,6 +28,25 @@ import org.eclipse.wst.server.core.model.RuntimeDelegate;
  */
 public class EOSGiRuntime extends RuntimeDelegate {
 
-  public static final String ID = "org.everit.eosgi.e4.runtime";
+  public static final String RUNTIME_ID = "org.everit.e4.eosgi.plugin.runtime";
+
+  /**
+   * Create a runtime with the given name.
+   *
+   * @param runtimeName
+   *          name of the runtime.
+   * @param monitor
+   *          optinal {@link IProgressMonitor} instance.
+   * @return IRuntime instance.
+   * @throws CoreException
+   *           throws this, if an error ocurred.
+   */
+  public static IRuntime createRuntime(final String runtimeName, final IProgressMonitor monitor)
+      throws CoreException {
+    IRuntimeType runtime = ServerCore.findRuntimeType(RUNTIME_ID);
+    IRuntimeWorkingCopy runtimeWorkingCopy = runtime.createRuntime(runtimeName, monitor);
+    IRuntime eosgiRuntime = runtimeWorkingCopy.save(true, monitor);
+    return eosgiRuntime;
+  }
 
 }

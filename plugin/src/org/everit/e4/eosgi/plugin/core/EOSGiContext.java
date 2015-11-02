@@ -18,6 +18,7 @@ package org.everit.e4.eosgi.plugin.core;
 import java.util.List;
 import java.util.Observer;
 
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.m2e.core.project.IMavenProjectChangedListener;
 import org.everit.e4.eosgi.plugin.ui.dto.EnvironmentNodeDTO;
@@ -52,8 +53,10 @@ public interface EOSGiContext extends IMavenProjectChangedListener {
    *          id of the environment.
    * @param monitor
    *          monitor for prigress bar (need for m2e).
+   * @throws CoreException
+   *           throws that is any error ocurred.
    */
-  void generate(String environmentId, IProgressMonitor monitor);
+  void generate(String environmentId, IProgressMonitor monitor) throws CoreException;
 
   /**
    * Refreshing the project state by the {@link ContextChange} instance.

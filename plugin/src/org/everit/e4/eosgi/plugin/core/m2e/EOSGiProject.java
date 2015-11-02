@@ -16,7 +16,6 @@
 package org.everit.e4.eosgi.plugin.core.m2e;
 
 import java.io.File;
-import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -29,15 +28,21 @@ import org.apache.maven.project.MavenProject;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.debug.core.ILaunchConfiguration;
+import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
 import org.eclipse.m2e.core.project.IMavenProjectFacade;
 import org.eclipse.m2e.core.project.MavenProjectChangedEvent;
+import org.eclipse.wst.server.core.IRuntime;
+import org.eclipse.wst.server.core.IServer;
 import org.everit.e4.eosgi.plugin.core.ContextChange;
 import org.everit.e4.eosgi.plugin.core.EOSGiContext;
 import org.everit.e4.eosgi.plugin.core.EventType;
 import org.everit.e4.eosgi.plugin.core.ModelChangeEvent;
+import org.everit.e4.eosgi.plugin.core.launcher.LaunchConfigurationBuilder;
 import org.everit.e4.eosgi.plugin.core.m2e.model.Environment;
 import org.everit.e4.eosgi.plugin.core.m2e.xml.EnvironmentsDTO;
-import org.everit.e4.eosgi.plugin.core.server.ServerFactory;
+import org.everit.e4.eosgi.plugin.core.server.EOSGiRuntime;
+import org.everit.e4.eosgi.plugin.core.server.EOSGiServer;
 import org.everit.e4.eosgi.plugin.ui.EOSGiLog;
 import org.everit.e4.eosgi.plugin.ui.dto.EnvironmentNodeDTO;
 import org.everit.osgi.dev.eosgi.dist.schema.util.DistSchemaProvider;
@@ -62,9 +67,40 @@ public class EOSGiProject extends Observable implements EOSGiContext {
     this.log = log;
   }
 
+  private void createServerForEnvironment(final String environmentId,
+      final EnvironmentConfigurationType environmentConfigurationType,
+      final IProgressMonitor monitor) throws CoreException {
+    if (monitor != null) {
+      monitor.setTaskName("Creating Server...");
+    }
+
+    IRuntime runtime = EOSGiRuntime.createRuntime(environmentId, monitor);
+    String serverId = generateServerId(environmentId);
+    IServer server = EOSGiServer.findServerToEnvironment(serverId, runtime,
+        monitor);
+
+    ILaunchConfigurationWorkingCopy workingCopy = null;
+    ILaunchConfiguration serverLaunchConfiguration = server.getLaunchConfiguration(true,
+        monitor);
+    workingCopy = serverLaunchConfiguration.getWorkingCopy();
+
+    new LaunchConfigurationBuilder(project.getName(), environmentId, buildDirectory)
+        .addLauncherConfigurationWorkingCopy(workingCopy)
+        .addEnvironmentConfigurationType(environmentConfigurationType)
+        .build();
+  }
+
   @Override
   public void delegateObserver(final Observer observer) {
     addObserver(observer);
+  }
+
+  private void deleteServer(final String serverId) {
+    try {
+      EOSGiServer.deleteServer(serverId);
+    } catch (CoreException e) {
+      log.error("Could not delete server (" + serverId + ")", e);
+    }
   }
 
   @Override
@@ -87,12 +123,12 @@ public class EOSGiProject extends Observable implements EOSGiContext {
   }
 
   @Override
-  public void generate(final String environmentId, final IProgressMonitor monitor) {
+  public void generate(final String environmentId, final IProgressMonitor monitor)
+      throws CoreException {
     Objects.requireNonNull(environmentId, "environmentName must be not null!");
 
-    ServerFactory serverFactory = new ServerFactory(project.getName(), buildDirectory,
-        environmentId);
-    serverFactory.deleteServer();
+    String serverId = generateServerId(environmentId);
+    deleteServer(serverId);
 
     Environment environment = environments.get(environmentId);
     if (environment == null) {
@@ -101,23 +137,29 @@ public class EOSGiProject extends Observable implements EOSGiContext {
     }
 
     boolean generated = false;
-    try {
-      generated = new M2EGoalExecutor(project, environmentId).execute(monitor);
-    } catch (CoreException e) {
-      log.error(
-          MessageFormat.format("Couldn't generate dist for ''{0}'' environment.", environmentId),
-          e);
-    }
+    // try {
+    generated = new M2EGoalExecutor(project, environmentId).execute(monitor);
+    // } catch (CoreException e) {
+    // log.error(
+    // MessageFormat.format("Couldn't generate dist for ''{0}'' environment.", environmentId),
+    // e);
+    // }
 
     if (monitor != null) {
       monitor.setTaskName("Check and load dist.xml.");
     }
+
     EnvironmentConfigurationType environmentConfigurationType = loadEnvironmentConfiguration(
         environmentId);
-    if (generated && environmentConfigurationType != null) {
+
+    if (generated && (environmentConfigurationType != null)) {
       environment.setGenerated(true);
-      serverFactory.createServer(environmentConfigurationType, monitor);
+      createServerForEnvironment(environmentId, environmentConfigurationType, monitor);
     }
+  }
+
+  private String generateServerId(final String environmentId) {
+    return environmentId + "/" + project.getName();
   }
 
   private EnvironmentConfigurationType loadEnvironmentConfiguration(final String environmentId) {
@@ -207,7 +249,8 @@ public class EOSGiProject extends Observable implements EOSGiContext {
       newEnvironments.put(newEnvironment.id, environment);
     });
     this.environments.forEach((key, value) -> {
-      new ServerFactory(project.getName(), buildDirectory, key).deleteServer();
+      deleteServer(key);
+      // new ServerFactory(project.getName(), buildDirectory, key).deleteServer();
     });
     if (!this.environments.isEmpty()) {
       setChanged();

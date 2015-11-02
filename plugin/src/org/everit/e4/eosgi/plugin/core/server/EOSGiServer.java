@@ -21,6 +21,11 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.wst.server.core.IModule;
+import org.eclipse.wst.server.core.IRuntime;
+import org.eclipse.wst.server.core.IServer;
+import org.eclipse.wst.server.core.IServerType;
+import org.eclipse.wst.server.core.IServerWorkingCopy;
+import org.eclipse.wst.server.core.ServerCore;
 import org.eclipse.wst.server.core.model.ServerDelegate;
 import org.everit.e4.eosgi.plugin.ui.EOSGiLog;
 import org.everit.e4.eosgi.plugin.ui.EOSGiPluginActivator;
@@ -29,6 +34,57 @@ import org.everit.e4.eosgi.plugin.ui.EOSGiPluginActivator;
  * ServerDelegate implementation for EOSGi server.
  */
 public class EOSGiServer extends ServerDelegate {
+
+  public static final String SERVER_TYPE_ID = "org.everit.e4.eosgi.plugin.server";
+
+  /**
+   * Delete the server (stop it if currently running).
+   *
+   * @param serverId
+   *          id of the server.
+   * @throws CoreException
+   *           throws that if could not delete the server.
+   */
+  public static void deleteServer(final String serverId) throws CoreException {
+    IServer server = ServerCore.findServer(serverId);
+    if (server == null) {
+      return;
+    }
+
+    if (server.getLaunch() != null) {
+      EOSGiServerBehaviour eosgiServer = (EOSGiServerBehaviour) server
+          .loadAdapter(EOSGiServerBehaviour.class, null);
+      if (eosgiServer != null) {
+        eosgiServer.stop(true);
+      }
+    }
+
+    server.delete();
+  }
+
+  /**
+   * Find or create (if doesn't exist) an IServer instance with given name and runtime.
+   *
+   * @param serverName
+   *          name of the server.
+   * @param runtime
+   *          runtime instance.
+   * @param monitor
+   *          optional {@link IProgressMonitor} instance.
+   * @return IServer instance.
+   * @throws CoreException
+   *           throws this if any error occurred.
+   */
+  public static IServer findServerToEnvironment(final String serverName, final IRuntime runtime,
+      final IProgressMonitor monitor) throws CoreException {
+    IServerType serverType = ServerCore.findServerType(SERVER_TYPE_ID);
+    IServerWorkingCopy serverWorkingCopy = serverType
+        .createServer(serverName, null, monitor);
+    serverWorkingCopy.setRuntime(runtime);
+    serverWorkingCopy.setName(serverName);
+    IServer server = serverWorkingCopy.save(true, monitor);
+    return server;
+  }
 
   private EOSGiLog log;
 
