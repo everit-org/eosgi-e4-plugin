@@ -25,6 +25,8 @@ import java.util.Observable;
 import java.util.Observer;
 
 import org.apache.maven.project.MavenProject;
+import org.codehaus.plexus.util.xml.Xpp3Dom;
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -40,6 +42,7 @@ import org.everit.e4.eosgi.plugin.core.EventType;
 import org.everit.e4.eosgi.plugin.core.ModelChangeEvent;
 import org.everit.e4.eosgi.plugin.core.launcher.LaunchConfigurationBuilder;
 import org.everit.e4.eosgi.plugin.core.m2e.model.Environment;
+import org.everit.e4.eosgi.plugin.core.m2e.xml.ConfiguratorParser;
 import org.everit.e4.eosgi.plugin.core.m2e.xml.EnvironmentsDTO;
 import org.everit.e4.eosgi.plugin.core.server.EOSGiRuntime;
 import org.everit.e4.eosgi.plugin.core.server.EOSGiServer;
@@ -136,14 +139,12 @@ public class EOSGiProject extends Observable implements EOSGiContext {
       return;
     }
 
-    boolean generated = false;
-    // try {
-    generated = new M2EGoalExecutor(project, environmentId).execute(monitor);
-    // } catch (CoreException e) {
-    // log.error(
-    // MessageFormat.format("Couldn't generate dist for ''{0}'' environment.", environmentId),
-    // e);
-    // }
+    M2EGoalExecutor executor = new M2EGoalExecutor(project, environmentId);
+    if (!executor.execute(monitor)) {
+      return;
+    }
+
+    environment.setGenerated();
 
     if (monitor != null) {
       monitor.setTaskName("Check and load dist.xml.");
@@ -152,8 +153,7 @@ public class EOSGiProject extends Observable implements EOSGiContext {
     EnvironmentConfigurationType environmentConfigurationType = loadEnvironmentConfiguration(
         environmentId);
 
-    if (generated && (environmentConfigurationType != null)) {
-      environment.setGenerated(true);
+    if (environmentConfigurationType != null) {
       createServerForEnvironment(environmentId, environmentConfigurationType, monitor);
     }
   }
@@ -190,9 +190,23 @@ public class EOSGiProject extends Observable implements EOSGiContext {
       mavenProject = mavenProjectFacade.getMavenProject();
     }
 
-    if ((project != null) && project.equals(this.project)) {
+    ContextChange contextChange = new ContextChange();
+    if (mavenProject != null) {
       String directory = mavenProject.getBuild().getDirectory();
-      refresh(new ContextChange().buildDirectory(directory));
+      contextChange.buildDirectory(directory);
+    }
+
+    IFile source = mavenProjectChangedEvent.getSource();
+    if (source != null && source.getName() != null && source.getName().startsWith("pom.xml")) {
+      Xpp3Dom goalConfiguration = mavenProject.getGoalConfiguration(
+          M2EGoalExecutor.EOSGI_MAVEN_PLUGIN_GROUP_ID,
+          M2EGoalExecutor.EOSGI_MAVEN_PLUGIN_ARTIFACT_ID, null,
+          M2EGoalExecutor.MavenGoal.DIST.getGoalName());
+      contextChange.configuration(new ConfiguratorParser().parse(goalConfiguration));
+    }
+
+    if ((project != null) && project.equals(this.project)) {
+      refresh(contextChange);
     }
   }
 
@@ -241,16 +255,12 @@ public class EOSGiProject extends Observable implements EOSGiContext {
         environment = new Environment();
         environment.setId(newEnvironment.id);
         environment.setFramework(newEnvironment.framework);
-        // TODO create launcher and server
-        // new ServerFactory(project.getName(), buildDirectory, newEnvironment.id)
-        // .createServer(new NullProgressMonitor());
         setChanged();
       }
       newEnvironments.put(newEnvironment.id, environment);
     });
     this.environments.forEach((key, value) -> {
       deleteServer(key);
-      // new ServerFactory(project.getName(), buildDirectory, key).deleteServer();
     });
     if (!this.environments.isEmpty()) {
       setChanged();

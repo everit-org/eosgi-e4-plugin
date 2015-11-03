@@ -45,7 +45,7 @@ import org.everit.e4.eosgi.plugin.ui.util.ProjectNatureUtils;
 /**
  * Project configurator for EOSGI projects.
  */
-public class EosgiDistProjectConfigurator extends AbstractProjectConfigurator
+public class DistProjectConfigurator extends AbstractProjectConfigurator
     implements IJavaProjectConfigurator {
 
   private EOSGiContextManager eosgiManager;
@@ -55,7 +55,7 @@ public class EosgiDistProjectConfigurator extends AbstractProjectConfigurator
   /**
    * Constructor.
    */
-  public EosgiDistProjectConfigurator() {
+  public DistProjectConfigurator() {
     super();
     EOSGiPluginActivator plugin = EOSGiPluginActivator.getDefault();
     log = new EOSGiLog(plugin.getLog());
@@ -100,7 +100,7 @@ public class EosgiDistProjectConfigurator extends AbstractProjectConfigurator
   public AbstractBuildParticipant getBuildParticipant(final IMavenProjectFacade projectFacade,
       final MojoExecution execution,
       final IPluginExecutionMetadata executionMetadata) {
-    return new EosgiDistBuildParticipant(execution, eosgiManager);
+    return new DistBuildParticipant(execution, eosgiManager);
   }
 
   @Override

@@ -62,9 +62,9 @@ public class M2EGoalExecutor {
 
   private static final String EOSGI_ENVIRONMENT_ID = "eosgi.environmentId";
 
-  private static final String EOSGI_MAVEN_PLUGIN_ARTIFACT_ID = "eosgi-maven-plugin";
+  public static final String EOSGI_MAVEN_PLUGIN_ARTIFACT_ID = "eosgi-maven-plugin";
 
-  private static final String EOSGI_MAVEN_PLUGIN_GROUP_ID = "org.everit.osgi.dev";
+  public static final String EOSGI_MAVEN_PLUGIN_GROUP_ID = "org.everit.osgi.dev";
 
   private String environmentId;
 

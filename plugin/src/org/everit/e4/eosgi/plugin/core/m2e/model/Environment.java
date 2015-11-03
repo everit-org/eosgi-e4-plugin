@@ -28,8 +28,6 @@ import org.everit.e4.eosgi.plugin.ui.dto.EnvironmentNodeDTO;
 public class Environment extends Observable {
   private String framework;
 
-  private boolean generated;
-
   private String id;
 
   private boolean outdated;
@@ -42,10 +40,6 @@ public class Environment extends Observable {
     return id;
   }
 
-  public boolean isGenerated() {
-    return generated;
-  }
-
   public boolean isOutdated() {
     return outdated;
   }
@@ -54,9 +48,11 @@ public class Environment extends Observable {
     this.framework = framework;
   }
 
-  public void setGenerated(boolean generated) {
+  /**
+   * Set generated status for this environment.
+   */
+  public void setGenerated() {
     this.outdated = false;
-    this.generated = generated;
     setChanged();
     notifyObservers(new ModelChangeEvent().eventType(EventType.ENVIRONMENT)
         .arg(new EnvironmentNodeDTO().id(id).outdated(outdated)));

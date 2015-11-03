@@ -164,7 +164,9 @@ public class DistContentProvider extends TreeNodeContentProvider
 
   @Override
   public void inputChanged(final Viewer aviewer, final Object oldInput, final Object newInput) {
-    viewer = (StructuredViewer) aviewer;
+    if (aviewer instanceof StructuredViewer) {
+      viewer = (StructuredViewer) aviewer;
+    }
   }
 
   @Override

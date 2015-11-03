@@ -61,9 +61,8 @@ public class ConfiguratorParser {
    *
    * @param configurationDom
    *          configuration in {@link Xpp3Dom} instance.
-   * @return filled {@link EnvironmentsDTO} instance.
+   * @return filled {@link EnvironmentsDTO} instance, never <code>null</code>.
    */
-  // TODO refactor
   public EnvironmentsDTO parse(final Xpp3Dom configurationDom) {
     if (configurationDom == null) {
       log.warning("configuration DOM is null");
