@@ -19,8 +19,6 @@ import java.util.Observable;
 import java.util.Optional;
 
 import org.everit.e4.eosgi.plugin.core.EOSGiContext;
-import org.everit.e4.eosgi.plugin.core.EventType;
-import org.everit.e4.eosgi.plugin.core.ModelChangeEvent;
 import org.everit.e4.eosgi.plugin.ui.dto.EnvironmentNodeDTO;
 import org.everit.e4.eosgi.plugin.ui.navigator.EosgiNodeChangeEvent;
 import org.everit.e4.eosgi.plugin.ui.navigator.EosgiNodeChangeListener;
@@ -105,15 +103,8 @@ public class EnvironmentNode extends AbstractNode {
     if (context == null) {
       return;
     }
-
-    ModelChangeEvent event = null;
-    if ((arg != null) && (arg instanceof ModelChangeEvent)) {
-      event = (ModelChangeEvent) arg;
-    }
-
-    if ((event != null) && (event.eventType == EventType.ENVIRONMENT)
-        && (event.arg instanceof EnvironmentNodeDTO)) {
-      EnvironmentNodeDTO args = (EnvironmentNodeDTO) event.arg;
+    if (arg != null && arg instanceof EnvironmentNodeDTO) {
+      EnvironmentNodeDTO args = (EnvironmentNodeDTO) arg;
       if (environmentId.equals(args.id)) {
         applyPresentedArgs(args);
         changed(new EosgiNodeChangeEvent(this));

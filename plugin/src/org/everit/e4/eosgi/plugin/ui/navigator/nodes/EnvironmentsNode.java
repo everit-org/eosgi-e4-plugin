@@ -20,8 +20,7 @@ import java.util.List;
 import java.util.Observable;
 
 import org.everit.e4.eosgi.plugin.core.EOSGiContext;
-import org.everit.e4.eosgi.plugin.core.EventType;
-import org.everit.e4.eosgi.plugin.core.ModelChangeEvent;
+import org.everit.e4.eosgi.plugin.ui.dto.EnvironmentsNodeDTO;
 import org.everit.e4.eosgi.plugin.ui.navigator.EosgiNodeChangeEvent;
 import org.everit.e4.eosgi.plugin.ui.navigator.EosgiNodeChangeListener;
 
@@ -75,15 +74,6 @@ public class EnvironmentsNode extends AbstractNode {
       }
       nodes.add(node);
     });
-    // List<EnvironmentNodeDTO> environmentsNodeDTO = context.environmentsNodeDTO();
-    // for (EnvironmentNodeDTO environment : environmentsNodeDTO) {
-    // EnvironmentNode node = new EnvironmentNode(context, environment.id, getListener());
-    // environment.observable.addObserver(node);
-    // if (environment.outdated) {
-    // node.setLabel(OUTDATED_LABEL);
-    // }
-    // nodes.add(node);
-    // }
 
     return nodes;
   }
@@ -120,13 +110,9 @@ public class EnvironmentsNode extends AbstractNode {
 
   @Override
   public void update(final Observable o, final Object arg) {
-    ModelChangeEvent event = null;
-    if ((arg != null) && (arg instanceof ModelChangeEvent)) {
-      event = (ModelChangeEvent) arg;
-    }
-    if ((event != null) && (event.eventType == EventType.ENVIRONMENTS) && (event.arg != null)) {
-      EOSGiContext context = (EOSGiContext) event.arg;
-      if (this.context.equals(context)) {
+    if (arg != null && arg instanceof EnvironmentsNodeDTO) {
+      EnvironmentsNodeDTO environmentsNodeDTO = (EnvironmentsNodeDTO) arg;
+      if (this.context.equals(environmentsNodeDTO.context)) {
         outdated = true;
         changed(new EosgiNodeChangeEvent(this));
       }

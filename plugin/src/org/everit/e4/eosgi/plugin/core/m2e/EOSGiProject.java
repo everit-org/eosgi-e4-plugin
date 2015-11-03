@@ -38,8 +38,6 @@ import org.eclipse.wst.server.core.IRuntime;
 import org.eclipse.wst.server.core.IServer;
 import org.everit.e4.eosgi.plugin.core.ContextChange;
 import org.everit.e4.eosgi.plugin.core.EOSGiContext;
-import org.everit.e4.eosgi.plugin.core.EventType;
-import org.everit.e4.eosgi.plugin.core.ModelChangeEvent;
 import org.everit.e4.eosgi.plugin.core.launcher.LaunchConfigurationBuilder;
 import org.everit.e4.eosgi.plugin.core.m2e.model.Environment;
 import org.everit.e4.eosgi.plugin.core.m2e.xml.ConfiguratorParser;
@@ -48,6 +46,7 @@ import org.everit.e4.eosgi.plugin.core.server.EOSGiRuntime;
 import org.everit.e4.eosgi.plugin.core.server.EOSGiServer;
 import org.everit.e4.eosgi.plugin.ui.EOSGiLog;
 import org.everit.e4.eosgi.plugin.ui.dto.EnvironmentNodeDTO;
+import org.everit.e4.eosgi.plugin.ui.dto.EnvironmentsNodeDTO;
 import org.everit.osgi.dev.eosgi.dist.schema.util.DistSchemaProvider;
 import org.everit.osgi.dev.eosgi.dist.schema.xsd.DistributionPackageType;
 import org.everit.osgi.dev.eosgi.dist.schema.xsd.EnvironmentConfigurationType;
@@ -228,8 +227,9 @@ public class EOSGiProject extends Observable implements EOSGiContext {
       }
     }
 
-    // TODO replace ModelChangeEvent to a DTO only
-    notifyObservers(new ModelChangeEvent().eventType(EventType.ENVIRONMENTS).arg(this));
+    EnvironmentsNodeDTO environmentsNodeDTO = new EnvironmentsNodeDTO();
+    environmentsNodeDTO.context = this;
+    notifyObservers(environmentsNodeDTO);
   }
 
   @Override

@@ -17,8 +17,6 @@ package org.everit.e4.eosgi.plugin.core.m2e.model;
 
 import java.util.Observable;
 
-import org.everit.e4.eosgi.plugin.core.EventType;
-import org.everit.e4.eosgi.plugin.core.ModelChangeEvent;
 import org.everit.e4.eosgi.plugin.core.m2e.xml.EnvironmentDTO;
 import org.everit.e4.eosgi.plugin.ui.dto.EnvironmentNodeDTO;
 
@@ -54,8 +52,7 @@ public class Environment extends Observable {
   public void setGenerated() {
     this.outdated = false;
     setChanged();
-    notifyObservers(new ModelChangeEvent().eventType(EventType.ENVIRONMENT)
-        .arg(new EnvironmentNodeDTO().id(id).outdated(outdated)));
+    notifyObservers(new EnvironmentNodeDTO().id(id).outdated(outdated));
   }
 
   public void setId(final String id) {
@@ -89,10 +86,7 @@ public class Environment extends Observable {
       setChanged();
     }
     EnvironmentNodeDTO environmentNodeDTO = new EnvironmentNodeDTO().id(id).outdated(outdated);
-    notifyObservers(
-        new ModelChangeEvent()
-            .eventType(EventType.ENVIRONMENT)
-            .arg(environmentNodeDTO));
+    notifyObservers(environmentNodeDTO);
   }
 
 }
