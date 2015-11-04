@@ -165,7 +165,9 @@ public class LaunchConfigurationBuilder {
     }
 
     vmOptions.getVmOption().forEach((vmOption) -> {
-      stringBuilder.append(" " + vmOption);
+      if (vmOption.indexOf("Xrunjdwp") == -1) {
+        stringBuilder.append(" " + vmOption);
+      }
     });
     return stringBuilder.toString();
   }
@@ -195,6 +197,14 @@ public class LaunchConfigurationBuilder {
     wc.setAttribute(IJavaLaunchConfigurationConstants.ATTR_DEFAULT_CLASSPATH, false);
     wc.setAttribute(IJavaLaunchConfigurationConstants.ATTR_CLASSPATH,
         classPathList);
+
+    try {
+      String attribute = wc.getAttribute(IJavaLaunchConfigurationConstants.ATTR_VM_ARGUMENTS, "");
+      System.out.println(attribute);
+    } catch (CoreException e) {
+      e.printStackTrace();
+    }
+
     wc.setAttribute(IJavaLaunchConfigurationConstants.ATTR_VM_ARGUMENTS, vmArgsList);
 
     wc.setAttribute(EOSGILaunchConfigurationDelegate.LAUNCHER_ATTR_ENVIRONMENT_ID, environmentId);

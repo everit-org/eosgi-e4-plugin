@@ -112,12 +112,17 @@ public class EOSGiServerBehaviour extends ServerBehaviourDelegate {
     serverStatusThread.start();
   }
 
-  // public EOSGiRuntime getEOSGiRuntime() {
-  // if (getServer().getRuntime() == null) {
-  // return null;
-  // }
-  // return (EOSGiRuntime) getServer().getRuntime().loadAdapter(EOSGiRuntime.class, null);
-  // }
+  /**
+   * Get EOSGiRuntime instance for this server.
+   *
+   * @return {@link EOSGiRuntime} instance.
+   */
+  public EOSGiRuntime getEOSGiRuntime() {
+    if (getServer().getRuntime() == null) {
+      return null;
+    }
+    return (EOSGiRuntime) getServer().getRuntime().loadAdapter(EOSGiRuntime.class, null);
+  }
 
   public EOSGiServer getEOSGiServer() {
     return getServer().getAdapter(EOSGiServer.class);

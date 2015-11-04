@@ -52,15 +52,16 @@ public class EOSGILaunchConfigurationDelegate extends JavaLaunchDelegate {
     String environmentId = configuration.getAttribute(LAUNCHER_ATTR_ENVIRONMENT_ID, "");
     String projectName = configuration
         .getAttribute(IJavaLaunchConfigurationConstants.ATTR_PROJECT_NAME, "");
+
     if ("".equals(environmentId) || "".equals(projectName)) {
       return;
     }
+
     IServer server = ServerCore.findServer(environmentId + "/" + projectName);
     EOSGiServerBehaviour eosgiServer = (EOSGiServerBehaviour) server
         .loadAdapter(EOSGiServerBehaviour.class, null);
     eosgiServer.serverStarting();
     super.launch(configuration, mode, launch, monitor);
   }
-
 
 }
