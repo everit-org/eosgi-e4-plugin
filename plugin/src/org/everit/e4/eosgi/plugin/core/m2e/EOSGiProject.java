@@ -76,7 +76,7 @@ public class EOSGiProject extends Observable implements EOSGiContext {
       monitor.setTaskName("Creating Server...");
     }
 
-    IRuntime runtime = EOSGiRuntime.createRuntime(environmentId, monitor);
+    IRuntime runtime = EOSGiRuntime.createRuntime(monitor);
     String serverId = generateServerId(environmentId);
     IServer server = EOSGiServer.findServerToEnvironment(serverId, runtime,
         monitor);

@@ -30,6 +30,21 @@ public class EOSGiRuntime extends RuntimeDelegate {
 
   public static final String RUNTIME_ID = "org.everit.e4.eosgi.plugin.runtime";
 
+  public static final String RUNTIME_NAME = "EOSGi Runtime";
+
+  /**
+   * Create a runtime with the default name (EOSGi Runtime).
+   *
+   * @param monitor
+   *          optinal {@link IProgressMonitor} instance.
+   * @return IRuntime instance.
+   * @throws CoreException
+   *           throws this, if an error ocurred.
+   */
+  public static IRuntime createRuntime(final IProgressMonitor monitor) throws CoreException {
+    return createRuntime(RUNTIME_NAME, monitor);
+  }
+
   /**
    * Create a runtime with the given name.
    *
@@ -43,10 +58,13 @@ public class EOSGiRuntime extends RuntimeDelegate {
    */
   public static IRuntime createRuntime(final String runtimeName, final IProgressMonitor monitor)
       throws CoreException {
-    IRuntimeType runtime = ServerCore.findRuntimeType(RUNTIME_ID);
-    IRuntimeWorkingCopy runtimeWorkingCopy = runtime.createRuntime(runtimeName, monitor);
-    IRuntime eosgiRuntime = runtimeWorkingCopy.save(true, monitor);
-    return eosgiRuntime;
+    IRuntime runtime = ServerCore.findRuntime(runtimeName);
+    IRuntimeType runtimeType = ServerCore.findRuntimeType(RUNTIME_ID);
+    if (runtime == null || !runtime.getRuntimeType().equals(runtimeType)) {
+      IRuntimeWorkingCopy runtimeWorkingCopy = runtimeType.createRuntime(runtimeName, monitor);
+      runtime = runtimeWorkingCopy.save(true, monitor);
+    }
+    return runtime;
   }
 
 }

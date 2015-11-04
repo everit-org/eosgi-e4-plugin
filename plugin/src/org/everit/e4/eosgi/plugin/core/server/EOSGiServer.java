@@ -16,7 +16,6 @@
 package org.everit.e4.eosgi.plugin.core.server;
 
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.ILog;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
@@ -27,7 +26,6 @@ import org.eclipse.wst.server.core.IServerType;
 import org.eclipse.wst.server.core.IServerWorkingCopy;
 import org.eclipse.wst.server.core.ServerCore;
 import org.eclipse.wst.server.core.model.ServerDelegate;
-import org.everit.e4.eosgi.plugin.ui.EOSGiLog;
 import org.everit.e4.eosgi.plugin.ui.EOSGiPluginActivator;
 
 /**
@@ -86,15 +84,15 @@ public class EOSGiServer extends ServerDelegate {
     return server;
   }
 
-  private EOSGiLog log;
+  // private EOSGiLog log;
 
   /**
    * Contrutctor.
    */
   public EOSGiServer() {
     super();
-    ILog iLog = EOSGiPluginActivator.getDefault().getLog();
-    this.log = new EOSGiLog(iLog);
+    // ILog iLog = EOSGiPluginActivator.getDefault().getLog();
+    // this.log = new EOSGiLog(iLog);
   }
 
   @Override
