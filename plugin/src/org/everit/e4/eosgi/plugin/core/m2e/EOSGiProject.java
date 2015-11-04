@@ -260,7 +260,7 @@ public class EOSGiProject extends Observable implements EOSGiContext {
       newEnvironments.put(newEnvironment.id, environment);
     });
     this.environments.forEach((key, value) -> {
-      deleteServer(key);
+      deleteServer(generateServerId(key));
     });
     if (!this.environments.isEmpty()) {
       setChanged();

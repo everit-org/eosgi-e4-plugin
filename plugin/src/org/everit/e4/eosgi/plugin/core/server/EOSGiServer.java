@@ -103,12 +103,6 @@ public class EOSGiServer extends ServerDelegate {
   }
 
   @Override
-  protected void finalize() throws Throwable {
-    log.info("server finalized");
-    super.finalize();
-  }
-
-  @Override
   public IModule[] getChildModules(final IModule[] arg0) {
     return new IModule[0];
   }
