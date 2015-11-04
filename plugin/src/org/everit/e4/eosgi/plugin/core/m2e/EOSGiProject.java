@@ -108,6 +108,9 @@ public class EOSGiProject extends Observable implements EOSGiContext {
   @Override
   public void dispose() {
     deleteObservers();
+    environments.forEach((environmentId, environment) -> {
+      this.deleteServer(this.generateServerId(environmentId));
+    });
     environments.clear();
   }
 

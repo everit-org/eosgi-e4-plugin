@@ -20,6 +20,8 @@ import java.util.List;
 import java.util.Objects;
 
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.IResourceChangeEvent;
 import org.eclipse.core.resources.IResourceDelta;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.Status;
@@ -113,7 +115,12 @@ public class EOSGiPluginActivator extends AbstractUIPlugin {
 
     ResourcesPlugin.getWorkspace().addResourceChangeListener(changeEvent -> {
       List<IProject> projects = new ArrayList<>();
-      if (changeEvent.getDelta() != null) {
+      if (IResourceChangeEvent.PRE_DELETE == changeEvent.getType()) {
+        IResource resource = changeEvent.getResource();
+        if (resource instanceof IProject) {
+          eosgiManager.remove((IProject) resource);
+        }
+      } else if (changeEvent.getDelta() != null) {
         IResourceDelta delta = changeEvent.getDelta();
         IResourceDelta[] affectedChildrens = delta.getAffectedChildren();
         if (affectedChildrens == null) {
