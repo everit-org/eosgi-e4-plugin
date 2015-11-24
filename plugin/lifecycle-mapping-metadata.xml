@@ -22,7 +22,7 @@
       <pluginExecutionFilter>
         <groupId>org.everit.osgi.dev</groupId>
         <artifactId>eosgi-maven-plugin</artifactId>
-        <versionRange>[4.0.0,)</versionRange>
+        <versionRange>[3.0.0,)</versionRange>
         <goals>
           <goal>dist</goal>
           <goal>integration-test</goal>

@@ -48,8 +48,8 @@ import org.everit.e4.eosgi.plugin.ui.EOSGiLog;
 import org.everit.e4.eosgi.plugin.ui.dto.EnvironmentNodeDTO;
 import org.everit.e4.eosgi.plugin.ui.dto.EnvironmentsNodeDTO;
 import org.everit.osgi.dev.eosgi.dist.schema.util.DistSchemaProvider;
-import org.everit.osgi.dev.eosgi.dist.schema.xsd.DistributionPackageType;
-import org.everit.osgi.dev.eosgi.dist.schema.xsd.EnvironmentConfigurationType;
+import org.everit.osgi.dev.eosgi.dist.schema.util.EnvironmentConfigurationDTO;
+import org.everit.osgi.dev.eosgi.dist.schema.xsd.UseByType;
 
 /**
  * {@link EOSGiContext} base implementation.
@@ -70,7 +70,7 @@ public class EOSGiProject extends Observable implements EOSGiContext {
   }
 
   private void createServerForEnvironment(final String environmentId,
-      final EnvironmentConfigurationType environmentConfigurationType,
+      final EnvironmentConfigurationDTO environmentConfigurationDTO,
       final IProgressMonitor monitor) throws CoreException {
     if (monitor != null) {
       monitor.setTaskName("Creating Server...");
@@ -88,7 +88,7 @@ public class EOSGiProject extends Observable implements EOSGiContext {
 
     new LaunchConfigurationBuilder(project.getName(), environmentId, buildDirectory)
         .addLauncherConfigurationWorkingCopy(workingCopy)
-        .addEnvironmentConfigurationType(environmentConfigurationType)
+        .addEnvironmentConfigurationDTO(environmentConfigurationDTO)
         .build();
   }
 
@@ -152,11 +152,11 @@ public class EOSGiProject extends Observable implements EOSGiContext {
       monitor.setTaskName("Check and load dist.xml.");
     }
 
-    EnvironmentConfigurationType environmentConfigurationType = loadEnvironmentConfiguration(
+    EnvironmentConfigurationDTO environmentConfigurationDTO = loadEnvironmentConfiguration(
         environmentId);
 
-    if (environmentConfigurationType != null) {
-      createServerForEnvironment(environmentId, environmentConfigurationType, monitor);
+    if (environmentConfigurationDTO != null) {
+      createServerForEnvironment(environmentId, environmentConfigurationDTO, monitor);
     }
   }
 
@@ -164,12 +164,13 @@ public class EOSGiProject extends Observable implements EOSGiContext {
     return environmentId + "/" + project.getName();
   }
 
-  private EnvironmentConfigurationType loadEnvironmentConfiguration(final String environmentId) {
+  private EnvironmentConfigurationDTO loadEnvironmentConfiguration(final String environmentId) {
+    String distXmlFilePath = buildDirectory + File.separator + "eosgi-dist"
+        + File.separator + environmentId;
     DistSchemaProvider distSchemaProvider = new DistSchemaProvider();
-    /// target/eosgi-dist/equinoxtest
-    DistributionPackageType distributionPackageType = distSchemaProvider
-        .readDistConfig(new File(buildDirectory + File.separator + ".."));
-    return distributionPackageType.getEnvironmentConfiguration();
+    EnvironmentConfigurationDTO environmentConfigurationDTO = distSchemaProvider
+        .getEnvironmentConfiguration(new File(distXmlFilePath), UseByType.IDE);
+    return environmentConfigurationDTO;
   }
 
   @Override

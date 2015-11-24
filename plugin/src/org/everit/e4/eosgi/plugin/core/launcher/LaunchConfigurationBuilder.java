@@ -34,8 +34,7 @@ import org.eclipse.jdt.launching.JavaRuntime;
 import org.everit.e4.eosgi.plugin.core.server.EOSGILaunchConfigurationDelegate;
 import org.everit.e4.eosgi.plugin.ui.EOSGiLog;
 import org.everit.e4.eosgi.plugin.ui.EOSGiPluginActivator;
-import org.everit.osgi.dev.eosgi.dist.schema.xsd.EnvironmentConfigurationType;
-import org.everit.osgi.dev.eosgi.dist.schema.xsd.VmOptionsType;
+import org.everit.osgi.dev.eosgi.dist.schema.util.EnvironmentConfigurationDTO;
 
 /**
  * Builder class for launch configurations.
@@ -44,7 +43,7 @@ public class LaunchConfigurationBuilder {
 
   private String buildDirectory;
 
-  private EnvironmentConfigurationType environmentConfigurationType;
+  private EnvironmentConfigurationDTO environmentConfigurationType;
 
   private String environmentId;
 
@@ -76,9 +75,9 @@ public class LaunchConfigurationBuilder {
     this.buildDirectory = buildDirectory;
   }
 
-  public LaunchConfigurationBuilder addEnvironmentConfigurationType(
-      final EnvironmentConfigurationType launcherConfiguration) {
-    this.environmentConfigurationType = launcherConfiguration;
+  public LaunchConfigurationBuilder addEnvironmentConfigurationDTO(
+      final EnvironmentConfigurationDTO environmentConfigurationDTO) {
+    this.environmentConfigurationType = environmentConfigurationDTO;
     return this;
   }
 
@@ -125,21 +124,21 @@ public class LaunchConfigurationBuilder {
     }
   }
 
-  // private String createArgumentsString(
-  // final EnvironmentConfigurationType environmentConfigurationType)
-  // {
-  // final StringBuilder stringBuilder = new StringBuilder();
-  //
-  // CommandArguments commandArguments = environmentConfigurationType.getCommandArguments();
-  // if ((commandArguments != null) && (commandArguments.getCommandArgument() != null)) {
-  // commandArguments.getCommandArgument().forEach((argument) -> {
-  // stringBuilder.append(" " + argument);
-  // });
-  // }
-  //
-  // String argumentsString = stringBuilder.toString();
-  // return argumentsString;
-  // }
+  private String createArgumentsString(
+      final List<String> environmentConfigurationType) {
+    final StringBuilder stringBuilder = new StringBuilder();
+
+    if (environmentConfigurationType == null) {
+      return stringBuilder.toString();
+    }
+
+    environmentConfigurationType.forEach(argument -> {
+      stringBuilder.append(" " + argument);
+    });
+
+    String argumentsString = stringBuilder.toString();
+    return argumentsString;
+  }
 
   private List<String> createClassPathList(final String rootDirectory, final String mainJar)
       throws CoreException {
@@ -152,19 +151,14 @@ public class LaunchConfigurationBuilder {
     return classPathList;
   }
 
-  private String createVmArgs(final EnvironmentConfigurationType environmentConfigurationType) {
+  private String createVmArgs(final List<String> vmArgumentList) {
     StringBuilder stringBuilder = new StringBuilder();
 
-    if (environmentConfigurationType == null) {
+    if (vmArgumentList == null) {
       return stringBuilder.toString();
     }
 
-    VmOptionsType vmOptions = environmentConfigurationType.getVmOptions();
-    if (vmOptions == null || vmOptions.getVmOption() == null) {
-      return stringBuilder.toString();
-    }
-
-    vmOptions.getVmOption().forEach((vmOption) -> {
+    vmArgumentList.forEach((vmOption) -> {
       if (vmOption.indexOf("Xrunjdwp") == -1) {
         stringBuilder.append(" " + vmOption);
       }
@@ -174,37 +168,28 @@ public class LaunchConfigurationBuilder {
 
   private ILaunchConfigurationWorkingCopy updateCurrentLauncherConfigurationWorkingCopy(
       final String projectName, final String workingDirectory,
-      final EnvironmentConfigurationType environmentConfigurationType) {
-    String mainClass = environmentConfigurationType.getMainClass();
-    // TODO createArgumentsString(environmentConfigurationType);
-    String argumentsString = "";
+      final EnvironmentConfigurationDTO environmentConfigurationDTO) {
+
+    String argumentsString = createArgumentsString(environmentConfigurationDTO.programArguments);
+    String vmArgsList = createVmArgs(environmentConfigurationDTO.vmArguments);
 
     List<String> classPathList = new ArrayList<>();
     try {
       classPathList = createClassPathList(workingDirectory,
-          environmentConfigurationType.getMainJar());
+          environmentConfigurationDTO.mainJar);
     } catch (CoreException e) {
       eosgiLog.error("Could not resolv classpath entries.", e);
     }
 
-    String vmArgsList = createVmArgs(environmentConfigurationType);
-
     wc.setAttribute(IJavaLaunchConfigurationConstants.ATTR_PROJECT_NAME, projectName);
-    wc.setAttribute(IJavaLaunchConfigurationConstants.ATTR_MAIN_TYPE_NAME, mainClass);
+    wc.setAttribute(IJavaLaunchConfigurationConstants.ATTR_MAIN_TYPE_NAME,
+        environmentConfigurationDTO.mainClass);
     wc.setAttribute(IJavaLaunchConfigurationConstants.ATTR_WORKING_DIRECTORY, workingDirectory);
     wc.setAttribute(IJavaLaunchConfigurationConstants.ATTR_PROGRAM_ARGUMENTS,
         argumentsString);
     wc.setAttribute(IJavaLaunchConfigurationConstants.ATTR_DEFAULT_CLASSPATH, false);
     wc.setAttribute(IJavaLaunchConfigurationConstants.ATTR_CLASSPATH,
         classPathList);
-
-    try {
-      String attribute = wc.getAttribute(IJavaLaunchConfigurationConstants.ATTR_VM_ARGUMENTS, "");
-      System.out.println(attribute);
-    } catch (CoreException e) {
-      e.printStackTrace();
-    }
-
     wc.setAttribute(IJavaLaunchConfigurationConstants.ATTR_VM_ARGUMENTS, vmArgsList);
 
     wc.setAttribute(EOSGILaunchConfigurationDelegate.LAUNCHER_ATTR_ENVIRONMENT_ID, environmentId);
