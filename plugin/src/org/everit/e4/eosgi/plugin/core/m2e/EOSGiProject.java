@@ -15,7 +15,7 @@
  */
 package org.everit.e4.eosgi.plugin.core.m2e;
 
-import java.text.MessageFormat;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -23,24 +23,33 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Observable;
 import java.util.Observer;
-import java.util.Optional;
 
 import org.apache.maven.project.MavenProject;
+import org.codehaus.plexus.util.xml.Xpp3Dom;
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.debug.core.ILaunchConfiguration;
+import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
 import org.eclipse.m2e.core.project.IMavenProjectFacade;
 import org.eclipse.m2e.core.project.MavenProjectChangedEvent;
+import org.eclipse.wst.server.core.IRuntime;
+import org.eclipse.wst.server.core.IServer;
 import org.everit.e4.eosgi.plugin.core.ContextChange;
 import org.everit.e4.eosgi.plugin.core.EOSGiContext;
-import org.everit.e4.eosgi.plugin.core.EventType;
-import org.everit.e4.eosgi.plugin.core.ModelChangeEvent;
-import org.everit.e4.eosgi.plugin.core.dist.DistRunner;
-import org.everit.e4.eosgi.plugin.core.dist.EOSGiDistRunner;
+import org.everit.e4.eosgi.plugin.core.launcher.LaunchConfigurationBuilder;
 import org.everit.e4.eosgi.plugin.core.m2e.model.Environment;
+import org.everit.e4.eosgi.plugin.core.m2e.xml.ConfiguratorParser;
 import org.everit.e4.eosgi.plugin.core.m2e.xml.EnvironmentsDTO;
+import org.everit.e4.eosgi.plugin.core.server.EOSGiRuntime;
+import org.everit.e4.eosgi.plugin.core.server.EOSGiServer;
 import org.everit.e4.eosgi.plugin.ui.EOSGiLog;
 import org.everit.e4.eosgi.plugin.ui.dto.EnvironmentNodeDTO;
+import org.everit.e4.eosgi.plugin.ui.dto.EnvironmentsNodeDTO;
+import org.everit.osgi.dev.eosgi.dist.schema.util.DistSchemaProvider;
+import org.everit.osgi.dev.eosgi.dist.schema.util.EnvironmentConfigurationDTO;
+import org.everit.osgi.dev.eosgi.dist.schema.xsd.UseByType;
 
 /**
  * {@link EOSGiContext} base implementation.
@@ -60,18 +69,47 @@ public class EOSGiProject extends Observable implements EOSGiContext {
     this.log = log;
   }
 
+  private void createServerForEnvironment(final String environmentId,
+      final EnvironmentConfigurationDTO environmentConfigurationDTO,
+      final IProgressMonitor monitor) throws CoreException {
+    if (monitor != null) {
+      monitor.setTaskName("Creating Server...");
+    }
+
+    IRuntime runtime = EOSGiRuntime.createRuntime(monitor);
+    String serverId = generateServerId(environmentId);
+    IServer server = EOSGiServer.findServerToEnvironment(serverId, runtime,
+        monitor);
+
+    ILaunchConfigurationWorkingCopy workingCopy = null;
+    ILaunchConfiguration serverLaunchConfiguration = server.getLaunchConfiguration(true,
+        monitor);
+    workingCopy = serverLaunchConfiguration.getWorkingCopy();
+
+    new LaunchConfigurationBuilder(project.getName(), environmentId, buildDirectory)
+        .addLauncherConfigurationWorkingCopy(workingCopy)
+        .addEnvironmentConfigurationDTO(environmentConfigurationDTO)
+        .build();
+  }
+
   @Override
   public void delegateObserver(final Observer observer) {
     addObserver(observer);
   }
 
+  private void deleteServer(final String serverId) {
+    try {
+      EOSGiServer.deleteServer(serverId);
+    } catch (CoreException e) {
+      log.error("Could not delete server (" + serverId + ")", e);
+    }
+  }
+
   @Override
   public void dispose() {
     deleteObservers();
-    environments.forEach((key, value) -> {
-      value.getDistRunner().ifPresent(runner -> {
-        runner.stop();
-      });
+    environments.forEach((environmentId, environment) -> {
+      this.deleteServer(this.generateServerId(environmentId));
     });
     environments.clear();
   }
@@ -90,17 +128,12 @@ public class EOSGiProject extends Observable implements EOSGiContext {
   }
 
   @Override
-  public void forcedStop(final String environmentName) {
-    throw new UnsupportedOperationException("Not implemented, yet");
-  }
-
-  @Override
-  public void generate(final String environmentId, final IProgressMonitor monitor) {
+  public void generate(final String environmentId, final IProgressMonitor monitor)
+      throws CoreException {
     Objects.requireNonNull(environmentId, "environmentName must be not null!");
 
-    runner(environmentId).ifPresent(runner -> {
-      runner.stop();
-    });
+    String serverId = generateServerId(environmentId);
+    deleteServer(serverId);
 
     Environment environment = environments.get(environmentId);
     if (environment == null) {
@@ -108,19 +141,36 @@ public class EOSGiProject extends Observable implements EOSGiContext {
       return;
     }
 
-    boolean generated = false;
-    try {
-      generated = new M2EGoalExecutor(project).execute(monitor);
-    } catch (CoreException e) {
-      log.error(
-          MessageFormat.format("Couldn''t generate dist for ''{0}'' environment.", environmentId),
-          e);
+    M2EGoalExecutor executor = new M2EGoalExecutor(project, environmentId);
+    if (!executor.execute(monitor)) {
+      return;
     }
 
-    if (generated) {
-      DistRunner distRunner = new EOSGiDistRunner(buildDirectory, environmentId);
-      environment.setDistRunner(distRunner);
+    environment.setGenerated();
+
+    if (monitor != null) {
+      monitor.setTaskName("Check and load dist.xml.");
     }
+
+    EnvironmentConfigurationDTO environmentConfigurationDTO = loadEnvironmentConfiguration(
+        environmentId);
+
+    if (environmentConfigurationDTO != null) {
+      createServerForEnvironment(environmentId, environmentConfigurationDTO, monitor);
+    }
+  }
+
+  private String generateServerId(final String environmentId) {
+    return environmentId + "/" + project.getName();
+  }
+
+  private EnvironmentConfigurationDTO loadEnvironmentConfiguration(final String environmentId) {
+    String distXmlFilePath = buildDirectory + File.separator + "eosgi-dist"
+        + File.separator + environmentId;
+    DistSchemaProvider distSchemaProvider = new DistSchemaProvider();
+    EnvironmentConfigurationDTO environmentConfigurationDTO = distSchemaProvider
+        .getEnvironmentConfiguration(new File(distXmlFilePath), UseByType.IDE);
+    return environmentConfigurationDTO;
   }
 
   @Override
@@ -143,9 +193,23 @@ public class EOSGiProject extends Observable implements EOSGiContext {
       mavenProject = mavenProjectFacade.getMavenProject();
     }
 
-    if ((project != null) && project.equals(this.project)) {
+    ContextChange contextChange = new ContextChange();
+    if (mavenProject != null) {
       String directory = mavenProject.getBuild().getDirectory();
-      refresh(new ContextChange().buildDirectory(directory));
+      contextChange.buildDirectory(directory);
+    }
+
+    IFile source = mavenProjectChangedEvent.getSource();
+    if (source != null && source.getName() != null && source.getName().startsWith("pom.xml")) {
+      Xpp3Dom goalConfiguration = mavenProject.getGoalConfiguration(
+          M2EGoalExecutor.EOSGI_MAVEN_PLUGIN_GROUP_ID,
+          M2EGoalExecutor.EOSGI_MAVEN_PLUGIN_ARTIFACT_ID, null,
+          M2EGoalExecutor.MavenGoal.DIST.getGoalName());
+      contextChange.configuration(new ConfiguratorParser().parse(goalConfiguration));
+    }
+
+    if ((project != null) && project.equals(this.project)) {
+      refresh(contextChange);
     }
   }
 
@@ -167,24 +231,14 @@ public class EOSGiProject extends Observable implements EOSGiContext {
       }
     }
 
-    // TODO replace ModelChangeEvent to a DTO only
-    notifyObservers(new ModelChangeEvent().eventType(EventType.ENVIRONMENTS).arg(this));
+    EnvironmentsNodeDTO environmentsNodeDTO = new EnvironmentsNodeDTO();
+    environmentsNodeDTO.context = this;
+    notifyObservers(environmentsNodeDTO);
   }
 
   @Override
   public void removeObserver(final Observer observer) {
     deleteObserver(observer);
-  }
-
-  @Override
-  public Optional<DistRunner> runner(final String environmentName) {
-    Objects.requireNonNull(environmentName, "environmentName must be not null!");
-    if (environments.containsKey(environmentName)) {
-      return environments.get(environmentName).getDistRunner();
-    } else {
-      log.error("Couldn't find environment with name " + environmentName);
-      return Optional.empty();
-    }
   }
 
   @Override
@@ -200,6 +254,7 @@ public class EOSGiProject extends Observable implements EOSGiContext {
       if (this.environments.containsKey(newEnvironment.id)) {
         environment = this.environments.remove(newEnvironment.id);
         environment.update(newEnvironment);
+        // TODO update laucher and server (if the dist exists)
       } else {
         environment = new Environment();
         environment.setId(newEnvironment.id);
@@ -208,18 +263,12 @@ public class EOSGiProject extends Observable implements EOSGiContext {
       }
       newEnvironments.put(newEnvironment.id, environment);
     });
+    this.environments.forEach((key, value) -> {
+      deleteServer(generateServerId(key));
+    });
     if (!this.environments.isEmpty()) {
       setChanged();
     }
-    this.environments.forEach((key, environment) -> {
-      runner(key).ifPresent(runner -> {
-        runner.stop();
-      });
-      // Optional<DistRunner> distRunner = environment.getDistRunner();
-      // distRunner.ifPresent((runner) -> {
-      // runner.stop();
-      // });
-    });
     this.environments = newEnvironments;
   }
 

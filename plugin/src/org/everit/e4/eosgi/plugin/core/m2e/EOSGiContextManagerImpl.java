@@ -16,12 +16,9 @@
 package org.everit.e4.eosgi.plugin.core.m2e;
 
 import java.text.MessageFormat;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.apache.maven.plugin.MojoExecution;
-import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.Status;
@@ -71,23 +68,41 @@ public class EOSGiContextManagerImpl implements EOSGiContextManager {
             project.getName()), e);
       }
 
-      try {
-        List<MojoExecution> executions = mavenProjectFacade.getMojoExecutions(
-            M2EGoalExecutor.EOSGI_MAVEN_PLUGIN_GROUP_ID,
-            M2EGoalExecutor.EOSGI_MAVEN_PLUGIN_ARTIFACT_ID, monitor,
-            M2EGoalExecutor.DIST_GOAL);
-        if (!executions.isEmpty()) {
-          Xpp3Dom configuration = executions.get(0).getConfiguration();
-          EnvironmentsDTO environments = null;
-          if (configuration != null) {
-            environments = new ConfiguratorParser().parse(configuration);
-            eosgiContext.refresh(contextChange.configuration(environments));
-          }
+      M2EGoalExecutor executor = new M2EGoalExecutor(project, null);
+      executor.getConfiguration(monitor).ifPresent(configuration -> {
+        EnvironmentsDTO environments = null;
+        if (configuration != null) {
+          environments = new ConfiguratorParser().parse(configuration);
+          eosgiContext.refresh(contextChange.configuration(environments));
         }
-      } catch (Exception e) {
-        log.error("Couldn't fetch mojo configuration for project '" + project.getName() + "'",
-            e);
-      }
+      });
+
+      // Xpp3Dom configuration = new M2EGoalExecutor(project, null).getConfiguration(monitor);
+      // if (configuration != null) {
+      // EnvironmentsDTO environments = null;
+      // if (configuration != null) {
+      // environments = new ConfiguratorParser().parse(configuration);
+      // eosgiContext.refresh(contextChange.configuration(environments));
+      // }
+      // }
+
+      // try {
+      // List<MojoExecution> executions = mavenProjectFacade.getMojoExecutions(
+      // M2EGoalExecutor.EOSGI_MAVEN_PLUGIN_GROUP_ID,
+      // M2EGoalExecutor.EOSGI_MAVEN_PLUGIN_ARTIFACT_ID, monitor,
+      // M2EGoalExecutor.MavenGoal.DIST.getGoalName());
+      // if (!executions.isEmpty()) {
+      // Xpp3Dom configuration = executions.get(0).getConfiguration();
+      // EnvironmentsDTO environments = null;
+      // if (configuration != null) {
+      // environments = new ConfiguratorParser().parse(configuration);
+      // eosgiContext.refresh(contextChange.configuration(environments));
+      // }
+      // }
+      // } catch (Exception e) {
+      // log.error("Couldn't fetch mojo configuration for project '" + project.getName() + "'",
+      // e);
+      // }
       return Status.OK_STATUS;
     });
     job.setPriority(Job.SHORT);

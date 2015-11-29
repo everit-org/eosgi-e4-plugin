@@ -17,11 +17,10 @@ package org.everit.e4.eosgi.plugin.core;
 
 import java.util.List;
 import java.util.Observer;
-import java.util.Optional;
 
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.m2e.core.project.IMavenProjectChangedListener;
-import org.everit.e4.eosgi.plugin.core.dist.DistRunner;
 import org.everit.e4.eosgi.plugin.ui.dto.EnvironmentNodeDTO;
 
 /**
@@ -46,8 +45,6 @@ public interface EOSGiContext extends IMavenProjectChangedListener {
    */
   List<EnvironmentNodeDTO> fetchEnvironments();
 
-  void forcedStop(String environmentId);
-
   /**
    * Generate a dist for this project by the given environment name. All argumentum must be not
    * null!
@@ -56,8 +53,10 @@ public interface EOSGiContext extends IMavenProjectChangedListener {
    *          id of the environment.
    * @param monitor
    *          monitor for prigress bar (need for m2e).
+   * @throws CoreException
+   *           throws that is any error ocurred.
    */
-  void generate(String environmentId, IProgressMonitor monitor);
+  void generate(String environmentId, IProgressMonitor monitor) throws CoreException;
 
   /**
    * Refreshing the project state by the {@link ContextChange} instance.
@@ -75,14 +74,4 @@ public interface EOSGiContext extends IMavenProjectChangedListener {
    *          {@link Observer} instance.
    */
   void removeObserver(Observer observer);
-
-  /**
-   * Get an {@link DistRunner} instance by the environment id. The dist runner exists is not sure,
-   * so return an {@link Optional} instance.
-   *
-   * @param environmentId
-   *          name of the envronment.
-   * @return Optional DistRunner.
-   */
-  Optional<DistRunner> runner(String environmentId);
 }

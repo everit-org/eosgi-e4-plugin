@@ -75,7 +75,7 @@
     <extension
         point="org.eclipse.m2e.core.projectConfigurators">
         <configurator
-            class="org.everit.e4.eosgi.plugin.core.m2e.EosgiDistProjectConfigurator"
+            class="org.everit.e4.eosgi.plugin.core.m2e.DistProjectConfigurator"
             id="org.everit.e4.eosgi.plugin.m2e.eosgiDistProjectConfigurator"
             name="Project configurator for EOSGI dist projects.">
         </configurator>
@@ -104,86 +104,12 @@
             </with>
           </visibleWhen>
         </command>
-        <command
-          commandId="org.everit.e4.eosgi.plugin.ui.command.refresh"
-          label="Refresh distribution">
-          <visibleWhen>
-            <with variable="selection">
-              <iterate ifEmpty="false">
-                <instanceof value="org.everit.e4.eosgi.plugin.ui.navigator.nodes.EnvironmentNode" />
-              </iterate>
-            </with>
-          </visibleWhen>
-        </command>
-        <command
-          commandId="org.everit.e4.eosgi.plugin.ui.command.start"
-          label="Start">
-          <visibleWhen>
-            <with variable="selection">
-              <iterate ifEmpty="false">
-                <instanceof value="org.everit.e4.eosgi.plugin.ui.navigator.nodes.EnvironmentNode" />
-              </iterate>
-            </with>
-          </visibleWhen>
-        </command>
-        <command
-          commandId="org.everit.e4.eosgi.plugin.ui.command.debug"
-          label="Debug">
-          <visibleWhen>
-            <with variable="selection">
-              <iterate ifEmpty="false">
-                <instanceof value="org.everit.e4.eosgi.plugin.ui.navigator.nodes.EnvironmentNode" />
-              </iterate>
-            </with>
-          </visibleWhen>
-        </command>
-        <command
-          commandId="org.everit.e4.eosgi.plugin.ui.command.update"
-          label="Refresh">
-          <visibleWhen>
-            <with variable="selection">
-              <iterate ifEmpty="false">
-                <instanceof value="org.everit.e4.eosgi.plugin.ui.navigator.nodes.EnvironmentNode" />
-              </iterate>
-            </with>
-          </visibleWhen>
-        </command>
-        <command
-          commandId="org.everit.e4.eosgi.plugin.ui.command.showLog"
-          label="Show log">
-          <visibleWhen>
-            <with variable="selection">
-              <iterate ifEmpty="false">
-                <instanceof value="org.everit.e4.eosgi.plugin.ui.navigator.nodes.EnvironmentNode" />
-              </iterate>
-            </with>
-          </visibleWhen>
-        </command>
-        <command
-          commandId="org.everit.e4.eosgi.plugin.ui.command.stop"
-          label="Stop">
-          <visibleWhen>
-            <with variable="selection">
-              <iterate ifEmpty="false">
-                <instanceof value="org.everit.e4.eosgi.plugin.ui.navigator.nodes.EnvironmentNode" />
-              </iterate>
-            </with>
-          </visibleWhen>
-        </command>
       </menuContribution>
     </extension>
 
     <extension
       id="org.everit.e4.eosgi.plugin.ui.command"
       point="org.eclipse.ui.commands">
-      <command
-        id="org.everit.e4.eosgi.plugin.ui.command.start"
-        name="startCommand">
-      </command>
-      <command
-        id="org.everit.e4.eosgi.plugin.ui.command.stop"
-        name="stopCommand">
-      </command>
       <command
         id="org.everit.e4.eosgi.plugin.ui.command.create"
         name="distComand">
@@ -208,62 +134,97 @@
           <with variable="selection">
               <iterate ifEmpty="false">
                 <instanceof value="org.everit.e4.eosgi.plugin.ui.navigator.nodes.EnvironmentNode" />
+                <!--
                 <or>
                   <test property="org.everit.e4.eosgi.plugin.properties.distStatus" value="NONE"/>
                   <test property="org.everit.e4.eosgi.plugin.properties.distStatus" value="STOPPED"/>
                   <test property="org.everit.e4.eosgi.plugin.properties.distStatus" value="RUNNING"/>
                 </or>
-              </iterate>
-          </with>
-        </enabledWhen>
-      </handler>
-      <handler
-        commandId="org.everit.e4.eosgi.plugin.ui.command.start"
-        class="org.everit.e4.eosgi.plugin.ui.command.StartDistHandler">
-        <enabledWhen>
-          <with variable="selection">
-              <iterate ifEmpty="false">
-                <instanceof value="org.everit.e4.eosgi.plugin.ui.navigator.nodes.EnvironmentNode" />
-                <test property="org.everit.e4.eosgi.plugin.properties.distStatus" value="STOPPED"/>
-              </iterate>
-          </with>
-        </enabledWhen>
-      </handler>
-      <handler
-        commandId="org.everit.e4.eosgi.plugin.ui.command.debug"
-        class="org.everit.e4.eosgi.plugin.ui.command.StartDistHandler">
-        <enabledWhen>
-          <with variable="selection">
-              <iterate ifEmpty="false">
-                <instanceof value="org.everit.e4.eosgi.plugin.ui.navigator.nodes.EnvironmentNode" />
-                <test property="org.everit.e4.eosgi.plugin.properties.distStatus" value="STOPPED"/>
-              </iterate>
-          </with>
-        </enabledWhen>
-      </handler>
-      <handler
-        commandId="org.everit.e4.eosgi.plugin.ui.command.stop"
-        class="org.everit.e4.eosgi.plugin.ui.command.StopDistHandler">
-        <enabledWhen>
-          <with variable="selection">
-              <iterate ifEmpty="false">
-                <instanceof value="org.everit.e4.eosgi.plugin.ui.navigator.nodes.EnvironmentNode" />
-                <test property="org.everit.e4.eosgi.plugin.properties.distStatus" value="RUNNING"/>
+                -->
               </iterate>
           </with>
         </enabledWhen>
       </handler>
     </extension>
 
-    <extension
-      point="org.eclipse.core.expressions.propertyTesters">
-      <propertyTester
-        id="org.everit.e4.eosgi.plugin.propertyTester.environmentNode"
-        type="org.everit.e4.eosgi.plugin.ui.navigator.nodes.EnvironmentNode"
-        namespace="org.everit.e4.eosgi.plugin.properties"
-        properties="distStatus"
-        class="org.everit.e4.eosgi.plugin.ui.command.EnvironmentNodePropertyTester">
-      </propertyTester>
-    </extension>
+  <!--
+  <extension
+    point="org.eclipse.core.expressions.propertyTesters">
+    <propertyTester
+      id="org.everit.e4.eosgi.plugin.propertyTester.environmentNode"
+      type="org.everit.e4.eosgi.plugin.ui.navigator.nodes.EnvironmentNode"
+      namespace="org.everit.e4.eosgi.plugin.properties"
+      properties="distStatus"
+      class="org.everit.e4.eosgi.plugin.ui.command.EnvironmentNodePropertyTester">
+    </propertyTester>
+  </extension>
+  -->
+    
+  <!-- Server runtime staffs -->
+  <extension point="org.eclipse.wst.server.core.runtimeTypes">
+    <runtimeType
+      id="org.everit.e4.eosgi.plugin.runtime"
+      name="EOSGi Runtime"
+      description="EOSGi Runtime description"
+      facetRuntimeComponent=""
+      facetRuntimeVersion=""
+      class="org.everit.e4.eosgi.plugin.core.server.EOSGiRuntime">
+      <moduleType
+        types="wst.web"
+        versions="1.0"/>
+    </runtimeType>
+  </extension>
+  
+  <!-- Everit icon for eosgi server -->
+  <extension point="org.eclipse.wst.common.project.facet.ui.images">
+    <image
+      runtime-component-type="org.everit.e4.eosgi.plugin.runtime"
+      path="icons/everit.gif"/>
+    <!-- icons/obj16/preview.gif -->
+  </extension>
+    
+  <!-- Server type -->
+  <extension point="org.eclipse.wst.server.core.serverTypes">
+   <serverType
+     id="org.everit.e4.eosgi.plugin.server"
+     name="Everit OSGi server type"
+     description="Everit server type description"
+     supportsRemoteHosts="false"
+     runtime="true"
+     initialState="stopped"
+     hasConfiguration="false"
+     launchModes="run,debug"
+     launchConfigId="org.everit.e4.eosgi.plugin.server.launchConfigurationType"
+     runtimeTypeId="org.everit.e4.eosgi.plugin.runtime"
+     class="org.everit.e4.eosgi.plugin.core.server.EOSGiServer"
+     behaviourClass="org.everit.e4.eosgi.plugin.core.server.EOSGiServerBehaviour"/>
+  </extension>
+  <!--launchConfigId="org.eclipse.jdt.launching.localJavaApplication"-->
+  
+  <!-- Own launch config type for EOSGi dists -->
+  <extension point="org.eclipse.debug.core.launchConfigurationTypes">
+   <launchConfigurationType
+      id="org.everit.e4.eosgi.plugin.server.launchConfigurationType"
+      name="EOSGi launch configuration"
+      delegate="org.everit.e4.eosgi.plugin.core.server.EOSGILaunchConfigurationDelegate"
+      modes="run,debug"/>
+  </extension>
+  
+  <!-- Icon for EOSGi launcher type -->
+  <extension point="org.eclipse.debug.ui.launchConfigurationTypeImages">
+    <launchConfigurationTypeImage
+      id="org.everit.e4.eosgi.plugin.server.launchConfigurationTypeImage"
+      configTypeID="org.everit.e4.eosgi.plugin.server.launchConfigurationType"
+      icon="icons/everit.gif">
+    </launchConfigurationTypeImage>
+  </extension>
 
+  <!-- TabGroups for EOSGi laucher configuration -->
+  <extension point="org.eclipse.debug.ui.launchConfigurationTabGroups">
+    <launchConfigurationTabGroup
+      id="org.everit.e4.eosgi.plugin.server.launchConfigurationTabGroup"
+      type="org.everit.e4.eosgi.plugin.server.launchConfigurationType"
+      class="org.everit.e4.eosgi.plugin.ui.launcher.LaunchConfigurationTabGroup">
+    </launchConfigurationTabGroup>
+  </extension>
 </plugin>

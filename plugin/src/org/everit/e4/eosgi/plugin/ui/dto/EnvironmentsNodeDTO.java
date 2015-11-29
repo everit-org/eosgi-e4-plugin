@@ -13,29 +13,34 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.everit.e4.eosgi.plugin.core;
+package org.everit.e4.eosgi.plugin.ui.dto;
+
+import java.util.Observable;
+
+import org.everit.e4.eosgi.plugin.core.EOSGiContext;
 
 /**
- * Model change event.
+ * DTO class for update UI about environments.
  */
-public class ModelChangeEvent {
-  public Object arg;
+public class EnvironmentsNodeDTO {
 
-  public EventType eventType;
+  public EOSGiContext context;
 
-  public ModelChangeEvent arg(final Object arg) {
-    this.arg = arg;
+  public Observable observable;
+
+  public EnvironmentsNodeDTO observable(final Observable observable) {
+    this.observable = observable;
     return this;
   }
 
-  public ModelChangeEvent eventType(final EventType eventType) {
-    this.eventType = eventType;
+  public EnvironmentsNodeDTO outdated(final EOSGiContext outdated) {
+    this.context = outdated;
     return this;
   }
 
   @Override
   public String toString() {
-    return "ModelChangeEvent [arg=" + arg + ", eventType=" + eventType + "]";
+    return "EnvironmentsNodeDTO [observable=" + observable + ", context=" + context + "]";
   }
 
 }

@@ -17,9 +17,9 @@ package org.everit.e4.eosgi.plugin.ui.navigator;
 
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.jface.viewers.StructuredViewer;
@@ -39,13 +39,13 @@ public class DistContentProvider extends TreeNodeContentProvider
     implements EosgiNodeChangeListener {
   private static final Object[] NO_CHILDREN = new Object[] {};
 
-  private Map<AbstractNode, AbstractNode[]> eosgiNodeCache = new HashMap<>();
+  private Map<AbstractNode, AbstractNode[]> eosgiNodeCache = new ConcurrentHashMap<>();
 
   private EOSGiContextManager manager;
 
   private EOSGiPluginActivator plugin;
 
-  private Map<IProject, AbstractNode[]> projectCache = new HashMap<>();
+  private Map<IProject, AbstractNode[]> projectCache = new ConcurrentHashMap<>();
 
   private StructuredViewer viewer;
 
@@ -63,15 +63,15 @@ public class DistContentProvider extends TreeNodeContentProvider
   }
 
   @Override
-  public synchronized void dispose() {
+  public void dispose() {
     projectCache.forEach((key, value) -> {
       for (AbstractNode abstractNode : value) {
         abstractNode.dispose();
         resolveNodesFor(key);
       }
     });
-    eosgiNodeCache = null;
     projectCache = null;
+    eosgiNodeCache = null;
   }
 
   @Override
@@ -164,7 +164,9 @@ public class DistContentProvider extends TreeNodeContentProvider
 
   @Override
   public void inputChanged(final Viewer aviewer, final Object oldInput, final Object newInput) {
-    viewer = (StructuredViewer) aviewer;
+    if (aviewer instanceof StructuredViewer) {
+      viewer = (StructuredViewer) aviewer;
+    }
   }
 
   @Override

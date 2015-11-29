@@ -15,14 +15,10 @@
  */
 package org.everit.e4.eosgi.plugin.ui.navigator.nodes;
 
-import java.util.Locale;
 import java.util.Observable;
 import java.util.Optional;
 
 import org.everit.e4.eosgi.plugin.core.EOSGiContext;
-import org.everit.e4.eosgi.plugin.core.EventType;
-import org.everit.e4.eosgi.plugin.core.ModelChangeEvent;
-import org.everit.e4.eosgi.plugin.core.dist.DistStatus;
 import org.everit.e4.eosgi.plugin.ui.dto.EnvironmentNodeDTO;
 import org.everit.e4.eosgi.plugin.ui.navigator.EosgiNodeChangeEvent;
 import org.everit.e4.eosgi.plugin.ui.navigator.EosgiNodeChangeListener;
@@ -33,8 +29,6 @@ import org.everit.e4.eosgi.plugin.ui.navigator.EosgiNodeChangeListener;
 public class EnvironmentNode extends AbstractNode {
 
   private EOSGiContext context;
-
-  private DistStatus distStatus = DistStatus.NONE;
 
   private String environmentId;
 
@@ -57,11 +51,6 @@ public class EnvironmentNode extends AbstractNode {
   }
 
   private void applyPresentedArgs(final EnvironmentNodeDTO args) {
-    Optional.ofNullable(args.distStatus)
-        .ifPresent(distStatus -> {
-          this.distStatus = args.distStatus;
-        });
-
     Optional.ofNullable(args.outdated).ifPresent(outdated -> {
       if (outdated) {
         setLabel(" (outdated)");
@@ -86,14 +75,6 @@ public class EnvironmentNode extends AbstractNode {
     return NO_CHILDREN;
   }
 
-  public DistStatus getDistStatus() {
-    return distStatus;
-  }
-
-  public String getDistStatusString() {
-    return " " + distStatus.name().toLowerCase(Locale.getDefault());
-  }
-
   @Override
   public String getIcon() {
     return "icons/ExecutionEnvironment.gif";
@@ -114,8 +95,7 @@ public class EnvironmentNode extends AbstractNode {
 
   @Override
   public String toString() {
-    return "EnvironmentNode [context=" + context + ", distStatus=" + distStatus + ", environmentId="
-        + environmentId + "]";
+    return "EnvironmentNode [context=" + context + ", environmentId=" + environmentId + "]";
   }
 
   @Override
@@ -123,15 +103,8 @@ public class EnvironmentNode extends AbstractNode {
     if (context == null) {
       return;
     }
-
-    ModelChangeEvent event = null;
-    if ((arg != null) && (arg instanceof ModelChangeEvent)) {
-      event = (ModelChangeEvent) arg;
-    }
-
-    if ((event != null) && (event.eventType == EventType.ENVIRONMENT)
-        && (event.arg instanceof EnvironmentNodeDTO)) {
-      EnvironmentNodeDTO args = (EnvironmentNodeDTO) event.arg;
+    if (arg != null && arg instanceof EnvironmentNodeDTO) {
+      EnvironmentNodeDTO args = (EnvironmentNodeDTO) arg;
       if (environmentId.equals(args.id)) {
         applyPresentedArgs(args);
         changed(new EosgiNodeChangeEvent(this));

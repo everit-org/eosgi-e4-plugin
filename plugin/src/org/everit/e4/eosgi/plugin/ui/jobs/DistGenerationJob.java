@@ -16,12 +16,15 @@
 package org.everit.e4.eosgi.plugin.ui.jobs;
 
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.ILog;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 import org.everit.e4.eosgi.plugin.core.EOSGiContext;
 import org.everit.e4.eosgi.plugin.core.EOSGiContextManager;
+import org.everit.e4.eosgi.plugin.ui.EOSGiLog;
 import org.everit.e4.eosgi.plugin.ui.EOSGiPluginActivator;
 
 /**
@@ -30,6 +33,8 @@ import org.everit.e4.eosgi.plugin.ui.EOSGiPluginActivator;
 public final class DistGenerationJob extends Job {
 
   private String environmentId;
+
+  private final EOSGiLog log;
 
   private IProgressMonitor monitor;
 
@@ -47,6 +52,8 @@ public final class DistGenerationJob extends Job {
     super("Generate dist for " + environmentId);
     this.project = project;
     this.environmentId = environmentId;
+    ILog iLog = EOSGiPluginActivator.getDefault().getLog();
+    this.log = new EOSGiLog(iLog);
     setPriority(Job.BUILD);
   }
 
@@ -62,7 +69,11 @@ public final class DistGenerationJob extends Job {
     EOSGiContextManager eosgiManager2 = EOSGiPluginActivator.getDefault().getEOSGiManager();
     EOSGiContext eosgiProject = eosgiManager2.findOrCreate(project);
     if (eosgiProject != null) {
-      eosgiProject.generate(environmentId, monitor);
+      try {
+        eosgiProject.generate(environmentId, monitor);
+      } catch (CoreException e) {
+        log.error("Could not generate dist for environment: " + environmentId, e);
+      }
     }
     return Status.OK_STATUS;
   }

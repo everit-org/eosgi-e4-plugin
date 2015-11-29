@@ -31,9 +31,9 @@
 
   <dependencies>
     <dependency>
-      <groupId>org.rzo.yajsw</groupId>
-      <artifactId>wrapper</artifactId>
-      <version>11.11</version>
+      <groupId>org.everit.osgi.dev</groupId>
+      <artifactId>org.everit.osgi.dev.eosgi.dist.schema</artifactId>
+      <version>1.0.0-SNAPSHOT</version>
     </dependency>
   </dependencies>
 
@@ -42,6 +42,24 @@
     <testSourceDirectory>test</testSourceDirectory>
 
     <plugins>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>build-helper-maven-plugin</artifactId>
+        <version>1.9.1</version>
+        <executions>
+          <execution>
+            <phase>generate-sources</phase>
+            <goals>
+              <goal>add-source</goal>
+            </goals>
+            <configuration>
+              <sources>
+                <source>src/generated/</source>
+              </sources>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-dependency-plugin</artifactId>
@@ -56,29 +74,9 @@
             <configuration>
               <artifactItems>
                 <item>
-                  <groupId>org.rzo.yajsw</groupId>
-                  <artifactId>wrapper</artifactId>
-                  <version>11.11</version>
-                </item>
-                <item>
-                  <groupId>org.rzo.yajsw</groupId>
-                  <artifactId>srvmgr</artifactId>
-                  <version>11.11</version>
-                </item>
-                <item>
-                  <groupId>org.rzo.yajsw</groupId>
-                  <artifactId>ahessian</artifactId>
-                  <version>11.11</version>
-                </item>
-                <item>
-                  <groupId>net.java.dev.jna</groupId>
-                  <artifactId>jna</artifactId>
-                  <version>3.4.0</version>
-                </item>
-                <item>
-                  <groupId>net.java.dev.jna</groupId>
-                  <artifactId>platform</artifactId>
-                  <version>3.4.0</version>
+                  <groupId>org.everit.osgi.dev</groupId>
+                  <artifactId>org.everit.osgi.dev.eosgi.dist.schema</artifactId>
+                  <version>1.0.0-SNAPSHOT</version>
                 </item>
               </artifactItems>
               <outputDirectory>lib</outputDirectory>

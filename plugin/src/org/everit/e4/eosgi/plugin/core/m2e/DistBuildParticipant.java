@@ -35,7 +35,7 @@ import org.everit.e4.eosgi.plugin.core.m2e.xml.EnvironmentsDTO;
 /**
  * MojoExecutionBuildParticipant implementation for eosgi-maven-plugin.
  */
-public class EosgiDistBuildParticipant extends MojoExecutionBuildParticipant {
+public class DistBuildParticipant extends MojoExecutionBuildParticipant {
 
   private EOSGiContextManager eosgiManager;
 
@@ -48,7 +48,7 @@ public class EosgiDistBuildParticipant extends MojoExecutionBuildParticipant {
    * @param eosgiManager
    *          EOSGi context manager instance.
    */
-  public EosgiDistBuildParticipant(final MojoExecution execution,
+  public DistBuildParticipant(final MojoExecution execution,
       final EOSGiContextManager eosgiManager) {
     super(execution, true, true);
     Objects.requireNonNull(eosgiManager, "eosgiManager must be not null!");

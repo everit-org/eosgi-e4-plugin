@@ -45,7 +45,7 @@ import org.everit.e4.eosgi.plugin.ui.util.ProjectNatureUtils;
 /**
  * Project configurator for EOSGI projects.
  */
-public class EosgiDistProjectConfigurator extends AbstractProjectConfigurator
+public class DistProjectConfigurator extends AbstractProjectConfigurator
     implements IJavaProjectConfigurator {
 
   private EOSGiContextManager eosgiManager;
@@ -55,7 +55,7 @@ public class EosgiDistProjectConfigurator extends AbstractProjectConfigurator
   /**
    * Constructor.
    */
-  public EosgiDistProjectConfigurator() {
+  public DistProjectConfigurator() {
     super();
     EOSGiPluginActivator plugin = EOSGiPluginActivator.getDefault();
     log = new EOSGiLog(plugin.getLog());
@@ -100,7 +100,7 @@ public class EosgiDistProjectConfigurator extends AbstractProjectConfigurator
   public AbstractBuildParticipant getBuildParticipant(final IMavenProjectFacade projectFacade,
       final MojoExecution execution,
       final IPluginExecutionMetadata executionMetadata) {
-    return new EosgiDistBuildParticipant(execution, eosgiManager);
+    return new DistBuildParticipant(execution, eosgiManager);
   }
 
   @Override
@@ -116,6 +116,32 @@ public class EosgiDistProjectConfigurator extends AbstractProjectConfigurator
       final IProgressMonitor monitor) {
     if (newFacade != null) {
       monitor.subTask("Update configuration");
+      // IProject project = newFacade.getProject();
+      // if (project != null) {
+      // M2EGoalExecutor m2eGoalExecutor = new M2EGoalExecutor(project, null);
+      //
+      // EnvironmentsDTO environments = null;
+      // Optional<Xpp3Dom> configuration = m2eGoalExecutor.getConfiguration(monitor);
+      // if (configuration.isPresent()) {
+      // try {
+      // environments = new ConfiguratorParser().parse(configuration.get());
+      // } catch (Exception e) {
+      // log.error("can't parse configuration", e);
+      // }
+      // }
+      //
+      // ContextChange contextChange = new ContextChange();
+      // if (environments != null) {
+      // contextChange.configuration(environments);
+      // }
+      // m2eGoalExecutor.isLegacy(monitor)
+      // .ifPresent((isLegacy) -> contextChange.legacyMavenPlugin(true));
+      //
+      // EOSGiContext eosgiProject = eosgiManager.findOrCreate(project);
+      // if (eosgiProject != null) {
+      // eosgiProject.refresh(contextChange);
+      // }
+      // }
       try {
         IProject project = newFacade.getProject();
         MojoExecution mojoExecution = newFacade.getMojoExecution(key, monitor);
