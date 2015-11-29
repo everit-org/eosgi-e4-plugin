@@ -51,7 +51,7 @@ public final class ProjectNatureUtils {
   private ProjectNatureUtils() {
   }
 
-  public static String[] removeNature(String[] natureIds, String natureId) {
+  public static String[] removeNature(final String[] natureIds, final String natureId) {
     // TODO implement this
     return natureIds;
   }

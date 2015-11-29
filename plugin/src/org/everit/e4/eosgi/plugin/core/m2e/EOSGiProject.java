@@ -24,14 +24,12 @@ import java.util.Objects;
 import java.util.Observable;
 import java.util.Observer;
 
-import org.apache.maven.plugin.MojoExecution;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
 import org.eclipse.m2e.core.project.IMavenProjectFacade;
@@ -203,7 +201,7 @@ public class EOSGiProject extends Observable implements EOSGiContext {
 
     IFile source = mavenProjectChangedEvent.getSource();
     if (source != null && source.getName() != null && source.getName().startsWith("pom.xml")) {
-//      TODO checkEosgiPluginVersion(mavenProjectFacade);
+      // TODO checkEosgiPluginVersion(mavenProjectFacade);
 
       Xpp3Dom goalConfiguration = mavenProject.getGoalConfiguration(
           M2EGoalExecutor.EOSGI_MAVEN_PLUGIN_GROUP_ID,
@@ -217,25 +215,22 @@ public class EOSGiProject extends Observable implements EOSGiContext {
     }
   }
 
-  private void checkEosgiPluginVersion(IMavenProjectFacade mavenProjectFacade) {
-    try {
-      List<MojoExecution> mojoExecutions = mavenProjectFacade.getMojoExecutions(
-          M2EGoalExecutor.EOSGI_MAVEN_PLUGIN_GROUP_ID,
-          M2EGoalExecutor.EOSGI_MAVEN_PLUGIN_ARTIFACT_ID, new NullProgressMonitor(),
-          M2EGoalExecutor.MavenGoal.DIST.getGoalName());
-      MojoExecution mojoExecution = mojoExecutions.get(0);
-      String version = mojoExecution.getVersion();
-      String[] splittedVersion = version.split("\\.");
-      Integer majorVersion = Integer.valueOf(splittedVersion[0]);
-      if (majorVersion < 4) {
-        System.out.println("Unconfiguration necessary!");
-      } else {
-        System.out.println("Version OK!");
-      }
-    } catch (CoreException e) {
-      e.printStackTrace();
-    }
-  }
+  // private void checkEosgiPluginVersion(IMavenProjectFacade mavenProjectFacade) {
+  // try {
+  // List<MojoExecution> mojoExecutions = mavenProjectFacade.getMojoExecutions(
+  // M2EGoalExecutor.EOSGI_MAVEN_PLUGIN_GROUP_ID,
+  // M2EGoalExecutor.EOSGI_MAVEN_PLUGIN_ARTIFACT_ID, new NullProgressMonitor(),
+  // M2EGoalExecutor.MavenGoal.DIST.getGoalName());
+  // MojoExecution mojoExecution = mojoExecutions.get(0);
+  // String version = mojoExecution.getVersion();
+  // String[] splittedVersion = version.split("\\.");
+  // Integer majorVersion = Integer.valueOf(splittedVersion[0]);
+  // if (majorVersion < 4) {
+  // } else {
+  // }
+  // } catch (CoreException e) {
+  // }
+  // }
 
   @Override
   public void refresh(final ContextChange contextChange) {
