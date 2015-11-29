@@ -3,4 +3,4 @@ language: java
 jdk:
   - oraclejdk8
 
-before_install: ./install_unreleased_dependencies.sh
+before_install: sh install_unreleased_dependencies.sh
