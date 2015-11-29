@@ -38,11 +38,6 @@
   </properties>
 
   <dependencies>
-    <!-- <dependency> -->
-    <!-- <groupId>org.everit.osgi.dev</groupId> -->
-    <!-- <artifactId>eosgi-maven-plugin</artifactId> -->
-    <!-- <version>3.3.4-SNAPSHOT</version> -->
-    <!-- </dependency> -->
     <dependency>
       <groupId>org.everit.osgi.dev</groupId>
       <artifactId>org.everit.osgi.dev.eosgi.dist.schema</artifactId>
@@ -86,11 +81,6 @@
             </goals>
             <configuration>
               <artifactItems>
-                <!-- <item> -->
-                <!-- <groupId>org.everit.osgi.dev</groupId> -->
-                <!-- <artifactId>eosgi-maven-plugin</artifactId> -->
-                <!-- <version>3.3.4-SNAPSHOT</version> -->
-                <!-- </item> -->
                 <item>
                   <groupId>org.everit.osgi.dev</groupId>
                   <artifactId>org.everit.osgi.dev.eosgi.dist.schema</artifactId>
@@ -150,15 +140,6 @@
           </environments>
         </configuration>
       </plugin>
-
-      <!-- <plugin> -->
-      <!-- <groupId>org.eclipse.tycho</groupId> -->
-      <!-- <artifactId>target-platform-configuration</artifactId> -->
-      <!-- <version>${tycho-maven-plugin-version}</version> -->
-      <!-- <configuration> -->
-      <!-- <pomDependencies>consider</pomDependencies> -->
-      <!-- </configuration> -->
-      <!-- </plugin> -->
 
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
