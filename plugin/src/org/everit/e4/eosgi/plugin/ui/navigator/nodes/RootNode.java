@@ -38,8 +38,8 @@ public class RootNode extends AbstractNode {
    */
   public RootNode(final EOSGiContext context,
       final EosgiNodeChangeListener listener) {
-    super("Everit OSGi context", listener, null);
-    Objects.requireNonNull(context, "context cannot be null");
+    super(Messages.RootNode_everitEosgiContext, listener, null);
+    Objects.requireNonNull(context, "context cannot be null"); //$NON-NLS-1$
     this.context = context;
     setListener(listener);
     outdated = true;
@@ -63,7 +63,7 @@ public class RootNode extends AbstractNode {
 
   @Override
   public String getIcon() {
-    return "icons/everit.gif";
+    return "icons/everit.gif"; //$NON-NLS-1$
   }
 
   @Override

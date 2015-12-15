@@ -35,7 +35,7 @@
           point="org.eclipse.ui.navigator.navigatorContent">
         <navigatorContent
           id="org.everit.e4.eosgi.plugin.ui.navigator.dist"
-          name="%navigatorContentEveritOsgiContext"
+          name="%navigatorContent.everitOsgiContext"
           activeByDefault="true"
           icon="icons/everit.gif"
           priority="normal"
@@ -112,14 +112,14 @@
       point="org.eclipse.ui.commands">
       <command
         id="org.everit.e4.eosgi.plugin.ui.command.create"
-        name="%command.distCommand">
+        name="distComand">
       </command>
     </extension>
     
     <extension
       id="org.everit.e4.eosgi.plugin.ui.natures.eosgi"
       point="org.eclipse.core.resources.natures"
-      name="Eosgi Dist Nature">
+      name="%name.eosgiDistNature">
       <runtime>
         <run class="org.everit.e4.eosgi.plugin.ui.nature.EosgiNature" />
       </runtime>
@@ -164,8 +164,8 @@
   <extension point="org.eclipse.wst.server.core.runtimeTypes">
     <runtimeType
       id="org.everit.e4.eosgi.plugin.runtime"
-      name="EOSGi Runtime"
-      description="EOSGi Runtime description"
+      name="%name.eosgiRuntime"
+      description="%desciption.eosgiRuntime"
       facetRuntimeComponent=""
       facetRuntimeVersion=""
       class="org.everit.e4.eosgi.plugin.core.server.EOSGiRuntime">
@@ -187,8 +187,8 @@
   <extension point="org.eclipse.wst.server.core.serverTypes">
    <serverType
      id="org.everit.e4.eosgi.plugin.server"
-     name="Everit OSGi server type"
-     description="Everit server type description"
+     name="%name.eosgiServerType"
+     description="%description.eosgiServerType"
      supportsRemoteHosts="false"
      runtime="true"
      initialState="stopped"
@@ -205,7 +205,7 @@
   <extension point="org.eclipse.debug.core.launchConfigurationTypes">
    <launchConfigurationType
       id="org.everit.e4.eosgi.plugin.server.launchConfigurationType"
-      name="EOSGi launch configuration"
+      name="%name.eosgiLaunchConfiguration"
       delegate="org.everit.e4.eosgi.plugin.core.server.EOSGILaunchConfigurationDelegate"
       modes="run,debug"/>
   </extension>
