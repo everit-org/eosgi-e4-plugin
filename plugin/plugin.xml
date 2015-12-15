@@ -35,7 +35,7 @@
           point="org.eclipse.ui.navigator.navigatorContent">
         <navigatorContent
           id="org.everit.e4.eosgi.plugin.ui.navigator.dist"
-          name="Everit OSGi context"
+          name="%navigatorContentEveritOsgiContext"
           activeByDefault="true"
           icon="icons/everit.gif"
           priority="normal"
@@ -95,7 +95,7 @@
         allPopups="false">
         <command
           commandId="org.everit.e4.eosgi.plugin.ui.command.create"
-          label="Create distribution">
+          label="%command.createDistribution">
           <visibleWhen>
             <with variable="selection">
               <iterate ifEmpty="false">
@@ -112,7 +112,7 @@
       point="org.eclipse.ui.commands">
       <command
         id="org.everit.e4.eosgi.plugin.ui.command.create"
-        name="distComand">
+        name="%command.distCommand">
       </command>
     </extension>
     
