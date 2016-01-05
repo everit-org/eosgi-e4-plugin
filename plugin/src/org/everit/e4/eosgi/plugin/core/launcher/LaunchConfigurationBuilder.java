@@ -113,7 +113,7 @@ public class LaunchConfigurationBuilder {
 
     String workingDirectory = buildDirectory + File.separator + "eosgi-dist" + File.separator
         + environmentId;
-    wc = updateCurrentLauncherConfigurationWorkingCopy(projectName, workingDirectory,
+    wc = updateCurrentLauncherConfigurationWorkingCopy(workingDirectory,
         environmentConfigurationType);
 
     try {
@@ -125,15 +125,15 @@ public class LaunchConfigurationBuilder {
   }
 
   private String createArgumentsString(
-      final List<String> environmentConfigurationType) {
+      final List<String> argumentList) {
     final StringBuilder stringBuilder = new StringBuilder();
 
-    if (environmentConfigurationType == null) {
+    if (argumentList == null) {
       return stringBuilder.toString();
     }
 
-    environmentConfigurationType.forEach(argument -> {
-      stringBuilder.append(" " + argument);
+    argumentList.forEach(argument -> {
+      stringBuilder.append(' ' + argument);
     });
 
     String argumentsString = stringBuilder.toString();
@@ -167,7 +167,7 @@ public class LaunchConfigurationBuilder {
   }
 
   private ILaunchConfigurationWorkingCopy updateCurrentLauncherConfigurationWorkingCopy(
-      final String projectName, final String workingDirectory,
+      final String workingDirectory,
       final EnvironmentConfigurationDTO environmentConfigurationDTO) {
 
     String argumentsString = createArgumentsString(environmentConfigurationDTO.programArguments);

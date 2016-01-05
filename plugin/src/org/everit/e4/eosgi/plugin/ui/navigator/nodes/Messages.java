@@ -17,13 +17,15 @@ package org.everit.e4.eosgi.plugin.ui.navigator.nodes;
 
 import org.eclipse.osgi.util.NLS;
 
-public class Messages extends NLS {
+/**
+ * I18N utility class.
+ */
+public final class Messages extends NLS {
   private static final String BUNDLE_NAME =
       "org.everit.e4.eosgi.plugin.ui.navigator.nodes.messages"; //$NON-NLS-1$
   public static String RootNode_everitEosgiContext;
 
   static {
-    // initialize resource bundle
     NLS.initializeMessages(BUNDLE_NAME, Messages.class);
   }
 

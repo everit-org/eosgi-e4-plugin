@@ -73,17 +73,6 @@ public class DistProjectConfigurator extends AbstractProjectConfigurator
     }
   }
 
-//  private void removeEosgiNature(final IProgressMonitor monitor, final IProject project)
-//      throws CoreException {
-//    IProjectDescription projectDescription = project.getDescription();
-//    if (projectDescription != null) {
-//      String[] natureIds = projectDescription.getNatureIds();
-//      String[] newNatureIds = ProjectNatureUtils.removeNature(natureIds, EosgiNature.NATURE_ID);
-//      projectDescription.setNatureIds(newNatureIds);
-//      project.setDescription(projectDescription, monitor);
-//    }
-//  }
-
   @Override
   public void configure(final ProjectConfigurationRequest request, final IProgressMonitor monitor)
       throws CoreException {
