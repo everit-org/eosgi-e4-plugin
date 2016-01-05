@@ -145,7 +145,7 @@ public class EOSGiProject extends Observable implements EOSGiContext, IMavenProj
     try {
       EOSGiServer.deleteServer(serverId);
     } catch (CoreException e) {
-      log.error("Could not delete server (" + serverId + ")", e); //$NON-NLS-1$ //$NON-NLS-2$
+      log.error("Could not delete server (" + serverId + ")", e); //$NON-NLS-1$
     }
   }
 
@@ -153,7 +153,7 @@ public class EOSGiProject extends Observable implements EOSGiContext, IMavenProj
   public void dispose() {
     deleteObservers();
     environments.forEach((environmentId, environment) -> {
-      this.deleteServer(this.generateServerId(environmentId));
+      deleteServer(generateServerId(environmentId));
     });
     environments.clear();
   }
@@ -174,14 +174,14 @@ public class EOSGiProject extends Observable implements EOSGiContext, IMavenProj
   @Override
   public void generate(final String environmentId, final IProgressMonitor monitor)
       throws CoreException {
-    Objects.requireNonNull(environmentId, "environmentName must be not null!"); //$NON-NLS-1$
+    Objects.requireNonNull(environmentId, "environmentName must be not null!");
 
     String serverId = generateServerId(environmentId);
     deleteServer(serverId);
 
     Environment environment = environments.get(environmentId);
     if (environment == null) {
-      log.error("Could not found environment with name '" + environmentId + "'"); //$NON-NLS-1$ //$NON-NLS-2$
+      log.error("Could not found environment with name '" + environmentId + "'");
       return;
     }
 
@@ -251,7 +251,7 @@ public class EOSGiProject extends Observable implements EOSGiContext, IMavenProj
     }
 
     IFile source = mavenProjectChangedEvent.getSource();
-    if (source != null && source.getName() != null && source.getName().startsWith("pom.xml")) { //$NON-NLS-1$
+    if ((source != null) && (source.getName() != null) && source.getName().startsWith("pom.xml")) {
       if (checkEosgiPluginVersion(mavenProjectFacade)) {
         contextChange.enabledDisabled = true;
       }
@@ -270,7 +270,7 @@ public class EOSGiProject extends Observable implements EOSGiContext, IMavenProj
 
   @Override
   public void refresh(final ContextChange contextChange) {
-    Objects.requireNonNull(contextChange, "contextChange must be not null!"); //$NON-NLS-1$
+    Objects.requireNonNull(contextChange, "contextChange must be not null!");
 
     if (buildDirectory == null) {
       buildDirectory = contextChange.buildDirectory;
@@ -313,8 +313,8 @@ public class EOSGiProject extends Observable implements EOSGiContext, IMavenProj
 
   @Override
   public String toString() {
-    return "EOSGiProject [buildDirectory=" + buildDirectory + ", environments=" + environments //$NON-NLS-1$ //$NON-NLS-2$
-        + ", project=" + project + "]"; //$NON-NLS-1$ //$NON-NLS-2$
+    return "EOSGiProject [buildDirectory=" + buildDirectory + ", environments=" + environments
+        + ", project=" + project + "]";
   }
 
   private void updateEnvironments(final EnvironmentsDTO environments) {

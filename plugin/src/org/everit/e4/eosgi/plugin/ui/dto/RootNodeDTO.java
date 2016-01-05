@@ -19,6 +19,9 @@ import java.util.Observable;
 
 import org.everit.e4.eosgi.plugin.core.EOSGiContext;
 
+/**
+ * DTO class for root node changes.
+ */
 public class RootNodeDTO {
   public EOSGiContext context;
 
