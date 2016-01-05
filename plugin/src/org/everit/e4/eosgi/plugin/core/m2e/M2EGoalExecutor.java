@@ -21,10 +21,13 @@ import java.util.Optional;
 import org.apache.maven.plugin.MojoExecution;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
+import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.ILog;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.m2e.core.MavenPlugin;
 import org.eclipse.m2e.core.embedder.IMaven;
 import org.eclipse.m2e.core.project.IMavenProjectFacade;
@@ -124,6 +127,7 @@ public class M2EGoalExecutor {
       mavenProject.getProperties().remove(EOSGI_ANALYTICS_REFERER_PARAMETER);
       mavenProject.getProperties().remove(EOSGI_ENVIRONMENT_ID);
       mavenProject.getProperties().remove(EOSGI_DIST_ONLY);
+
       return true;
     }
     return false;
@@ -135,7 +139,7 @@ public class M2EGoalExecutor {
     if ((mavenProject != null) && isNotCancelled(monitor)) {
       monitor.setTaskName("fetching execution information...");
       try {
-        execution = fetchMojoExecution(mavenProjectFacade, monitor);
+        execution = fetchMojoExecution(monitor);
       } catch (CoreException e) {
         log.error("Could not fetch dist/integration-test goal.", e);
       }
@@ -155,8 +159,7 @@ public class M2EGoalExecutor {
     return mavenProject;
   }
 
-  private MojoExecution fetchMojoExecution(final IMavenProjectFacade mavenProjectFacade,
-      final IProgressMonitor monitor) throws CoreException {
+  private MojoExecution fetchMojoExecution(final IProgressMonitor monitor) throws CoreException {
     List<MojoExecution> mojoExecutions = mavenProjectFacade
         .getMojoExecutions(EOSGI_MAVEN_PLUGIN_GROUP_ID, EOSGI_MAVEN_PLUGIN_ARTIFACT_ID, monitor,
             MavenGoal.DIST.getGoalName());

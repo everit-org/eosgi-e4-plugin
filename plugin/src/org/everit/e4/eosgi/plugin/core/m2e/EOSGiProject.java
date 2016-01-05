@@ -24,14 +24,19 @@ import java.util.Objects;
 import java.util.Observable;
 import java.util.Observer;
 
+import org.apache.maven.plugin.MojoExecution;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
+import org.eclipse.m2e.core.project.IMavenProjectChangedListener;
 import org.eclipse.m2e.core.project.IMavenProjectFacade;
 import org.eclipse.m2e.core.project.MavenProjectChangedEvent;
 import org.eclipse.wst.server.core.IRuntime;
@@ -54,7 +59,9 @@ import org.everit.osgi.dev.eosgi.dist.schema.xsd.UseByType;
 /**
  * {@link EOSGiContext} base implementation.
  */
-public class EOSGiProject extends Observable implements EOSGiContext {
+public class EOSGiProject extends Observable implements EOSGiContext, IMavenProjectChangedListener {
+
+  private static final int MINIMAL_EOSGI_MAJOR_VERSION = 4;
 
   private String buildDirectory;
 
@@ -146,6 +153,8 @@ public class EOSGiProject extends Observable implements EOSGiContext {
       return;
     }
 
+    reSyncTargetFolder();
+
     environment.setGenerated();
 
     if (monitor != null) {
@@ -157,6 +166,14 @@ public class EOSGiProject extends Observable implements EOSGiContext {
 
     if (environmentConfigurationDTO != null) {
       createServerForEnvironment(environmentId, environmentConfigurationDTO, monitor);
+    }
+  }
+
+  private void reSyncTargetFolder() throws CoreException {
+    // TODO replace target folder to maven build directory
+    IFolder targetFolder = project.getFolder("target");
+    if (!targetFolder.isSynchronized(IResource.DEPTH_INFINITE)) {
+      targetFolder.refreshLocal(IResource.DEPTH_INFINITE, new NullProgressMonitor());
     }
   }
 
@@ -201,7 +218,7 @@ public class EOSGiProject extends Observable implements EOSGiContext {
 
     IFile source = mavenProjectChangedEvent.getSource();
     if (source != null && source.getName() != null && source.getName().startsWith("pom.xml")) {
-      // TODO checkEosgiPluginVersion(mavenProjectFacade);
+      checkEosgiPluginVersion(mavenProjectFacade);
 
       Xpp3Dom goalConfiguration = mavenProject.getGoalConfiguration(
           M2EGoalExecutor.EOSGI_MAVEN_PLUGIN_GROUP_ID,
@@ -215,22 +232,25 @@ public class EOSGiProject extends Observable implements EOSGiContext {
     }
   }
 
-  // private void checkEosgiPluginVersion(IMavenProjectFacade mavenProjectFacade) {
-  // try {
-  // List<MojoExecution> mojoExecutions = mavenProjectFacade.getMojoExecutions(
-  // M2EGoalExecutor.EOSGI_MAVEN_PLUGIN_GROUP_ID,
-  // M2EGoalExecutor.EOSGI_MAVEN_PLUGIN_ARTIFACT_ID, new NullProgressMonitor(),
-  // M2EGoalExecutor.MavenGoal.DIST.getGoalName());
-  // MojoExecution mojoExecution = mojoExecutions.get(0);
-  // String version = mojoExecution.getVersion();
-  // String[] splittedVersion = version.split("\\.");
-  // Integer majorVersion = Integer.valueOf(splittedVersion[0]);
-  // if (majorVersion < 4) {
-  // } else {
-  // }
-  // } catch (CoreException e) {
-  // }
-  // }
+  private void checkEosgiPluginVersion(final IMavenProjectFacade mavenProjectFacade) {
+    try {
+      List<MojoExecution> mojoExecutions = mavenProjectFacade.getMojoExecutions(
+          M2EGoalExecutor.EOSGI_MAVEN_PLUGIN_GROUP_ID,
+          M2EGoalExecutor.EOSGI_MAVEN_PLUGIN_ARTIFACT_ID, new NullProgressMonitor(),
+          M2EGoalExecutor.MavenGoal.DIST.getGoalName());
+      MojoExecution mojoExecution = mojoExecutions.get(0);
+      String version = mojoExecution.getVersion();
+      String[] splittedVersion = version.split("\\.");
+      Integer majorVersion = Integer.valueOf(splittedVersion[0]);
+      if (majorVersion < MINIMAL_EOSGI_MAJOR_VERSION) {
+        // TODO disable eosgi functionality
+      } else {
+        // TODO enable eosgi functionality
+      }
+    } catch (CoreException e) {
+      // TODO handle this
+    }
+  }
 
   @Override
   public void refresh(final ContextChange contextChange) {

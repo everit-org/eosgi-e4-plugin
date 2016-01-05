@@ -6,7 +6,7 @@ This is an Eclipse plugin for [eosgi-maven-plugin](https://github.com/everit-org
 
 More information coming soon...
 
-This plugin is under development yet, so... you know... maybe not work correctly :)
+This plugin is under development yet, so... you known... maybe don't work correctly :)
 
 ### Requirements
 
