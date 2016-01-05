@@ -50,6 +50,7 @@ import org.everit.e4.eosgi.plugin.core.m2e.xml.EnvironmentsDTO;
 import org.everit.e4.eosgi.plugin.core.server.EOSGiRuntime;
 import org.everit.e4.eosgi.plugin.core.server.EOSGiServer;
 import org.everit.e4.eosgi.plugin.ui.EOSGiLog;
+import org.everit.e4.eosgi.plugin.ui.EOSGiPluginActivator;
 import org.everit.e4.eosgi.plugin.ui.dto.EnvironmentNodeDTO;
 import org.everit.e4.eosgi.plugin.ui.dto.EnvironmentsNodeDTO;
 import org.everit.e4.eosgi.plugin.ui.dto.RootNodeDTO;
@@ -64,9 +65,9 @@ public class EOSGiProject extends Observable implements EOSGiContext, IMavenProj
 
   private static final int MINIMAL_EOSGI_MAJOR_VERSION = 4;
 
-  private boolean enable = true;
-
   private String buildDirectory;
+
+  private boolean enable = true;
 
   private Map<String, Environment> environments = new HashMap<>();
 
@@ -79,11 +80,44 @@ public class EOSGiProject extends Observable implements EOSGiContext, IMavenProj
     this.log = log;
   }
 
+  private boolean checkEosgiPluginVersion(final IMavenProjectFacade mavenProjectFacade) {
+    boolean changed = false;
+    boolean old = enable;
+    try {
+      List<MojoExecution> mojoExecutions = mavenProjectFacade.getMojoExecutions(
+          M2EGoalExecutor.EOSGI_MAVEN_PLUGIN_GROUP_ID,
+          M2EGoalExecutor.EOSGI_MAVEN_PLUGIN_ARTIFACT_ID, new NullProgressMonitor(),
+          M2EGoalExecutor.MavenGoal.DIST.getGoalName());
+      MojoExecution mojoExecution = mojoExecutions.get(0);
+      String version = mojoExecution.getVersion();
+      String[] splittedVersion = version.split("\\."); //$NON-NLS-1$
+      Integer majorVersion = Integer.valueOf(splittedVersion[0]);
+      if (MINIMAL_EOSGI_MAJOR_VERSION > majorVersion) {
+        log.info("eosgi disabled"); //$NON-NLS-1$
+
+        EOSGiPluginActivator.getDefault().showWarningDialog(
+            Messages.dialogTitleIncompatibleMavenPlugin,
+            Messages.dialogMessageIncompatibleMavenPlugin);
+
+        enable = false;
+      } else {
+        log.info("eosgi enabled"); //$NON-NLS-1$
+        enable = true;
+      }
+      if (enable != old) {
+        changed = true;
+      }
+    } catch (CoreException e) {
+      log.error("Check EOSGI plugin version", e); //$NON-NLS-1$
+    }
+    return changed;
+  }
+
   private void createServerForEnvironment(final String environmentId,
       final EnvironmentConfigurationDTO environmentConfigurationDTO,
       final IProgressMonitor monitor) throws CoreException {
     if (monitor != null) {
-      monitor.setTaskName("Creating Server...");
+      monitor.setTaskName(Messages.monitorCreateServer);
     }
 
     IRuntime runtime = EOSGiRuntime.createRuntime(monitor);
@@ -111,7 +145,7 @@ public class EOSGiProject extends Observable implements EOSGiContext, IMavenProj
     try {
       EOSGiServer.deleteServer(serverId);
     } catch (CoreException e) {
-      log.error("Could not delete server (" + serverId + ")", e);
+      log.error("Could not delete server (" + serverId + ")", e); //$NON-NLS-1$ //$NON-NLS-2$
     }
   }
 
@@ -140,14 +174,14 @@ public class EOSGiProject extends Observable implements EOSGiContext, IMavenProj
   @Override
   public void generate(final String environmentId, final IProgressMonitor monitor)
       throws CoreException {
-    Objects.requireNonNull(environmentId, "environmentName must be not null!");
+    Objects.requireNonNull(environmentId, "environmentName must be not null!"); //$NON-NLS-1$
 
     String serverId = generateServerId(environmentId);
     deleteServer(serverId);
 
     Environment environment = environments.get(environmentId);
     if (environment == null) {
-      log.error("Could not found environment with name '" + environmentId + "'");
+      log.error("Could not found environment with name '" + environmentId + "'"); //$NON-NLS-1$ //$NON-NLS-2$
       return;
     }
 
@@ -161,7 +195,7 @@ public class EOSGiProject extends Observable implements EOSGiContext, IMavenProj
     environment.setGenerated();
 
     if (monitor != null) {
-      monitor.setTaskName("Check and load dist.xml.");
+      monitor.setTaskName(Messages.monitorLoadDistXML);
     }
 
     EnvironmentConfigurationDTO environmentConfigurationDTO = loadEnvironmentConfiguration(
@@ -172,20 +206,17 @@ public class EOSGiProject extends Observable implements EOSGiContext, IMavenProj
     }
   }
 
-  private void reSyncTargetFolder() throws CoreException {
-    // TODO replace target folder to maven build directory
-    IFolder targetFolder = project.getFolder("target");
-    if (!targetFolder.isSynchronized(IResource.DEPTH_INFINITE)) {
-      targetFolder.refreshLocal(IResource.DEPTH_INFINITE, new NullProgressMonitor());
-    }
+  private String generateServerId(final String environmentId) {
+    return environmentId + "/" + project.getName(); //$NON-NLS-1$
   }
 
-  private String generateServerId(final String environmentId) {
-    return environmentId + "/" + project.getName();
+  @Override
+  public boolean isEnable() {
+    return enable;
   }
 
   private EnvironmentConfigurationDTO loadEnvironmentConfiguration(final String environmentId) {
-    String distXmlFilePath = buildDirectory + File.separator + "eosgi-dist"
+    String distXmlFilePath = buildDirectory + File.separator + "eosgi-dist" //$NON-NLS-1$
         + File.separator + environmentId;
     DistSchemaProvider distSchemaProvider = new DistSchemaProvider();
     EnvironmentConfigurationDTO environmentConfigurationDTO = distSchemaProvider
@@ -220,7 +251,7 @@ public class EOSGiProject extends Observable implements EOSGiContext, IMavenProj
     }
 
     IFile source = mavenProjectChangedEvent.getSource();
-    if (source != null && source.getName() != null && source.getName().startsWith("pom.xml")) {
+    if (source != null && source.getName() != null && source.getName().startsWith("pom.xml")) { //$NON-NLS-1$
       if (checkEosgiPluginVersion(mavenProjectFacade)) {
         contextChange.enabledDisabled = true;
       }
@@ -237,42 +268,9 @@ public class EOSGiProject extends Observable implements EOSGiContext, IMavenProj
     }
   }
 
-  private boolean checkEosgiPluginVersion(final IMavenProjectFacade mavenProjectFacade) {
-    boolean changed = false;
-    boolean old = enable;
-    try {
-      List<MojoExecution> mojoExecutions = mavenProjectFacade.getMojoExecutions(
-          M2EGoalExecutor.EOSGI_MAVEN_PLUGIN_GROUP_ID,
-          M2EGoalExecutor.EOSGI_MAVEN_PLUGIN_ARTIFACT_ID, new NullProgressMonitor(),
-          M2EGoalExecutor.MavenGoal.DIST.getGoalName());
-      MojoExecution mojoExecution = mojoExecutions.get(0);
-      String version = mojoExecution.getVersion();
-      String[] splittedVersion = version.split("\\.");
-      Integer majorVersion = Integer.valueOf(splittedVersion[0]);
-      if (MINIMAL_EOSGI_MAJOR_VERSION > majorVersion) {
-        log.info("eosgi disabled");
-        enable = false;
-      } else {
-        log.info("eosgi enabled");
-        enable = true;
-      }
-      if (enable != old) {
-        changed = true;
-      }
-    } catch (CoreException e) {
-      log.error("Check EOSGI plugin version", e);
-    }
-    return changed;
-  }
-
-  @Override
-  public boolean isEnable() {
-    return enable;
-  }
-
   @Override
   public void refresh(final ContextChange contextChange) {
-    Objects.requireNonNull(contextChange, "contextChange must be not null!");
+    Objects.requireNonNull(contextChange, "contextChange must be not null!"); //$NON-NLS-1$
 
     if (buildDirectory == null) {
       buildDirectory = contextChange.buildDirectory;
@@ -305,10 +303,18 @@ public class EOSGiProject extends Observable implements EOSGiContext, IMavenProj
     deleteObserver(observer);
   }
 
+  private void reSyncTargetFolder() throws CoreException {
+    // TODO replace target folder to maven build directory
+    IFolder targetFolder = project.getFolder("target"); //$NON-NLS-1$
+    if (!targetFolder.isSynchronized(IResource.DEPTH_INFINITE)) {
+      targetFolder.refreshLocal(IResource.DEPTH_INFINITE, new NullProgressMonitor());
+    }
+  }
+
   @Override
   public String toString() {
-    return "EOSGiProject [buildDirectory=" + buildDirectory + ", environments=" + environments
-        + ", project=" + project + "]";
+    return "EOSGiProject [buildDirectory=" + buildDirectory + ", environments=" + environments //$NON-NLS-1$ //$NON-NLS-2$
+        + ", project=" + project + "]"; //$NON-NLS-1$ //$NON-NLS-2$
   }
 
   private void updateEnvironments(final EnvironmentsDTO environments) {

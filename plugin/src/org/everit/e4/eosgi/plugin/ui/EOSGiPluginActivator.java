@@ -26,7 +26,12 @@ import org.eclipse.core.resources.IResourceDelta;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.resource.ImageDescriptor;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Shell;
+import org.eclipse.ui.IWorkbench;
+import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.console.ConsolePlugin;
 import org.eclipse.ui.console.IConsole;
 import org.eclipse.ui.console.IConsoleManager;
@@ -104,6 +109,23 @@ public class EOSGiPluginActivator extends AbstractUIPlugin {
     });
     job.setPriority(Job.BUILD);
     job.schedule();
+  }
+
+  /**
+   * Create a warning JFace dialog with given title and message.
+   *
+   * @param title
+   *          dialog title.
+   * @param message
+   *          dialog message.
+   */
+  public void showWarningDialog(final String title, final String message) {
+    Display.getDefault().syncExec(() -> {
+      IWorkbench workbench = PlatformUI.getWorkbench();
+      Display display = workbench.getDisplay();
+      Shell shell = display.getActiveShell();
+      MessageDialog.openWarning(shell, title, message);
+    });
   }
 
   @Override

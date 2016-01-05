@@ -44,7 +44,7 @@ public class RootNode extends AbstractNode {
    */
   public RootNode(final EOSGiContext context,
       final EosgiNodeChangeListener listener) {
-    super(Messages.RootNode_everitEosgiContext, listener, (context.isEnable() ? null : "diabled"));
+    super(Messages.nodeNameEveritEosgiContext, listener, (context.isEnable() ? null : "diabled"));
     Objects.requireNonNull(context, "context cannot be null"); //$NON-NLS-1$
     this.context = context;
     setListener(listener);
@@ -64,7 +64,7 @@ public class RootNode extends AbstractNode {
       if (context.isEnable()) {
         children = new AbstractNode[] { new EnvironmentsNode(context, getListener()) };
       } else {
-        children = null;
+        children = AbstractNode.NO_CHILDREN;
       }
       outdated = false;
     }
