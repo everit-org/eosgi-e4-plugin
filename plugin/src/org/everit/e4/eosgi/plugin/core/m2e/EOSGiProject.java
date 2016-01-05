@@ -83,32 +83,36 @@ public class EOSGiProject extends Observable implements EOSGiContext, IMavenProj
   private boolean checkEosgiPluginVersion(final IMavenProjectFacade mavenProjectFacade) {
     boolean changed = false;
     boolean old = enable;
+    List<MojoExecution> mojoExecutions = null;
     try {
-      List<MojoExecution> mojoExecutions = mavenProjectFacade.getMojoExecutions(
+      mojoExecutions = mavenProjectFacade.getMojoExecutions(
           M2EGoalExecutor.EOSGI_MAVEN_PLUGIN_GROUP_ID,
           M2EGoalExecutor.EOSGI_MAVEN_PLUGIN_ARTIFACT_ID, new NullProgressMonitor(),
           M2EGoalExecutor.MavenGoal.DIST.getGoalName());
-      MojoExecution mojoExecution = mojoExecutions.get(0);
-      String version = mojoExecution.getVersion();
-      String[] splittedVersion = version.split("\\."); //$NON-NLS-1$
-      Integer majorVersion = Integer.valueOf(splittedVersion[0]);
-      if (MINIMAL_EOSGI_MAJOR_VERSION > majorVersion) {
-        log.info("eosgi disabled"); //$NON-NLS-1$
-
-        EOSGiPluginActivator.getDefault().showWarningDialog(
-            Messages.dialogTitleIncompatibleMavenPlugin,
-            Messages.dialogMessageIncompatibleMavenPlugin);
-
-        enable = false;
-      } else {
-        log.info("eosgi enabled"); //$NON-NLS-1$
-        enable = true;
-      }
-      if (enable != old) {
-        changed = true;
-      }
     } catch (CoreException e) {
-      log.error("Check EOSGI plugin version", e); //$NON-NLS-1$
+      log.error("check EOSGI plugin version", e);
+    }
+
+    if (mojoExecutions == null) {
+      return changed;
+    }
+
+    MojoExecution mojoExecution = mojoExecutions.get(0);
+    String version = mojoExecution.getVersion();
+    String[] splittedVersion = version.split("\\.");
+    Integer majorVersion = Integer.valueOf(splittedVersion[0]);
+
+    if (MINIMAL_EOSGI_MAJOR_VERSION > majorVersion) {
+      enable = false;
+      EOSGiPluginActivator.getDefault().showWarningDialog(
+          Messages.dialogTitleIncompatibleMavenPlugin,
+          Messages.dialogMessageIncompatibleMavenPlugin);
+    } else {
+      enable = true;
+    }
+
+    if (enable != old) {
+      changed = true;
     }
     return changed;
   }
@@ -280,6 +284,7 @@ public class EOSGiProject extends Observable implements EOSGiContext, IMavenProj
       buildDirectory = contextChange.buildDirectory;
       setChanged();
     }
+
     if (contextChange.configuration != null) {
       synchronized (environments) {
         updateEnvironments(contextChange.configuration);
@@ -291,9 +296,9 @@ public class EOSGiProject extends Observable implements EOSGiContext, IMavenProj
     notifyObservers(environmentsNodeDTO);
 
     if (contextChange.enabledDisabled) {
-      setChanged();
       RootNodeDTO rootNodeDTO = new RootNodeDTO();
       rootNodeDTO.context(this);
+      setChanged();
       notifyObservers(rootNodeDTO);
     }
   }
@@ -305,7 +310,7 @@ public class EOSGiProject extends Observable implements EOSGiContext, IMavenProj
 
   private void reSyncTargetFolder() throws CoreException {
     // TODO replace target folder to maven build directory
-    IFolder targetFolder = project.getFolder("target"); //$NON-NLS-1$
+    IFolder targetFolder = project.getFolder("target");
     if (!targetFolder.isSynchronized(IResource.DEPTH_INFINITE)) {
       targetFolder.refreshLocal(IResource.DEPTH_INFINITE, new NullProgressMonitor());
     }
