@@ -25,8 +25,15 @@ public class ContextChange {
 
   public EnvironmentsDTO configuration;
 
+  public boolean enabledDisabled;
+
   public ContextChange buildDirectory(final String buildDirectory) {
     this.buildDirectory = buildDirectory;
+    return this;
+  }
+
+  public ContextChange enabledDisabled(final boolean enabledDisabled) {
+    this.enabledDisabled = enabledDisabled;
     return this;
   }
 

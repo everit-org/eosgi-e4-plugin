@@ -74,4 +74,6 @@ public interface EOSGiContext extends IMavenProjectChangedListener {
    *          {@link Observer} instance.
    */
   void removeObserver(Observer observer);
+
+  boolean isEnable();
 }

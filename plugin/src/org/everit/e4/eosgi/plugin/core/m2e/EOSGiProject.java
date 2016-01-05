@@ -52,6 +52,7 @@ import org.everit.e4.eosgi.plugin.core.server.EOSGiServer;
 import org.everit.e4.eosgi.plugin.ui.EOSGiLog;
 import org.everit.e4.eosgi.plugin.ui.dto.EnvironmentNodeDTO;
 import org.everit.e4.eosgi.plugin.ui.dto.EnvironmentsNodeDTO;
+import org.everit.e4.eosgi.plugin.ui.dto.RootNodeDTO;
 import org.everit.osgi.dev.eosgi.dist.schema.util.DistSchemaProvider;
 import org.everit.osgi.dev.eosgi.dist.schema.util.EnvironmentConfigurationDTO;
 import org.everit.osgi.dev.eosgi.dist.schema.xsd.UseByType;
@@ -62,6 +63,8 @@ import org.everit.osgi.dev.eosgi.dist.schema.xsd.UseByType;
 public class EOSGiProject extends Observable implements EOSGiContext, IMavenProjectChangedListener {
 
   private static final int MINIMAL_EOSGI_MAJOR_VERSION = 4;
+
+  private boolean enable = true;
 
   private String buildDirectory;
 
@@ -218,7 +221,9 @@ public class EOSGiProject extends Observable implements EOSGiContext, IMavenProj
 
     IFile source = mavenProjectChangedEvent.getSource();
     if (source != null && source.getName() != null && source.getName().startsWith("pom.xml")) {
-      checkEosgiPluginVersion(mavenProjectFacade);
+      if (checkEosgiPluginVersion(mavenProjectFacade)) {
+        contextChange.enabledDisabled = true;
+      }
 
       Xpp3Dom goalConfiguration = mavenProject.getGoalConfiguration(
           M2EGoalExecutor.EOSGI_MAVEN_PLUGIN_GROUP_ID,
@@ -232,7 +237,9 @@ public class EOSGiProject extends Observable implements EOSGiContext, IMavenProj
     }
   }
 
-  private void checkEosgiPluginVersion(final IMavenProjectFacade mavenProjectFacade) {
+  private boolean checkEosgiPluginVersion(final IMavenProjectFacade mavenProjectFacade) {
+    boolean changed = false;
+    boolean old = enable;
     try {
       List<MojoExecution> mojoExecutions = mavenProjectFacade.getMojoExecutions(
           M2EGoalExecutor.EOSGI_MAVEN_PLUGIN_GROUP_ID,
@@ -242,14 +249,25 @@ public class EOSGiProject extends Observable implements EOSGiContext, IMavenProj
       String version = mojoExecution.getVersion();
       String[] splittedVersion = version.split("\\.");
       Integer majorVersion = Integer.valueOf(splittedVersion[0]);
-      if (majorVersion < MINIMAL_EOSGI_MAJOR_VERSION) {
-        // TODO disable eosgi functionality
+      if (MINIMAL_EOSGI_MAJOR_VERSION > majorVersion) {
+        log.info("eosgi disabled");
+        enable = false;
       } else {
-        // TODO enable eosgi functionality
+        log.info("eosgi enabled");
+        enable = true;
+      }
+      if (enable != old) {
+        changed = true;
       }
     } catch (CoreException e) {
-      // TODO handle this
+      log.error("Check EOSGI plugin version", e);
     }
+    return changed;
+  }
+
+  @Override
+  public boolean isEnable() {
+    return enable;
   }
 
   @Override
@@ -273,6 +291,13 @@ public class EOSGiProject extends Observable implements EOSGiContext, IMavenProj
     EnvironmentsNodeDTO environmentsNodeDTO = new EnvironmentsNodeDTO();
     environmentsNodeDTO.context = this;
     notifyObservers(environmentsNodeDTO);
+
+    if (contextChange.enabledDisabled) {
+      setChanged();
+      RootNodeDTO rootNodeDTO = new RootNodeDTO();
+      rootNodeDTO.context(this);
+      notifyObservers(rootNodeDTO);
+    }
   }
 
   @Override

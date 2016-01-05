@@ -19,12 +19,18 @@ import java.util.Objects;
 import java.util.Observable;
 
 import org.everit.e4.eosgi.plugin.core.EOSGiContext;
+import org.everit.e4.eosgi.plugin.ui.dto.RootNodeDTO;
+import org.everit.e4.eosgi.plugin.ui.navigator.EosgiNodeChangeEvent;
 import org.everit.e4.eosgi.plugin.ui.navigator.EosgiNodeChangeListener;
 
 /**
  * Node class for EOSGi root.
  */
 public class RootNode extends AbstractNode {
+
+  private static final String ICONS_EVERIT_GIF = "icons/everit_new.gif";
+
+  private static final String ICONS_EVERIT_MONO_GIF = "icons/everit_new_mono.gif";
 
   private EOSGiContext context;
 
@@ -38,7 +44,7 @@ public class RootNode extends AbstractNode {
    */
   public RootNode(final EOSGiContext context,
       final EosgiNodeChangeListener listener) {
-    super(Messages.RootNode_everitEosgiContext, listener, null);
+    super(Messages.RootNode_everitEosgiContext, listener, (context.isEnable() ? null : "diabled"));
     Objects.requireNonNull(context, "context cannot be null"); //$NON-NLS-1$
     this.context = context;
     setListener(listener);
@@ -55,7 +61,11 @@ public class RootNode extends AbstractNode {
   @Override
   public AbstractNode[] getChildren() {
     if (outdated) {
-      children = new AbstractNode[] { new EnvironmentsNode(context, getListener()) };
+      if (context.isEnable()) {
+        children = new AbstractNode[] { new EnvironmentsNode(context, getListener()) };
+      } else {
+        children = null;
+      }
       outdated = false;
     }
     return children.clone();
@@ -63,7 +73,11 @@ public class RootNode extends AbstractNode {
 
   @Override
   public String getIcon() {
-    return "icons/everit.gif"; //$NON-NLS-1$
+    if (context.isEnable()) {
+      return ICONS_EVERIT_GIF;
+    } else {
+      return ICONS_EVERIT_MONO_GIF;
+    }
   }
 
   @Override
@@ -73,6 +87,14 @@ public class RootNode extends AbstractNode {
 
   @Override
   public void update(final Observable o, final Object arg) {
+    if (arg != null && arg instanceof RootNodeDTO) {
+      RootNodeDTO environmentsNodeDTO = (RootNodeDTO) arg;
+      if (this.context.equals(environmentsNodeDTO.context)) {
+        outdated = true;
+        changed(new EosgiNodeChangeEvent(this));
+      }
+    }
+
   }
 
 }
