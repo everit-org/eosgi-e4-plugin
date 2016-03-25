@@ -56,6 +56,7 @@ import org.everit.e4.eosgi.plugin.ui.dto.EnvironmentsNodeDTO;
 import org.everit.e4.eosgi.plugin.ui.dto.RootNodeDTO;
 import org.everit.osgi.dev.eosgi.dist.schema.util.DistSchemaProvider;
 import org.everit.osgi.dev.eosgi.dist.schema.util.EnvironmentConfigurationDTO;
+import org.everit.osgi.dev.eosgi.dist.schema.xsd.DistributionPackageType;
 import org.everit.osgi.dev.eosgi.dist.schema.xsd.UseByType;
 
 /**
@@ -223,9 +224,13 @@ public class EOSGiProject extends Observable implements EOSGiContext, IMavenProj
     String distXmlFilePath = buildDirectory + File.separator + "eosgi-dist" //$NON-NLS-1$
         + File.separator + environmentId;
     DistSchemaProvider distSchemaProvider = new DistSchemaProvider();
-    EnvironmentConfigurationDTO environmentConfigurationDTO = distSchemaProvider
-        .getEnvironmentConfiguration(new File(distXmlFilePath), UseByType.IDE);
-    return environmentConfigurationDTO;
+
+    DistributionPackageType distributionPackage = distSchemaProvider
+        .getOverridedDistributionPackage(new File(distXmlFilePath), UseByType.IDE);
+
+    // EnvironmentConfigurationDTO environmentConfigurationDTO = distSchemaProvider
+    // .getEnvironmentConfiguration(new File(distXmlFilePath), UseByType.IDE);
+    return distSchemaProvider.getEnvironmentConfiguration(distributionPackage);
   }
 
   @Override
