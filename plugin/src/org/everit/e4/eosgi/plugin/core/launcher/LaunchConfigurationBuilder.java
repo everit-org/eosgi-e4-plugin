@@ -16,8 +16,12 @@
 package org.everit.e4.eosgi.plugin.core.launcher;
 
 import java.io.File;
+import java.io.FileFilter;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.ILog;
@@ -140,15 +144,60 @@ public class LaunchConfigurationBuilder {
     return argumentsString;
   }
 
-  private List<String> createClassPathList(final String rootDirectory, final String mainJar)
+  private List<String> createClasspathList(final String rootDirectory, final String mainJar,
+      final String classpath)
       throws CoreException {
-    List<String> classPathList = new ArrayList<>();
-    IPath path = new Path(rootDirectory + "/" + mainJar);
+    List<String> classpathEntryList = new ArrayList<>();
+
+    classpathEntryList.add(mainJar);
+    if ("*".equals(classpath)) {
+      List<String> jarFiles = fetchAllJarFileFromRootDirectory(rootDirectory);
+      classpathEntryList.addAll(jarFiles);
+    } else if (classpath != null) {
+      classpathEntryList.addAll(Arrays.asList(classpath.split(":")));
+    }
+
+    List<String> classpathMementoEntryList = new ArrayList<>();
+    for (String classpathEntry : classpathEntryList) {
+      classpathMementoEntryList.add(toMemento(rootDirectory, classpathEntry));
+    }
+
+    // classpathMementoEntryList.add(memntoFromPath(rootDirectory, mainJar));
+
+    // String jarFileName = resolvOsgiJarFileName(rootDirectory);
+    // path = new Path(rootDirectory + "/" + jarFileName);
+
+    // if ("*".equals(classpath)) {
+    // String jarFileName = resolvOsgiJarFileName(rootDirectory);
+    // Path path = new Path(rootDirectory + "/" + jarFileName);
+    //
+    // } else if (classpath != null) {
+    // for (String classPath : Arrays.asList(classpath.split(":"))) {
+    // classpathMementoEntryList.add(memntoFromPath(rootDirectory, classPath));
+    // }
+    // }
+
+    // classpathEntry.setExternalAnnotationsPath(new Path(rootDirectory));
+    // classpathEntry.setClasspathProperty(IRuntimeClasspathEntry.USER_CLASSES);
+    return classpathMementoEntryList;
+  }
+
+  private List<String> fetchAllJarFileFromRootDirectory(final String rootDirectory) {
+    File rootFolder = new File(rootDirectory);
+    if (rootFolder.isDirectory()) {
+      File[] files = rootFolder.listFiles((FileFilter) pathname -> {
+        return !pathname.isDirectory() && pathname.getName().endsWith(".jar");
+      });
+      return Arrays.asList(files).stream().map(file -> file.getName()).collect(Collectors.toList());
+    }
+    return Collections.emptyList();
+  }
+
+  private String toMemento(final String rootDirectory, final String classpath)
+      throws CoreException {
+    IPath path = new Path(rootDirectory + "/" + classpath);
     IRuntimeClasspathEntry classpathEntry = JavaRuntime.newArchiveRuntimeClasspathEntry(path);
-    classpathEntry.setExternalAnnotationsPath(new Path(rootDirectory));
-    classpathEntry.setClasspathProperty(IRuntimeClasspathEntry.USER_CLASSES);
-    classPathList.add(classpathEntry.getMemento());
-    return classPathList;
+    return classpathEntry.getMemento();
   }
 
   private String createVmArgs(final List<String> vmArgumentList) {
@@ -175,8 +224,8 @@ public class LaunchConfigurationBuilder {
 
     List<String> classPathList = new ArrayList<>();
     try {
-      classPathList = createClassPathList(workingDirectory,
-          environmentConfigurationDTO.mainJar);
+      classPathList = createClasspathList(workingDirectory,
+          environmentConfigurationDTO.mainJar, environmentConfigurationDTO.classpath);
     } catch (CoreException e) {
       eosgiLog.error("Could not resolv classpath entries.", e);
     }
@@ -185,11 +234,9 @@ public class LaunchConfigurationBuilder {
     wc.setAttribute(IJavaLaunchConfigurationConstants.ATTR_MAIN_TYPE_NAME,
         environmentConfigurationDTO.mainClass);
     wc.setAttribute(IJavaLaunchConfigurationConstants.ATTR_WORKING_DIRECTORY, workingDirectory);
-    wc.setAttribute(IJavaLaunchConfigurationConstants.ATTR_PROGRAM_ARGUMENTS,
-        argumentsString);
+    wc.setAttribute(IJavaLaunchConfigurationConstants.ATTR_PROGRAM_ARGUMENTS, argumentsString);
     wc.setAttribute(IJavaLaunchConfigurationConstants.ATTR_DEFAULT_CLASSPATH, false);
-    wc.setAttribute(IJavaLaunchConfigurationConstants.ATTR_CLASSPATH,
-        classPathList);
+    wc.setAttribute(IJavaLaunchConfigurationConstants.ATTR_CLASSPATH, classPathList);
     wc.setAttribute(IJavaLaunchConfigurationConstants.ATTR_VM_ARGUMENTS, vmArgsList);
 
     wc.setAttribute(EOSGILaunchConfigurationDelegate.LAUNCHER_ATTR_ENVIRONMENT_ID, environmentId);

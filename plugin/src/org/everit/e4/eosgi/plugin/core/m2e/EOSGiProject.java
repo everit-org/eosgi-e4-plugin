@@ -98,22 +98,27 @@ public class EOSGiProject extends Observable implements EOSGiContext, IMavenProj
       return changed;
     }
 
-    MojoExecution mojoExecution = mojoExecutions.get(0);
-    String version = mojoExecution.getVersion();
-    String[] splittedVersion = version.split("\\.");
-    Integer majorVersion = Integer.valueOf(splittedVersion[0]);
+    // if (mojoExecutions.isEmpty()) {
+    // enable = false;
+    // return false;
+    // }
 
-    if (MINIMAL_EOSGI_MAJOR_VERSION > majorVersion) {
-      enable = false;
-      EOSGiPluginActivator.getDefault().showWarningDialog(
-          Messages.dialogTitleIncompatibleMavenPlugin,
-          Messages.dialogMessageIncompatibleMavenPlugin);
-    } else {
-      enable = true;
-    }
-
-    if (enable != old) {
-      changed = true;
+    if (!mojoExecutions.isEmpty()) {
+      MojoExecution mojoExecution = mojoExecutions.get(0);
+      String version = mojoExecution.getVersion();
+      String[] splittedVersion = version.split("\\.");
+      Integer majorVersion = Integer.valueOf(splittedVersion[0]);
+      if (MINIMAL_EOSGI_MAJOR_VERSION > majorVersion) {
+        enable = false;
+        EOSGiPluginActivator.getDefault().showWarningDialog(
+            Messages.dialogTitleIncompatibleMavenPlugin,
+            Messages.dialogMessageIncompatibleMavenPlugin);
+      } else {
+        enable = true;
+      }
+      if (enable != old) {
+        changed = true;
+      }
     }
     return changed;
   }
