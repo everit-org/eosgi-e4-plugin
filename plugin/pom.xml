@@ -24,16 +24,16 @@
     <version>0.1.0-SNAPSHOT</version>
   </parent>
 
-  <groupId>org.everit.e4</groupId>
+<!--   <groupId>org.everit.e4</groupId> -->
   <artifactId>org.everit.e4.eosgi.plugin</artifactId>
-  <version>0.1.0-SNAPSHOT</version>
+<!--   <version>0.1.0-SNAPSHOT</version> -->
   <packaging>eclipse-plugin</packaging>
 
   <dependencies>
     <dependency>
       <groupId>org.everit.osgi.dev</groupId>
       <artifactId>org.everit.osgi.dev.eosgi.dist.schema</artifactId>
-      <version>1.0.0-SNAPSHOT</version>
+      <version>${eosgi-dist-schema-version}</version>
     </dependency>
   </dependencies>
 
@@ -76,7 +76,7 @@
                 <item>
                   <groupId>org.everit.osgi.dev</groupId>
                   <artifactId>org.everit.osgi.dev.eosgi.dist.schema</artifactId>
-                  <version>1.0.0-SNAPSHOT</version>
+                  <version>${eosgi-dist-schema-version}</version>
                 </item>
               </artifactItems>
               <outputDirectory>lib</outputDirectory>

@@ -21,7 +21,7 @@
   <parent>
     <groupId>org.everit.config</groupId>
     <artifactId>org.everit.config.oss</artifactId>
-    <version>7.1.0</version>
+    <version>7.3.0</version>
   </parent>
 
   <groupId>org.everit.e4</groupId>
@@ -34,6 +34,7 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <maven-compiler-plugin-version>3.2</maven-compiler-plugin-version>
     <tycho-maven-plugin-version>0.24.0</tycho-maven-plugin-version>
+    <eosgi-dist-schema-version>1.0.0</eosgi-dist-schema-version>
   </properties>
 
   <build>

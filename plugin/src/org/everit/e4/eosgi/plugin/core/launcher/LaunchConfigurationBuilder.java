@@ -144,12 +144,10 @@ public class LaunchConfigurationBuilder {
     return argumentsString;
   }
 
-  private List<String> createClasspathList(final String rootDirectory, final String mainJar,
-      final String classpath)
+  private List<String> createClasspathList(final String rootDirectory, final String classpath)
       throws CoreException {
     List<String> classpathEntryList = new ArrayList<>();
 
-    classpathEntryList.add(mainJar);
     if ("*".equals(classpath)) {
       List<String> jarFiles = fetchAllJarFileFromRootDirectory(rootDirectory);
       classpathEntryList.addAll(jarFiles);
@@ -161,24 +159,6 @@ public class LaunchConfigurationBuilder {
     for (String classpathEntry : classpathEntryList) {
       classpathMementoEntryList.add(toMemento(rootDirectory, classpathEntry));
     }
-
-    // classpathMementoEntryList.add(memntoFromPath(rootDirectory, mainJar));
-
-    // String jarFileName = resolvOsgiJarFileName(rootDirectory);
-    // path = new Path(rootDirectory + "/" + jarFileName);
-
-    // if ("*".equals(classpath)) {
-    // String jarFileName = resolvOsgiJarFileName(rootDirectory);
-    // Path path = new Path(rootDirectory + "/" + jarFileName);
-    //
-    // } else if (classpath != null) {
-    // for (String classPath : Arrays.asList(classpath.split(":"))) {
-    // classpathMementoEntryList.add(memntoFromPath(rootDirectory, classPath));
-    // }
-    // }
-
-    // classpathEntry.setExternalAnnotationsPath(new Path(rootDirectory));
-    // classpathEntry.setClasspathProperty(IRuntimeClasspathEntry.USER_CLASSES);
     return classpathMementoEntryList;
   }
 
@@ -197,6 +177,7 @@ public class LaunchConfigurationBuilder {
       throws CoreException {
     IPath path = new Path(rootDirectory + "/" + classpath);
     IRuntimeClasspathEntry classpathEntry = JavaRuntime.newArchiveRuntimeClasspathEntry(path);
+    classpathEntry.setExternalAnnotationsPath(path);
     return classpathEntry.getMemento();
   }
 
@@ -225,7 +206,7 @@ public class LaunchConfigurationBuilder {
     List<String> classPathList = new ArrayList<>();
     try {
       classPathList = createClasspathList(workingDirectory,
-          environmentConfigurationDTO.mainJar, environmentConfigurationDTO.classpath);
+          environmentConfigurationDTO.classpath);
     } catch (CoreException e) {
       eosgiLog.error("Could not resolv classpath entries.", e);
     }
