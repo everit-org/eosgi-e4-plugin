@@ -61,7 +61,12 @@ public class EOSGILaunchConfigurationDelegate extends JavaLaunchDelegate {
     EOSGiServerBehaviour eosgiServer = (EOSGiServerBehaviour) server
         .loadAdapter(EOSGiServerBehaviour.class, null);
     eosgiServer.serverStarting();
-    super.launch(configuration, mode, launch, monitor);
+    try {
+      super.launch(configuration, mode, launch, monitor);
+    } catch (CoreException e) {
+      eosgiServer.stop(true);
+      log.error("Starting server", e);
+    }
   }
 
 }

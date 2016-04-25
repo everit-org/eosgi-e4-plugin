@@ -64,7 +64,7 @@ public class EOSGiServerBehaviour extends ServerBehaviourDelegate {
         return;
       }
 
-      while (!stop.get() && server.getLaunch() == null) {
+      while (isLaunchCreated(server)) {
         waitASec();
       }
 
@@ -77,6 +77,10 @@ public class EOSGiServerBehaviour extends ServerBehaviourDelegate {
         }
         waitASec();
       }
+    }
+
+    private boolean isLaunchCreated(final IServer server) {
+      return !stop.get() && server.getLaunch() == null;
     }
 
     private void stopThisThread() {
@@ -97,6 +101,8 @@ public class EOSGiServerBehaviour extends ServerBehaviourDelegate {
   private EOSGiLog log;
 
   private ServerStatusThread serverStatusThread;
+
+  private AtomicBoolean terminate = new AtomicBoolean(false);
 
   /**
    * Contructor.
@@ -147,11 +153,18 @@ public class EOSGiServerBehaviour extends ServerBehaviourDelegate {
   public void publish(final int kind, final List<IModule[]> modules, final IProgressMonitor monitor,
       final IAdaptable info)
           throws CoreException {
-    setServerPublishState(IServer.STATE_STARTED);
-    super.publish(kind, modules, monitor, info);
+    // setServerPublishState(IServer.PUBLISH_AUTO);
+    // super.publish(kind, modules, monitor, info);
   }
 
+  /**
+   * Set server state to {@link IServer#SERVER_STARTED}.<br>
+   * Only if not terminated.
+   */
   public void serverStarted() {
+    if (terminate.get()) {
+      return;
+    }
     setServerState(IServer.STATE_STARTED);
   }
 
@@ -159,6 +172,8 @@ public class EOSGiServerBehaviour extends ServerBehaviourDelegate {
    * Notify about the server starting.
    */
   public void serverStarting() {
+    terminate.set(false);
+
     setServerState(IServer.STATE_STARTING);
 
     IServer server = getServer();
@@ -188,19 +203,26 @@ public class EOSGiServerBehaviour extends ServerBehaviourDelegate {
   @Override
   public void stop(final boolean force) {
     setServerState(IServer.STATE_STOPPING);
+    terminate.set(true);
     IServer server = getServer();
     if (server != null) {
       ILaunch launch = server.getLaunch();
       if (launch != null) {
-        try {
-          launch.terminate();
-          setServerState(IServer.STATE_STOPPED);
-        } catch (DebugException e) {
-          log.error("Could not terminate dist launcher.", e);
-        }
+        terminateTheLaunch(launch);
       }
+      server.stop(true);
     }
     setServerState(IServer.STATE_STOPPED);
+  }
+
+  private void terminateTheLaunch(final ILaunch launch) {
+    try {
+      launch.terminate();
+      setServerState(IServer.STATE_STOPPED);
+    } catch (DebugException e) {
+      log.error("Could not terminate dist launcher.", e);
+      setServerState(IServer.STATE_UNKNOWN);
+    }
   }
 
 }

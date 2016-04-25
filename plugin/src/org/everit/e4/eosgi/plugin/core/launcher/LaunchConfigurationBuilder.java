@@ -177,6 +177,8 @@ public class LaunchConfigurationBuilder {
       throws CoreException {
     IPath path = new Path(rootDirectory + "/" + classpath);
     IRuntimeClasspathEntry classpathEntry = JavaRuntime.newArchiveRuntimeClasspathEntry(path);
+    // IRuntimeClasspathEntry2 newRuntimeClasspathEntry =
+    // LaunchingPlugin.getDefault().newRuntimeClasspathEntry("");
     classpathEntry.setExternalAnnotationsPath(path);
     return classpathEntry.getMemento();
   }
