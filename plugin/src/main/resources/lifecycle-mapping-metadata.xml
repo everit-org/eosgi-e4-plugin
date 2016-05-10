@@ -30,7 +30,7 @@
       </pluginExecutionFilter>
       <action>
         <configurator>
-          <id>org.everit.osgi.dev.e4.plugin.m2e.eosgiDistProjectConfigurator</id>
+          <id>org.everit.osgi.dev.e4.plugin.m2e.DistProjectConfigurator</id>
         </configurator>
       </action>
     </pluginExecution>
