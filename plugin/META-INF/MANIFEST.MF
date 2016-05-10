@@ -22,6 +22,7 @@ Require-Bundle: org.eclipse.ui,
  org.eclipse.jdt.launching;bundle-version="3.8.0",
  org.eclipse.wst.server.core;bundle-version="1.7.0",
  org.eclipse.debug.ui;bundle-version="3.11.100"
+Import-Package: org.everit.osgi.dev.eosgi.dist.schema.xsd;version="4.0.0",org.everit.osgi.dev.eosgi.dist.schema.util;version="4.0.0"
 Bundle-ActivationPolicy: lazy
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Bundle-Vendor: Zsolt Doma, Everit Kft.
