@@ -26,5 +26,3 @@ Import-Package: org.everit.osgi.dev.eosgi.dist.schema.xsd;version="4.0.0",org.ev
 Bundle-ActivationPolicy: lazy
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Bundle-Vendor: Zsolt Doma, Everit Kft.
-Bundle-Classpath: .,lib/org.everit.osgi.dev.eosgi.dist.schema.jar
-
