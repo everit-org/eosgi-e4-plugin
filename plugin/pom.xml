@@ -33,7 +33,6 @@
       <groupId>org.everit.osgi.dev</groupId>
       <artifactId>org.everit.osgi.dev.eosgi.dist.schema</artifactId>
       <version>${eosgi-dist-schema-version}</version>
-      <classifier>org.everit.osgi.dev.eosgi.dist.schema-${eosgi-dist-schema-version}</classifier>
     </dependency>
   </dependencies>
 
