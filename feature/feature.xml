@@ -17,9 +17,9 @@
 
 -->
 <feature
-      id="org.everit.e4.eosgi.feature"
-      label="EOSGi Plugin"
-      version="0.1.0.qualifier"
+      id="org.everit.osgi.dev.e4.feature"
+      label="EOSGi Eclipse Plugin"
+      version="1.0.0.qualifier"
       os="linux,macosx,win32"
       ws="cocoa,gtk,win32"
       arch="x86,x86_64">
@@ -233,7 +233,7 @@
    </license>
 
    <plugin
-         id="org.everit.e4.eosgi.plugin"
+         id="org.everit.osgi.dev.e4.plugin"
          download-size="0"
          install-size="0"
          version="0.0.0"

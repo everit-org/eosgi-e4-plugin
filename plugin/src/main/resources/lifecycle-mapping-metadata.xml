@@ -16,9 +16,23 @@
     limitations under the License.
 
 -->
-<site>
-   <feature url="features/org.everit.osgi.dev.e4.feature_1.0.0.qualifier.jar" id="org.everit.osgi.dev.e4.feature" version="1.0.0.qualifier">
-      <category name="tools"/>
-   </feature>
-   <category-def name="tools" label="Tools"/>
-</site>
+<lifecycleMappingMetadata>
+  <pluginExecutions>
+    <pluginExecution>
+      <pluginExecutionFilter>
+        <groupId>org.everit.osgi.dev</groupId>
+        <artifactId>eosgi-maven-plugin</artifactId>
+        <versionRange>[4.0.0-SNAPSHOT],[4.0.0,)</versionRange>
+        <goals>
+          <goal>dist</goal>
+          <goal>integration-test</goal>
+        </goals>
+      </pluginExecutionFilter>
+      <action>
+        <configurator>
+          <id>org.everit.osgi.dev.e4.plugin.m2e.eosgiDistProjectConfigurator</id>
+        </configurator>
+      </action>
+    </pluginExecution>
+  </pluginExecutions>
+</lifecycleMappingMetadata>
