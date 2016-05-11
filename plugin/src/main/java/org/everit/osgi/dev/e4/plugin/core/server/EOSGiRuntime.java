@@ -28,7 +28,7 @@ import org.eclipse.wst.server.core.model.RuntimeDelegate;
  */
 public class EOSGiRuntime extends RuntimeDelegate {
 
-  public static final String RUNTIME_ID = "org.everit.e4.eosgi.plugin.runtime";
+  public static final String RUNTIME_ID = "org.everit.osgi.dev.e4.plugin.runtime";
 
   public static final String RUNTIME_NAME = "EOSGi Runtime";
 

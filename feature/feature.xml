@@ -20,6 +20,7 @@
       id="org.everit.osgi.dev.e4.feature"
       label="EOSGi Eclipse Plugin"
       version="1.0.0.qualifier"
+      provider-name="Everit Kft."
       os="linux,macosx,win32"
       ws="cocoa,gtk,win32"
       arch="x86,x86_64">
@@ -232,18 +233,26 @@
    limitations under the License.
    </license>
 
+   <requires>
+      <import plugin="org.eclipse.ui"/>
+      <import plugin="org.eclipse.core.runtime" version="3.4.0" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.ui.navigator"/>
+      <import plugin="org.eclipse.m2e.jdt"/>
+      <import plugin="org.eclipse.m2e.core"/>
+      <import plugin="org.eclipse.m2e.maven.runtime"/>
+      <import plugin="org.eclipse.core.expressions" version="3.4.600" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.ui.console" version="3.6.0" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.jdt.launching" version="3.8.0" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.wst.server.core" version="1.7.0" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.debug.ui" version="3.11.100" match="greaterOrEqual"/>
+      <import plugin="org.everit.osgi.dev.eosgi.dist.schema" version="4.0.0" match="greaterOrEqual"/>
+   </requires>
+
    <plugin
          id="org.everit.osgi.dev.e4.plugin"
          download-size="0"
          install-size="0"
-         version="0.0.0"
-         unpack="false"/>
-
-   <plugin
-         id="org.everit.osgi.dev.eosgi.dist.schema"
-         download-size="0"
-         install-size="0"
-         version="0.0.0"
+         version="0.0.0" 
          unpack="false"/>
 
 </feature>

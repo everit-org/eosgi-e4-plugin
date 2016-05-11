@@ -21,7 +21,7 @@ import org.eclipse.osgi.util.NLS;
  * I18N constants.
  */
 public final class Messages extends NLS {
-  private static final String BUNDLE_NAME = "org.everit.e4.eosgi.plugin.core.m2e.messages";
+  private static final String BUNDLE_NAME = "org.everit.osgi.dev.e4.plugin.core.m2e.messages";
 
   public static String dialogMessageIncompatibleMavenPlugin;
 

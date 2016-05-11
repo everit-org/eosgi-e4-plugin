@@ -33,7 +33,7 @@ import org.everit.osgi.dev.e4.plugin.ui.EOSGiPluginActivator;
  */
 public class EOSGiServer extends ServerDelegate {
 
-  public static final String SERVER_TYPE_ID = "org.everit.e4.eosgi.plugin.server";
+  public static final String SERVER_TYPE_ID = "org.everit.osgi.dev.e4.plugin.server";
 
   /**
    * Delete the server (stop it if currently running).

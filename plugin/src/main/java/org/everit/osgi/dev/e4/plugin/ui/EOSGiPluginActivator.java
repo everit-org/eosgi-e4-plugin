@@ -49,7 +49,7 @@ public class EOSGiPluginActivator extends AbstractUIPlugin {
 
   private static EOSGiPluginActivator plugin;
 
-  public static final String PLUGIN_ID = "org.everit.e4.eosgi.plugin";
+  public static final String PLUGIN_ID = "org.everit.osgi.dev.e4.plugin";
 
   public static EOSGiPluginActivator getDefault() {
     return plugin;

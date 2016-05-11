@@ -22,7 +22,7 @@ import org.eclipse.osgi.util.NLS;
  */
 public final class Messages extends NLS {
   private static final String BUNDLE_NAME =
-      "org.everit.e4.eosgi.plugin.ui.navigator.nodes.messages"; //$NON-NLS-1$
+      "org.everit.osgi.dev.e4.plugin.ui.navigator.nodes.messages"; //$NON-NLS-1$
 
   public static String nodeNameEveritEosgiContext;
 

@@ -26,5 +26,26 @@
 
   <artifactId>org.everit.osgi.dev.e4.feature</artifactId>
   <packaging>eclipse-feature</packaging>
+  
+  <dependencies>
+    <dependency>
+      <groupId>org.everit.osgi.dev</groupId>
+      <artifactId>org.everit.osgi.dev.eosgi.dist.schema</artifactId>
+      <version>${eosgi-dist-schema-version}</version>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.eclipse.tycho</groupId>
+        <artifactId>target-platform-configuration</artifactId>
+        <version>${tycho-maven-plugin-version}</version>
+        <configuration>
+          <pomDependencies>consider</pomDependencies>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
 
 </project>

@@ -30,8 +30,6 @@ import org.eclipse.m2e.core.project.configurator.AbstractProjectConfigurator;
 import org.eclipse.m2e.core.project.configurator.ILifecycleMappingConfiguration;
 import org.eclipse.m2e.core.project.configurator.MojoExecutionKey;
 import org.eclipse.m2e.core.project.configurator.ProjectConfigurationRequest;
-import org.eclipse.m2e.jdt.IClasspathDescriptor;
-import org.eclipse.m2e.jdt.IJavaProjectConfigurator;
 import org.everit.osgi.dev.e4.plugin.core.ContextChange;
 import org.everit.osgi.dev.e4.plugin.core.EOSGiContext;
 import org.everit.osgi.dev.e4.plugin.core.EOSGiContextManager;
@@ -45,12 +43,11 @@ import org.everit.osgi.dev.e4.plugin.ui.util.ProjectNatureUtils;
 /**
  * Project configurator for EOSGI projects.
  */
-public class DistProjectConfigurator extends AbstractProjectConfigurator
-    implements IJavaProjectConfigurator {
+public class DistProjectConfigurator extends AbstractProjectConfigurator {
 
-  private EOSGiContextManager eosgiManager;
+  private final EOSGiContextManager eosgiManager;
 
-  private EOSGiLog log;
+  private final EOSGiLog log;
 
   /**
    * Constructor.
@@ -82,18 +79,6 @@ public class DistProjectConfigurator extends AbstractProjectConfigurator
     }
     addEosgiNature(monitor, project);
     eosgiManager.findOrCreate(project);
-  }
-
-  @Override
-  public void configureClasspath(final IMavenProjectFacade mavenProjectFacade,
-      final IClasspathDescriptor classpathDescriptor,
-      final IProgressMonitor progressMonitor) throws CoreException {
-  }
-
-  @Override
-  public void configureRawClasspath(final ProjectConfigurationRequest projectConfigurationRequest,
-      final IClasspathDescriptor classpathDescriptor,
-      final IProgressMonitor progressMonitor) throws CoreException {
   }
 
   @Override
@@ -141,7 +126,7 @@ public class DistProjectConfigurator extends AbstractProjectConfigurator
   @Override
   public void mavenProjectChanged(final MavenProjectChangedEvent event,
       final IProgressMonitor monitor)
-          throws CoreException {
+      throws CoreException {
     IMavenProjectFacade mavenProjectFacade = event.getMavenProject();
     MavenProject mavenProject = null;
 
