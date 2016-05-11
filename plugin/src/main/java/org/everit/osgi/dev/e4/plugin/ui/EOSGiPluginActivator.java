@@ -22,9 +22,13 @@ import java.util.Objects;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceChangeEvent;
+import org.eclipse.core.resources.IResourceChangeListener;
 import org.eclipse.core.resources.IResourceDelta;
 import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.jobs.IJobFunction;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.resource.ImageDescriptor;
@@ -97,15 +101,18 @@ public class EOSGiPluginActivator extends AbstractUIPlugin {
   }
 
   private void handleProjectChanges(final List<IProject> projects) {
-    Job job = Job.create("Handle project changes...", (monitor) -> {
-      for (IProject project : projects) {
-        if (project.isOpen()) {
-          eosgiManager.findOrCreate(project);
-        } else {
-          eosgiManager.remove(project);
+    Job job = Job.create("Handle project changes...", new IJobFunction() {
+      @Override
+      public IStatus run(final IProgressMonitor monitor) {
+        for (IProject project : projects) {
+          if (project.isOpen()) {
+            eosgiManager.findOrCreate(project);
+          } else {
+            eosgiManager.remove(project);
+          }
         }
+        return Status.OK_STATUS;
       }
-      return Status.OK_STATUS;
     });
     job.setPriority(Job.BUILD);
     job.schedule();
@@ -120,11 +127,14 @@ public class EOSGiPluginActivator extends AbstractUIPlugin {
    *          dialog message.
    */
   public void showWarningDialog(final String title, final String message) {
-    Display.getDefault().syncExec(() -> {
-      IWorkbench workbench = PlatformUI.getWorkbench();
-      Display display = workbench.getDisplay();
-      Shell shell = display.getActiveShell();
-      MessageDialog.openWarning(shell, title, message);
+    Display.getDefault().syncExec(new Runnable() {
+      @Override
+      public void run() {
+        IWorkbench workbench = PlatformUI.getWorkbench();
+        Display display = workbench.getDisplay();
+        Shell shell = display.getActiveShell();
+        MessageDialog.openWarning(shell, title, message);
+      }
     });
   }
 
@@ -135,27 +145,30 @@ public class EOSGiPluginActivator extends AbstractUIPlugin {
     log = new EOSGiLog(getLog());
     eosgiManager = new EOSGiContextManagerImpl(log);
 
-    ResourcesPlugin.getWorkspace().addResourceChangeListener(changeEvent -> {
-      List<IProject> projects = new ArrayList<>();
-      if (IResourceChangeEvent.PRE_DELETE == changeEvent.getType()) {
-        IResource resource = changeEvent.getResource();
-        if (resource instanceof IProject) {
-          eosgiManager.remove((IProject) resource);
-        }
-      } else if (changeEvent.getDelta() != null) {
-        IResourceDelta delta = changeEvent.getDelta();
-        IResourceDelta[] affectedChildrens = delta.getAffectedChildren();
-        if (affectedChildrens == null) {
-          return;
-        }
-        for (IResourceDelta iResourceDelta : affectedChildrens) {
-          if (iResourceDelta.getResource() instanceof IProject) {
-            IProject project1 = (IProject) iResourceDelta.getResource();
-            projects.add(project1);
+    ResourcesPlugin.getWorkspace().addResourceChangeListener(new IResourceChangeListener() {
+      @Override
+      public void resourceChanged(final IResourceChangeEvent changeEvent) {
+        List<IProject> projects = new ArrayList<>();
+        if (IResourceChangeEvent.PRE_DELETE == changeEvent.getType()) {
+          IResource resource = changeEvent.getResource();
+          if (resource instanceof IProject) {
+            eosgiManager.remove((IProject) resource);
           }
-        }
-        if (!projects.isEmpty()) {
-          handleProjectChanges(projects);
+        } else if (changeEvent.getDelta() != null) {
+          IResourceDelta delta = changeEvent.getDelta();
+          IResourceDelta[] affectedChildrens = delta.getAffectedChildren();
+          if (affectedChildrens == null) {
+            return;
+          }
+          for (IResourceDelta iResourceDelta : affectedChildrens) {
+            if (iResourceDelta.getResource() instanceof IProject) {
+              IProject project1 = (IProject) iResourceDelta.getResource();
+              projects.add(project1);
+            }
+          }
+          if (!projects.isEmpty()) {
+            handleProjectChanges(projects);
+          }
         }
       }
     });

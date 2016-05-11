@@ -19,6 +19,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.eclipse.core.resources.IProject;
@@ -43,7 +44,7 @@ public class DistContentProvider extends TreeNodeContentProvider
 
   private EOSGiContextManager manager;
 
-  private EOSGiPluginActivator plugin;
+  private final EOSGiPluginActivator plugin;
 
   private Map<IProject, AbstractNode[]> projectCache = new ConcurrentHashMap<>();
 
@@ -64,12 +65,12 @@ public class DistContentProvider extends TreeNodeContentProvider
 
   @Override
   public void dispose() {
-    projectCache.forEach((key, value) -> {
-      for (AbstractNode abstractNode : value) {
+    for (Entry<IProject, AbstractNode[]> abstractNodeEntry : projectCache.entrySet()) {
+      for (AbstractNode abstractNode : abstractNodeEntry.getValue()) {
         abstractNode.dispose();
-        resolveNodesFor(key);
+        resolveNodesFor(abstractNodeEntry.getKey());
       }
-    });
+    }
     projectCache = null;
     eosgiNodeCache = null;
   }
@@ -182,7 +183,7 @@ public class DistContentProvider extends TreeNodeContentProvider
       }
 
       Runnable refreshRunnable = getRefreshRunnable(node);
-      Collection<Runnable> refreshRunnables = Arrays.asList(refreshRunnable);
+      final Collection<Runnable> refreshRunnables = Arrays.asList(refreshRunnable);
 
       if (ctrl.getDisplay().getThread() == Thread.currentThread()) {
         runUpdates(refreshRunnables);

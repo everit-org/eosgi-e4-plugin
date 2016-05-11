@@ -16,7 +16,6 @@
 package org.everit.osgi.dev.e4.plugin.core.m2e;
 
 import java.util.List;
-import java.util.Optional;
 
 import org.apache.maven.plugin.MojoExecution;
 import org.apache.maven.project.MavenProject;
@@ -66,15 +65,15 @@ public class M2EGoalExecutor {
 
   public static final String EOSGI_MAVEN_PLUGIN_GROUP_ID = "org.everit.osgi.dev";
 
-  private String environmentId;
+  private final String environmentId;
 
-  private EOSGiLog log;
+  private final EOSGiLog log;
 
-  private IMaven maven;
+  private final IMaven maven;
 
-  private IMavenProjectFacade mavenProjectFacade;
+  private final IMavenProjectFacade mavenProjectFacade;
 
-  private IMavenProjectRegistry projectRegistry;
+  private final IMavenProjectRegistry projectRegistry;
 
   /**
    * Constructor.
@@ -183,10 +182,10 @@ public class M2EGoalExecutor {
    *          optional {@link IProgressMonitor} instance.
    * @return dist or integration-test goal configuration or <code>null</code>.
    */
-  public Optional<Xpp3Dom> getConfiguration(final IProgressMonitor monitor) {
+  public Xpp3Dom getConfiguration(final IProgressMonitor monitor) {
     MavenProject mavenProject = fetchMavenProject(monitor);
     MojoExecution execution = fetchDistExecutionFor(monitor, mavenProject);
-    return Optional.ofNullable(execution.getConfiguration());
+    return execution.getConfiguration();
   }
 
   private boolean isNotCancelled(final IProgressMonitor monitor) {

@@ -46,6 +46,7 @@ import org.everit.osgi.dev.e4.plugin.core.EOSGiContext;
 import org.everit.osgi.dev.e4.plugin.core.launcher.LaunchConfigurationBuilder;
 import org.everit.osgi.dev.e4.plugin.core.m2e.model.Environment;
 import org.everit.osgi.dev.e4.plugin.core.m2e.xml.ConfiguratorParser;
+import org.everit.osgi.dev.e4.plugin.core.m2e.xml.EnvironmentDTO;
 import org.everit.osgi.dev.e4.plugin.core.m2e.xml.EnvironmentsDTO;
 import org.everit.osgi.dev.e4.plugin.core.server.EOSGiRuntime;
 import org.everit.osgi.dev.e4.plugin.core.server.EOSGiServer;
@@ -162,22 +163,22 @@ public class EOSGiProject extends Observable implements EOSGiContext, IMavenProj
   @Override
   public void dispose() {
     deleteObservers();
-    environments.forEach((environmentId, environment) -> {
+    for (String environmentId : environments.keySet()) {
       deleteServer(generateServerId(environmentId));
-    });
+    }
     environments.clear();
   }
 
   @Override
   public List<EnvironmentNodeDTO> fetchEnvironments() {
     final List<EnvironmentNodeDTO> environmentList = new ArrayList<>();
-    environments.values().forEach((environment) -> {
+    for (Environment environment : environments.values()) {
       environmentList.add(
           new EnvironmentNodeDTO()
               .id(environment.getId())
               .outdated(environment.isOutdated())
               .observable(environment));
-    });
+    }
     return environmentList;
   }
 
@@ -335,7 +336,7 @@ public class EOSGiProject extends Observable implements EOSGiContext, IMavenProj
 
   private void updateEnvironments(final EnvironmentsDTO environments) {
     Map<String, Environment> newEnvironments = new HashMap<>();
-    environments.environments.forEach((newEnvironment) -> {
+    for (EnvironmentDTO newEnvironment : environments.environments) {
       Environment environment = null;
       if (this.environments.containsKey(newEnvironment.id)) {
         environment = this.environments.remove(newEnvironment.id);
@@ -348,10 +349,10 @@ public class EOSGiProject extends Observable implements EOSGiContext, IMavenProj
         setChanged();
       }
       newEnvironments.put(newEnvironment.id, environment);
-    });
-    this.environments.forEach((key, value) -> {
+    }
+    for (String key : this.environments.keySet()) {
       deleteServer(generateServerId(key));
-    });
+    }
     if (!this.environments.isEmpty()) {
       setChanged();
     }

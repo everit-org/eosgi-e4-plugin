@@ -45,11 +45,11 @@ public class ConfiguratorParser {
 
   private static final String VM_OPTIONS_TAG = "vmOptions";
 
-//  private Xpp3Dom configurationDom;
+  // private Xpp3Dom configurationDom;
 
   private EnvironmentsDTO environmentsDTO;
 
-  private EOSGiLog log;
+  private final EOSGiLog log;
 
   public ConfiguratorParser() {
     super();
@@ -69,9 +69,9 @@ public class ConfiguratorParser {
       return new EnvironmentsDTO();
     }
 
-//    this.configurationDom = configurationDom;
+    // this.configurationDom = configurationDom;
     environmentsDTO = new EnvironmentsDTO();
-    environmentsDTO.environments(new ArrayList<>());
+    environmentsDTO.environments(new ArrayList<EnvironmentDTO>());
 
     Xpp3Dom environmentsChild = configurationDom.getChild(ENVIRONMENTS_TAG);
     Xpp3Dom[] childrens = environmentsChild.getChildren();
@@ -81,7 +81,7 @@ public class ConfiguratorParser {
       }
     }
 
-//    this.configurationDom = null;
+    // this.configurationDom = null;
     return environmentsDTO;
   }
 

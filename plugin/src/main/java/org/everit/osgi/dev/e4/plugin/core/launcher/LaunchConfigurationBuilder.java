@@ -16,13 +16,12 @@
 package org.everit.osgi.dev.e4.plugin.core.launcher;
 
 import java.io.File;
-import java.io.FileFilter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
+import org.apache.commons.io.filefilter.SuffixFileFilter;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.ILog;
 import org.eclipse.core.runtime.IPath;
@@ -45,17 +44,17 @@ import org.everit.osgi.dev.eosgi.dist.schema.util.LaunchConfigurationDTO;
  */
 public class LaunchConfigurationBuilder {
 
-  private String buildDirectory;
+  private final String buildDirectory;
 
-  private String environmentId;
+  private final String environmentId;
 
-  private EOSGiLog eosgiLog;
+  private final EOSGiLog eosgiLog;
 
   private LaunchConfigurationDTO launchConfiguration;
 
   private final ILaunchManager manager = DebugPlugin.getDefault().getLaunchManager();
 
-  private String projectName;
+  private final String projectName;
 
   private ILaunchConfigurationWorkingCopy wc;
 
@@ -136,9 +135,9 @@ public class LaunchConfigurationBuilder {
       return stringBuilder.toString();
     }
 
-    argumentList.forEach(argument -> {
+    for (String argument : argumentList) {
       stringBuilder.append(' ' + argument);
-    });
+    }
 
     String argumentsString = stringBuilder.toString();
     return argumentsString;
@@ -169,21 +168,21 @@ public class LaunchConfigurationBuilder {
       return stringBuilder.toString();
     }
 
-    vmArgumentList.forEach((vmOption) -> {
+    for (String vmOption : vmArgumentList) {
       if (vmOption.indexOf("Xrunjdwp") == -1) {
         stringBuilder.append(" " + vmOption);
       }
-    });
+    }
     return stringBuilder.toString();
   }
 
   private List<String> fetchAllJarFileFromRootDirectory(final String rootDirectory) {
     File rootFolder = new File(rootDirectory);
     if (rootFolder.isDirectory()) {
-      File[] files = rootFolder.listFiles((FileFilter) pathname -> {
-        return !pathname.isDirectory() && pathname.getName().endsWith(".jar");
-      });
-      return Arrays.asList(files).stream().map(file -> file.getName()).collect(Collectors.toList());
+      String[] files = rootFolder.list(new SuffixFileFilter(".jar"));
+      if (files != null) {
+        return Arrays.asList(files);
+      }
     }
     return Collections.emptyList();
   }

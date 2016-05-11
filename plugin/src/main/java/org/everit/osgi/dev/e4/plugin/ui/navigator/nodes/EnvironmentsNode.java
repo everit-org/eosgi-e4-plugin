@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Observable;
 
 import org.everit.osgi.dev.e4.plugin.core.EOSGiContext;
+import org.everit.osgi.dev.e4.plugin.ui.dto.EnvironmentNodeDTO;
 import org.everit.osgi.dev.e4.plugin.ui.dto.EnvironmentsNodeDTO;
 import org.everit.osgi.dev.e4.plugin.ui.navigator.EosgiNodeChangeEvent;
 import org.everit.osgi.dev.e4.plugin.ui.navigator.EosgiNodeChangeListener;
@@ -66,14 +67,14 @@ public class EnvironmentsNode extends AbstractNode {
   private List<EnvironmentNode> generateChildNodes() {
     List<EnvironmentNode> nodes = new ArrayList<>();
 
-    context.fetchEnvironments().forEach((environmentDTO) -> {
+    for (EnvironmentNodeDTO environmentDTO : context.fetchEnvironments()) {
       EnvironmentNode node = new EnvironmentNode(context, environmentDTO.id, getListener());
       environmentDTO.observable.addObserver(node);
       if (environmentDTO.outdated) {
         node.setLabel(OUTDATED_LABEL);
       }
       nodes.add(node);
-    });
+    }
 
     return nodes;
   }

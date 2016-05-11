@@ -19,9 +19,13 @@ import java.text.MessageFormat;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.jobs.IJobFunction;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.m2e.core.MavenPlugin;
 import org.eclipse.m2e.core.project.IMavenProjectFacade;
@@ -39,11 +43,11 @@ import org.everit.osgi.dev.e4.plugin.ui.nature.EosgiNature;
  */
 public class EOSGiContextManagerImpl implements EOSGiContextManager {
 
-  private EOSGiLog log;
+  private final EOSGiLog log;
 
-  private Map<IProject, EOSGiContext> projectContexts = new ConcurrentHashMap<>();
+  private final Map<IProject, EOSGiContext> projectContexts = new ConcurrentHashMap<>();
 
-  private IMavenProjectRegistry projectRegistry;
+  private final IMavenProjectRegistry projectRegistry;
 
   public EOSGiContextManagerImpl(final EOSGiLog log) {
     this.log = log;
@@ -51,32 +55,36 @@ public class EOSGiContextManagerImpl implements EOSGiContextManager {
   }
 
   private void createAndStartMavenRefresh(final IProject project, final EOSGiContext eosgiContext) {
-    Job job = Job.create("Fetch maven informations for EOSGi project...", monitor -> {
-      IMavenProjectFacade mavenProjectFacade = projectRegistry.getProject(project);
-      if (mavenProjectFacade == null) {
-        // Maven facade not found, yet.
-        return Status.CANCEL_STATUS;
-      }
-
-      ContextChange contextChange = new ContextChange();
-      try {
-        String buildDirectory = mavenProjectFacade.getMavenProject(monitor).getBuild()
-            .getDirectory();
-        contextChange.buildDirectory = buildDirectory;
-      } catch (Exception e) {
-        log.error(MessageFormat.format("Couldn''t satisfied build directory for ''{0}''",
-            project.getName()), e);
-      }
-
-      M2EGoalExecutor executor = new M2EGoalExecutor(project, null);
-      executor.getConfiguration(monitor).ifPresent(configuration -> {
-        EnvironmentsDTO environments = null;
-        if (configuration != null) {
-          environments = new ConfiguratorParser().parse(configuration);
-          eosgiContext.refresh(contextChange.configuration(environments));
+    Job job = Job.create("Fetch maven informations for EOSGi project...", new IJobFunction() {
+      @Override
+      public IStatus run(final IProgressMonitor monitor) {
+        IMavenProjectFacade mavenProjectFacade = projectRegistry.getProject(project);
+        if (mavenProjectFacade == null) {
+          // Maven facade not found, yet.
+          return Status.CANCEL_STATUS;
         }
-      });
-      return Status.OK_STATUS;
+
+        ContextChange contextChange = new ContextChange();
+        try {
+          String buildDirectory = mavenProjectFacade.getMavenProject(monitor).getBuild()
+              .getDirectory();
+          contextChange.buildDirectory = buildDirectory;
+        } catch (Exception e) {
+          log.error(MessageFormat.format("Couldn''t satisfied build directory for ''{0}''",
+              project.getName()), e);
+        }
+
+        M2EGoalExecutor executor = new M2EGoalExecutor(project, null);
+        Xpp3Dom configuration = executor.getConfiguration(monitor);
+        if (configuration != null) {
+          EnvironmentsDTO environments = null;
+          if (configuration != null) {
+            environments = new ConfiguratorParser().parse(configuration);
+            eosgiContext.refresh(contextChange.configuration(environments));
+          }
+        }
+        return Status.OK_STATUS;
+      }
     });
     job.setPriority(Job.SHORT);
     job.schedule();
@@ -84,10 +92,10 @@ public class EOSGiContextManagerImpl implements EOSGiContextManager {
 
   @Override
   public synchronized void dispose() {
-    projectContexts.forEach((t, u) -> {
-      projectRegistry.removeMavenProjectChangedListener(u);
-      u.dispose();
-    });
+    for (EOSGiContext eosgiContext : projectContexts.values()) {
+      projectRegistry.removeMavenProjectChangedListener(eosgiContext);
+      eosgiContext.dispose();
+    }
     projectContexts.clear();
   }
 

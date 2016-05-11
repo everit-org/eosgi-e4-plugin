@@ -16,7 +16,6 @@
 package org.everit.osgi.dev.e4.plugin.ui.navigator.nodes;
 
 import java.util.Observable;
-import java.util.Optional;
 
 import org.everit.osgi.dev.e4.plugin.core.EOSGiContext;
 import org.everit.osgi.dev.e4.plugin.ui.dto.EnvironmentNodeDTO;
@@ -30,7 +29,7 @@ public class EnvironmentNode extends AbstractNode {
 
   private EOSGiContext context;
 
-  private String environmentId;
+  private final String environmentId;
 
   /**
    * Constructor.
@@ -51,17 +50,17 @@ public class EnvironmentNode extends AbstractNode {
   }
 
   private void applyPresentedArgs(final EnvironmentNodeDTO args) {
-    Optional.ofNullable(args.outdated).ifPresent(outdated -> {
-      if (outdated) {
+    if (args.outdated != null) {
+      if (args.outdated) {
         setLabel(" (outdated)");
       } else {
         setLabel(null);
       }
-    });
+    }
 
-    Optional.ofNullable(args.observable).ifPresent(observable -> {
-      observable.addObserver(this);
-    });
+    if (args.observable != null) {
+      args.observable.addObserver(this);
+    }
   }
 
   @Override
