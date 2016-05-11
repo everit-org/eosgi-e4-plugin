@@ -78,10 +78,8 @@ public class EOSGiContextManagerImpl implements EOSGiContextManager {
         Xpp3Dom configuration = executor.getConfiguration(monitor);
         if (configuration != null) {
           EnvironmentsDTO environments = null;
-          if (configuration != null) {
-            environments = new ConfiguratorParser().parse(configuration);
-            eosgiContext.refresh(contextChange.configuration(environments));
-          }
+          environments = new ConfiguratorParser().parse(configuration);
+          eosgiContext.refresh(contextChange.configuration(environments));
         }
         return Status.OK_STATUS;
       }
