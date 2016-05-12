@@ -47,14 +47,14 @@
                    value="org.eclipse.core.resources.IProject">
                </instanceof>
                <instanceof
-                  value="org.everit.osgi.dev.e4.plugin.ui.navigator.model.AbstractNode">
+                  value="org.everit.osgi.dev.e4.plugin.ui.navigator.nodes.AbstractNode">
                 </instanceof>
              </or>
             </triggerPoints>
             <possibleChildren>
               <or>
                 <instanceof
-                  value="org.everit.osgi.dev.e4.plugin.ui.navigator.model.AbstractNode">
+                  value="org.everit.osgi.dev.e4.plugin.ui.navigator.nodes.AbstractNode">
                 </instanceof>
               </or>
             </possibleChildren>
@@ -66,7 +66,7 @@
       name="Bundle project nature image">
       <image
         id="org.everit.osgi.dev.e4.plugin.ui.projectNatureImages.eosgiNatureImage"
-        natureId="org.everit.osgi.dev.e4.plugin.ui.natures.eosgi"
+        natureId="org.everit.osgi.dev.e4.plugin.nature"
         icon="icons/everit_8_8.gif">
       </image>
     </extension>
@@ -75,8 +75,8 @@
     <extension
         point="org.eclipse.m2e.core.projectConfigurators">
         <configurator
-            class="org.everit.osgi.dev.e4.plugin.core.m2e.DistProjectConfigurator"
-            id="org.everit.osgi.dev.e4.plugin.core.m2e.DistProjectConfigurator"
+            class="org.everit.osgi.dev.e4.plugin.core.m2e.EOSGiM2EProjectConfigurator"
+            id="org.everit.osgi.dev.e4.plugin.core.m2e.EOSGiM2EProjectConfigurator"
             name="Project configurator for EOSGI dist projects.">
         </configurator>
     </extension>
@@ -112,12 +112,12 @@
       point="org.eclipse.ui.commands">
       <command
         id="org.everit.osgi.dev.e4.plugin.ui.command.create"
-        name="distComand">
+        name="distCommand">
       </command>
     </extension>
     
     <extension
-      id="org.everit.osgi.dev.e4.plugin.ui.natures.eosgi"
+      id="org.everit.osgi.dev.e4.plugin.nature"
       point="org.eclipse.core.resources.natures"
       name="%name.eosgiDistNature">
       <runtime>
@@ -147,67 +147,15 @@
       </handler>
     </extension>
 
-  <!--
-  <extension
-    point="org.eclipse.core.expressions.propertyTesters">
-    <propertyTester
-      id="org.everit.osgi.dev.e4.plugin.propertyTester.environmentNode"
-      type="org.everit.osgi.dev.e4.plugin.ui.navigator.nodes.EnvironmentNode"
-      namespace="org.everit.osgi.dev.e4.plugin.properties"
-      properties="distStatus"
-      class="org.everit.osgi.dev.e4.plugin.ui.command.EnvironmentNodePropertyTester">
-    </propertyTester>
-  </extension>
-  -->
-    
-  <!-- Server runtime staffs -->
-  <extension point="org.eclipse.wst.server.core.runtimeTypes">
-    <runtimeType
-      id="org.everit.osgi.dev.e4.plugin.runtime"
-      name="%name.eosgiRuntime"
-      description="%desciption.eosgiRuntime"
-      facetRuntimeComponent=""
-      facetRuntimeVersion=""
-      class="org.everit.osgi.dev.e4.plugin.core.server.EOSGiRuntime">
-      <moduleType
-        types="wst.web"
-        versions="1.0"/>
-    </runtimeType>
-  </extension>
-  
-  <!-- Everit icon for eosgi server -->
-  <extension point="org.eclipse.wst.common.project.facet.ui.images">
-    <image
-      runtime-component-type="org.everit.osgi.dev.e4.plugin.runtime"
-      path="icons/everit.gif"/>
-    <!-- icons/obj16/preview.gif -->
-  </extension>
-    
-  <!-- Server type -->
-  <extension point="org.eclipse.wst.server.core.serverTypes">
-   <serverType
-     id="org.everit.osgi.dev.e4.plugin.server"
-     name="%name.eosgiServerType"
-     description="%description.eosgiServerType"
-     supportsRemoteHosts="false"
-     runtime="true"
-     initialState="stopped"
-     hasConfiguration="false"
-     launchModes="run,debug"
-     launchConfigId="org.everit.osgi.dev.e4.plugin.server.launchConfigurationType"
-     runtimeTypeId="org.everit.osgi.dev.e4.plugin.runtime"
-     class="org.everit.osgi.dev.e4.plugin.core.server.EOSGiServer"
-     behaviourClass="org.everit.osgi.dev.e4.plugin.core.server.EOSGiServerBehaviour"/>
-  </extension>
-  <!--launchConfigId="org.eclipse.jdt.launching.localJavaApplication"-->
-  
   <!-- Own launch config type for EOSGi dists -->
   <extension point="org.eclipse.debug.core.launchConfigurationTypes">
    <launchConfigurationType
-      id="org.everit.osgi.dev.e4.plugin.server.launchConfigurationType"
-      name="%name.eosgiLaunchConfiguration"
-      delegate="org.everit.osgi.dev.e4.plugin.core.server.EOSGILaunchConfigurationDelegate"
-      modes="run,debug"/>
+         delegate="org.everit.osgi.dev.e4.plugin.core.launcher.EOSGILaunchConfigurationDelegate"
+         id="org.everit.osgi.dev.e4.plugin.core.launcher.launchConfigurationType"
+         modes="run,debug"
+         name="%name.eosgiLaunchConfiguration"
+         public="true"
+         sourcePathComputerId="org.eclipse.jdt.launching.sourceLookup.javaSourcePathComputer"/>
   </extension>
   
   <!-- Icon for EOSGi launcher type -->
@@ -222,8 +170,8 @@
   <!-- TabGroups for EOSGi laucher configuration -->
   <extension point="org.eclipse.debug.ui.launchConfigurationTabGroups">
     <launchConfigurationTabGroup
-      id="org.everit.osgi.dev.e4.plugin.server.launchConfigurationTabGroup"
-      type="org.everit.osgi.dev.e4.plugin.server.launchConfigurationType"
+      id="org.everit.osgi.dev.e4.plugin.ui.launcher.launchConfigurationTabGroup"
+      type="org.everit.osgi.dev.e4.plugin.core.launcher.launchConfigurationType"
       class="org.everit.osgi.dev.e4.plugin.ui.launcher.LaunchConfigurationTabGroup">
     </launchConfigurationTabGroup>
   </extension>

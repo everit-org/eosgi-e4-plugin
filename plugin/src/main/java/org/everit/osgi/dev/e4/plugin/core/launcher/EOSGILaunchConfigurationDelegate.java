@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.everit.osgi.dev.e4.plugin.core.server;
+package org.everit.osgi.dev.e4.plugin.core.launcher;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.ILog;
@@ -22,10 +22,8 @@ import org.eclipse.debug.core.ILaunch;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.jdt.launching.IJavaLaunchConfigurationConstants;
 import org.eclipse.jdt.launching.JavaLaunchDelegate;
-import org.eclipse.wst.server.core.IServer;
-import org.eclipse.wst.server.core.ServerCore;
 import org.everit.osgi.dev.e4.plugin.ui.EOSGiLog;
-import org.everit.osgi.dev.e4.plugin.ui.EOSGiPluginActivator;
+import org.everit.osgi.dev.e4.plugin.ui.EOSGiEclipsePlugin;
 
 /**
  * Extended {@link JavaLaunchDelegate} class for EOSGi launcher.
@@ -34,14 +32,14 @@ public class EOSGILaunchConfigurationDelegate extends JavaLaunchDelegate {
 
   public static final String LAUNCHER_ATTR_ENVIRONMENT_ID = "environmentId";
 
-  private EOSGiLog log;
+  private final EOSGiLog log;
 
   /**
    * Constructor.
    */
   public EOSGILaunchConfigurationDelegate() {
     super();
-    ILog iLog = EOSGiPluginActivator.getDefault().getLog();
+    ILog iLog = EOSGiEclipsePlugin.getDefault().getLog();
     this.log = new EOSGiLog(iLog);
     log.info("launch configuration created");
   }
@@ -57,16 +55,7 @@ public class EOSGILaunchConfigurationDelegate extends JavaLaunchDelegate {
       return;
     }
 
-    IServer server = ServerCore.findServer(environmentId + "/" + projectName);
-    EOSGiServerBehaviour eosgiServer = (EOSGiServerBehaviour) server
-        .loadAdapter(EOSGiServerBehaviour.class, null);
-    eosgiServer.serverStarting();
-    try {
-      super.launch(configuration, mode, launch, monitor);
-    } catch (CoreException e) {
-      eosgiServer.stop(true);
-      log.error("Starting server", e);
-    }
+    super.launch(configuration, mode, launch, monitor);
   }
 
 }

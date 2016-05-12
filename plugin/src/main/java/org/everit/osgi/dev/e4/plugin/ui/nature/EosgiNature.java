@@ -27,7 +27,7 @@ import org.eclipse.core.runtime.CoreException;
 public class EosgiNature implements IProjectNature {
   private static final Logger LOGGER = Logger.getLogger(EosgiNature.class.getName());
 
-  public static final String NATURE_ID = "org.everit.osgi.dev.e4.plugin.ui.natures.eosgi";
+  public static final String NATURE_ID = "org.everit.osgi.dev.e4.plugin.nature";
 
   private String name;
 

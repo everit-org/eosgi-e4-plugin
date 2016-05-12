@@ -32,19 +32,19 @@ public class EOSGiLog {
   }
 
   public void error(final String message) {
-    log.log(new Status(IStatus.ERROR, EOSGiPluginActivator.PLUGIN_ID, message));
+    log.log(new Status(IStatus.ERROR, EOSGiEclipsePlugin.PLUGIN_ID, message));
   }
 
   public void error(final String message, final Throwable throwable) {
-    log.log(new Status(IStatus.ERROR, EOSGiPluginActivator.PLUGIN_ID, message, throwable));
+    log.log(new Status(IStatus.ERROR, EOSGiEclipsePlugin.PLUGIN_ID, message, throwable));
   }
 
   public void info(final String message) {
-    log.log(new Status(IStatus.INFO, EOSGiPluginActivator.PLUGIN_ID, message));
+    log.log(new Status(IStatus.INFO, EOSGiEclipsePlugin.PLUGIN_ID, message));
   }
 
   public void warning(final String message) {
-    log.log(new Status(IStatus.WARNING, EOSGiPluginActivator.PLUGIN_ID, message));
+    log.log(new Status(IStatus.WARNING, EOSGiEclipsePlugin.PLUGIN_ID, message));
   }
 
 }

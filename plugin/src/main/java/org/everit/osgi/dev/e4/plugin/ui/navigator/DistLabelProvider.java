@@ -20,7 +20,7 @@ import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.jface.viewers.StyledString;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.ui.navigator.IDescriptionProvider;
-import org.everit.osgi.dev.e4.plugin.ui.EOSGiPluginActivator;
+import org.everit.osgi.dev.e4.plugin.ui.EOSGiEclipsePlugin;
 import org.everit.osgi.dev.e4.plugin.ui.navigator.nodes.AbstractNode;
 
 /**
@@ -43,7 +43,7 @@ public class DistLabelProvider extends LabelProvider implements
   public Image getImage(final Object element) {
     if (element instanceof AbstractNode) {
       AbstractNode node = (AbstractNode) element;
-      return EOSGiPluginActivator.getImageDescriptor(node.getIcon()).createImage();
+      return EOSGiEclipsePlugin.getImageDescriptor(node.getIcon()).createImage();
     } else {
       return super.getImage(element);
     }

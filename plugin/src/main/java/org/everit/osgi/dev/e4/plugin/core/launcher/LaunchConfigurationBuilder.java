@@ -34,9 +34,8 @@ import org.eclipse.debug.core.ILaunchManager;
 import org.eclipse.jdt.launching.IJavaLaunchConfigurationConstants;
 import org.eclipse.jdt.launching.IRuntimeClasspathEntry;
 import org.eclipse.jdt.launching.JavaRuntime;
-import org.everit.osgi.dev.e4.plugin.core.server.EOSGILaunchConfigurationDelegate;
 import org.everit.osgi.dev.e4.plugin.ui.EOSGiLog;
-import org.everit.osgi.dev.e4.plugin.ui.EOSGiPluginActivator;
+import org.everit.osgi.dev.e4.plugin.ui.EOSGiEclipsePlugin;
 import org.everit.osgi.dev.eosgi.dist.schema.util.LaunchConfigurationDTO;
 
 /**
@@ -71,7 +70,7 @@ public class LaunchConfigurationBuilder {
   public LaunchConfigurationBuilder(final String projectName, final String environmentId,
       final String buildDirectory) {
     super();
-    ILog log = EOSGiPluginActivator.getDefault().getLog();
+    ILog log = EOSGiEclipsePlugin.getDefault().getLog();
     eosgiLog = new EOSGiLog(log);
     this.projectName = projectName;
     this.environmentId = environmentId;
@@ -97,7 +96,8 @@ public class LaunchConfigurationBuilder {
    */
   public ILaunchConfiguration build() {
     ILaunchConfigurationType type = manager
-        .getLaunchConfigurationType(IJavaLaunchConfigurationConstants.ID_JAVA_APPLICATION);
+        .getLaunchConfigurationType(
+            "org.everit.osgi.dev.e4.plugin.core.launcher.launchConfigurationType");
 
     if (launchConfiguration == null) {
       return null;
@@ -220,6 +220,7 @@ public class LaunchConfigurationBuilder {
     wc.setAttribute(IJavaLaunchConfigurationConstants.ATTR_DEFAULT_CLASSPATH, false);
     wc.setAttribute(IJavaLaunchConfigurationConstants.ATTR_CLASSPATH, classPathList);
     wc.setAttribute(IJavaLaunchConfigurationConstants.ATTR_VM_ARGUMENTS, vmArgsList);
+    wc.setAttribute(IJavaLaunchConfigurationConstants.ATTR_ALLOW_TERMINATE, false);
 
     wc.setAttribute(EOSGILaunchConfigurationDelegate.LAUNCHER_ATTR_ENVIRONMENT_ID, environmentId);
 

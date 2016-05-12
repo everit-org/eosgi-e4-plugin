@@ -34,13 +34,9 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
-import org.eclipse.debug.core.ILaunchConfiguration;
-import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
 import org.eclipse.m2e.core.project.IMavenProjectChangedListener;
 import org.eclipse.m2e.core.project.IMavenProjectFacade;
 import org.eclipse.m2e.core.project.MavenProjectChangedEvent;
-import org.eclipse.wst.server.core.IRuntime;
-import org.eclipse.wst.server.core.IServer;
 import org.everit.osgi.dev.e4.plugin.core.ContextChange;
 import org.everit.osgi.dev.e4.plugin.core.EOSGiContext;
 import org.everit.osgi.dev.e4.plugin.core.launcher.LaunchConfigurationBuilder;
@@ -48,10 +44,8 @@ import org.everit.osgi.dev.e4.plugin.core.m2e.model.Environment;
 import org.everit.osgi.dev.e4.plugin.core.m2e.xml.ConfiguratorParser;
 import org.everit.osgi.dev.e4.plugin.core.m2e.xml.EnvironmentDTO;
 import org.everit.osgi.dev.e4.plugin.core.m2e.xml.EnvironmentsDTO;
-import org.everit.osgi.dev.e4.plugin.core.server.EOSGiRuntime;
-import org.everit.osgi.dev.e4.plugin.core.server.EOSGiServer;
 import org.everit.osgi.dev.e4.plugin.ui.EOSGiLog;
-import org.everit.osgi.dev.e4.plugin.ui.EOSGiPluginActivator;
+import org.everit.osgi.dev.e4.plugin.ui.EOSGiEclipsePlugin;
 import org.everit.osgi.dev.e4.plugin.ui.dto.EnvironmentNodeDTO;
 import org.everit.osgi.dev.e4.plugin.ui.dto.EnvironmentsNodeDTO;
 import org.everit.osgi.dev.e4.plugin.ui.dto.RootNodeDTO;
@@ -111,7 +105,7 @@ public class EOSGiProject extends Observable implements EOSGiContext, IMavenProj
       Integer majorVersion = Integer.valueOf(splittedVersion[0]);
       if (MINIMAL_EOSGI_MAJOR_VERSION > majorVersion) {
         enable = false;
-        EOSGiPluginActivator.getDefault().showWarningDialog(
+        EOSGiEclipsePlugin.getDefault().showWarningDialog(
             Messages.dialogTitleIncompatibleMavenPlugin,
             Messages.dialogMessageIncompatibleMavenPlugin);
       } else {
@@ -124,25 +118,14 @@ public class EOSGiProject extends Observable implements EOSGiContext, IMavenProj
     return changed;
   }
 
-  private void createServerForEnvironment(final String environmentId,
+  private void createLauncherForEnvironment(final String environmentId,
       final LaunchConfigurationDTO launchConfigurationDTO,
       final IProgressMonitor monitor) throws CoreException {
     if (monitor != null) {
       monitor.setTaskName(Messages.monitorCreateServer);
     }
 
-    IRuntime runtime = EOSGiRuntime.createRuntime(monitor);
-    String serverId = generateServerId(environmentId);
-    IServer server = EOSGiServer.findServerToEnvironment(serverId, runtime,
-        monitor);
-
-    ILaunchConfigurationWorkingCopy workingCopy = null;
-    ILaunchConfiguration serverLaunchConfiguration = server.getLaunchConfiguration(true,
-        monitor);
-    workingCopy = serverLaunchConfiguration.getWorkingCopy();
-
     new LaunchConfigurationBuilder(project.getName(), environmentId, buildDirectory)
-        .addLauncherConfigurationWorkingCopy(workingCopy)
         .addEnvironmentConfigurationDTO(launchConfigurationDTO)
         .build();
   }
@@ -152,20 +135,9 @@ public class EOSGiProject extends Observable implements EOSGiContext, IMavenProj
     addObserver(observer);
   }
 
-  private void deleteServer(final String serverId) {
-    try {
-      EOSGiServer.deleteServer(serverId);
-    } catch (CoreException e) {
-      log.error("Could not delete server (" + serverId + ")", e); //$NON-NLS-1$
-    }
-  }
-
   @Override
   public void dispose() {
     deleteObservers();
-    for (String environmentId : environments.keySet()) {
-      deleteServer(generateServerId(environmentId));
-    }
     environments.clear();
   }
 
@@ -186,9 +158,6 @@ public class EOSGiProject extends Observable implements EOSGiContext, IMavenProj
   public void generate(final String environmentId, final IProgressMonitor monitor)
       throws CoreException {
     Objects.requireNonNull(environmentId, "environmentName must be not null!");
-
-    String serverId = generateServerId(environmentId);
-    deleteServer(serverId);
 
     Environment environment = environments.get(environmentId);
     if (environment == null) {
@@ -213,12 +182,8 @@ public class EOSGiProject extends Observable implements EOSGiContext, IMavenProj
         environmentId);
 
     if (launchConfigurationDTO != null) {
-      createServerForEnvironment(environmentId, launchConfigurationDTO, monitor);
+      createLauncherForEnvironment(environmentId, launchConfigurationDTO, monitor);
     }
-  }
-
-  private String generateServerId(final String environmentId) {
-    return environmentId + "/" + project.getName(); //$NON-NLS-1$
   }
 
   @Override
@@ -349,9 +314,6 @@ public class EOSGiProject extends Observable implements EOSGiContext, IMavenProj
         setChanged();
       }
       newEnvironments.put(newEnvironment.id, environment);
-    }
-    for (String key : this.environments.keySet()) {
-      deleteServer(generateServerId(key));
     }
     if (!this.environments.isEmpty()) {
       setChanged();

@@ -29,7 +29,7 @@ import org.eclipse.m2e.core.embedder.IMaven;
 import org.eclipse.m2e.core.project.IMavenProjectFacade;
 import org.eclipse.m2e.core.project.IMavenProjectRegistry;
 import org.everit.osgi.dev.e4.plugin.ui.EOSGiLog;
-import org.everit.osgi.dev.e4.plugin.ui.EOSGiPluginActivator;
+import org.everit.osgi.dev.e4.plugin.ui.EOSGiEclipsePlugin;
 
 /**
  * Class for executing maven goals.
@@ -85,7 +85,7 @@ public class M2EGoalExecutor {
    */
   public M2EGoalExecutor(final IProject project, final String environmentId) {
     super();
-    ILog iLog = EOSGiPluginActivator.getDefault().getLog();
+    ILog iLog = EOSGiEclipsePlugin.getDefault().getLog();
     log = new EOSGiLog(iLog);
     maven = MavenPlugin.getMaven();
     projectRegistry = MavenPlugin.getMavenProjectRegistry();

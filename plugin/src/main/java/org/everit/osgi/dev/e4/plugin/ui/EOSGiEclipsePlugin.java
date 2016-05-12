@@ -49,13 +49,13 @@ import org.osgi.framework.BundleContext;
 /**
  * Activator class for EOSGi plugin.
  */
-public class EOSGiPluginActivator extends AbstractUIPlugin {
+public class EOSGiEclipsePlugin extends AbstractUIPlugin {
 
-  private static EOSGiPluginActivator plugin;
+  private static EOSGiEclipsePlugin plugin;
 
   public static final String PLUGIN_ID = "org.everit.osgi.dev.e4.plugin";
 
-  public static EOSGiPluginActivator getDefault() {
+  public static EOSGiEclipsePlugin getDefault() {
     return plugin;
   }
 
@@ -90,7 +90,7 @@ public class EOSGiPluginActivator extends AbstractUIPlugin {
     }
     if (console == null) {
       console = new MessageConsole(name,
-          EOSGiPluginActivator.getImageDescriptor("icons/everit.gif"));
+          EOSGiEclipsePlugin.getImageDescriptor("icons/everit.gif"));
       consoleManager.addConsoles(new IConsole[] { console });
     }
     return console.newMessageStream();

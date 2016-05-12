@@ -15,10 +15,16 @@
  */
 package org.everit.osgi.dev.e4.plugin.ui.launcher;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.eclipse.debug.ui.AbstractLaunchConfigurationTabGroup;
-import org.eclipse.debug.ui.CommonTab;
 import org.eclipse.debug.ui.ILaunchConfigurationDialog;
 import org.eclipse.debug.ui.ILaunchConfigurationTab;
+import org.eclipse.debug.ui.sourcelookup.SourceLookupTab;
+import org.eclipse.jdt.debug.ui.launchConfigurations.JavaArgumentsTab;
+import org.eclipse.jdt.debug.ui.launchConfigurations.JavaJRETab;
+import org.eclipse.jdt.debug.ui.launchConfigurations.JavaMainTab;
 
 /**
  * Basic launcher tab group implemention.
@@ -30,16 +36,25 @@ public class LaunchConfigurationTabGroup extends AbstractLaunchConfigurationTabG
    */
   @Override
   public void createTabs(final ILaunchConfigurationDialog dialog, final String mode) {
-    ILaunchConfigurationTab[] tabs = new ILaunchConfigurationTab[1];
-    // tabs[0] = new ServerLaunchConfigurationTab(new String[] { "org.eclipse.wst.server.preview"
-    // });
-    // tabs[0].setLaunchConfigurationDialog(dialog);
+    List<ILaunchConfigurationTab> tabs = new ArrayList<>();
 
-    // tabs[0] = new EnvironmentTab();
-    // tabs[0].setLaunchConfigurationDialog(dialog);
-    tabs[0] = new CommonTab();
-    tabs[0].setLaunchConfigurationDialog(dialog);
-    setTabs(tabs);
+    JavaMainTab javaMainTab = new JavaMainTab();
+    javaMainTab.setLaunchConfigurationDialog(dialog);
+    tabs.add(javaMainTab);
+
+    JavaArgumentsTab javaArgumentsTab = new JavaArgumentsTab();
+    javaArgumentsTab.setLaunchConfigurationDialog(dialog);
+    tabs.add(javaArgumentsTab);
+
+    JavaJRETab jreTab = new JavaJRETab();
+    jreTab.setLaunchConfigurationDialog(dialog);
+    tabs.add(jreTab);
+
+    SourceLookupTab sourceLookupTab = new SourceLookupTab();
+    sourceLookupTab.setLaunchConfigurationDialog(dialog);
+    tabs.add(sourceLookupTab);
+
+    setTabs(tabs.toArray(new ILaunchConfigurationTab[0]));
   }
 
 }

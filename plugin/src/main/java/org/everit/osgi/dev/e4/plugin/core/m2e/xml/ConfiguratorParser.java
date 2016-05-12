@@ -24,7 +24,7 @@ import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.everit.osgi.dev.e4.plugin.core.m2e.model.Bundle;
 import org.everit.osgi.dev.e4.plugin.core.m2e.model.BundleSettings;
 import org.everit.osgi.dev.e4.plugin.ui.EOSGiLog;
-import org.everit.osgi.dev.e4.plugin.ui.EOSGiPluginActivator;
+import org.everit.osgi.dev.e4.plugin.ui.EOSGiEclipsePlugin;
 
 /**
  * XML parser for configuration XML part.
@@ -53,7 +53,7 @@ public class ConfiguratorParser {
 
   public ConfiguratorParser() {
     super();
-    log = new EOSGiLog(EOSGiPluginActivator.getDefault().getLog());
+    log = new EOSGiLog(EOSGiEclipsePlugin.getDefault().getLog());
   }
 
   /**

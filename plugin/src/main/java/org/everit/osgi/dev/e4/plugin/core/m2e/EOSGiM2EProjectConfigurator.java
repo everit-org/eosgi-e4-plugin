@@ -15,6 +15,7 @@
  */
 package org.everit.osgi.dev.e4.plugin.core.m2e;
 
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.maven.plugin.MojoExecution;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
@@ -35,15 +36,14 @@ import org.everit.osgi.dev.e4.plugin.core.EOSGiContext;
 import org.everit.osgi.dev.e4.plugin.core.EOSGiContextManager;
 import org.everit.osgi.dev.e4.plugin.core.m2e.xml.ConfiguratorParser;
 import org.everit.osgi.dev.e4.plugin.core.m2e.xml.EnvironmentsDTO;
+import org.everit.osgi.dev.e4.plugin.ui.EOSGiEclipsePlugin;
 import org.everit.osgi.dev.e4.plugin.ui.EOSGiLog;
-import org.everit.osgi.dev.e4.plugin.ui.EOSGiPluginActivator;
 import org.everit.osgi.dev.e4.plugin.ui.nature.EosgiNature;
-import org.everit.osgi.dev.e4.plugin.ui.util.ProjectNatureUtils;
 
 /**
- * Project configurator for EOSGI projects.
+ * Project configurator for EOSGi projects.
  */
-public class DistProjectConfigurator extends AbstractProjectConfigurator {
+public class EOSGiM2EProjectConfigurator extends AbstractProjectConfigurator {
 
   private final EOSGiContextManager eosgiManager;
 
@@ -52,9 +52,9 @@ public class DistProjectConfigurator extends AbstractProjectConfigurator {
   /**
    * Constructor.
    */
-  public DistProjectConfigurator() {
+  public EOSGiM2EProjectConfigurator() {
     super();
-    EOSGiPluginActivator plugin = EOSGiPluginActivator.getDefault();
+    EOSGiEclipsePlugin plugin = EOSGiEclipsePlugin.getDefault();
     log = new EOSGiLog(plugin.getLog());
     eosgiManager = plugin.getEOSGiManager();
   }
@@ -64,9 +64,11 @@ public class DistProjectConfigurator extends AbstractProjectConfigurator {
     IProjectDescription projectDescription = project.getDescription();
     if (projectDescription != null) {
       String[] natureIds = projectDescription.getNatureIds();
-      String[] newNatureIds = ProjectNatureUtils.addNature(natureIds, EosgiNature.NATURE_ID);
-      projectDescription.setNatureIds(newNatureIds);
-      project.setDescription(projectDescription, monitor);
+      if (!ArrayUtils.contains(natureIds, EosgiNature.NATURE_ID)) {
+        String[] newNatureIds = ArrayUtils.add(natureIds, EosgiNature.NATURE_ID);
+        projectDescription.setNatureIds(newNatureIds);
+        project.setDescription(projectDescription, monitor);
+      }
     }
   }
 
@@ -99,7 +101,11 @@ public class DistProjectConfigurator extends AbstractProjectConfigurator {
   public boolean hasConfigurationChanged(final IMavenProjectFacade newFacade,
       final ILifecycleMappingConfiguration oldProjectConfiguration, final MojoExecutionKey key,
       final IProgressMonitor monitor) {
-    if (newFacade != null) {
+
+    boolean changed =
+        super.hasConfigurationChanged(newFacade, oldProjectConfiguration, key, monitor);
+
+    if (changed && newFacade != null) {
       monitor.subTask("Update configuration");
       try {
         IProject project = newFacade.getProject();
@@ -120,7 +126,7 @@ public class DistProjectConfigurator extends AbstractProjectConfigurator {
         log.error("Configuration change handling failed for project: " + e.getMessage());
       }
     }
-    return super.hasConfigurationChanged(newFacade, oldProjectConfiguration, key, monitor);
+    return changed;
   }
 
   @Override
@@ -147,9 +153,24 @@ public class DistProjectConfigurator extends AbstractProjectConfigurator {
     super.mavenProjectChanged(event, monitor);
   }
 
+  private void removeProjectNature(final IProject project, final IProgressMonitor monitor)
+      throws CoreException {
+    IProjectDescription projectDescription = project.getDescription();
+    if (projectDescription != null) {
+      String[] natureIds = projectDescription.getNatureIds();
+      int indexOfNature = ArrayUtils.indexOf(natureIds, EosgiNature.NATURE_ID);
+      if (indexOfNature >= 0) {
+        String[] newNatureIds = ArrayUtils.remove(natureIds, indexOfNature);
+        projectDescription.setNatureIds(newNatureIds);
+        project.setDescription(projectDescription, monitor);
+      }
+    }
+  }
+
   @Override
   public void unconfigure(final ProjectConfigurationRequest request, final IProgressMonitor monitor)
       throws CoreException {
+    removeProjectNature(request.getProject(), monitor);
     super.unconfigure(request, monitor);
   }
 

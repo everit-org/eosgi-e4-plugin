@@ -29,7 +29,7 @@ import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.swt.widgets.Control;
 import org.everit.osgi.dev.e4.plugin.core.EOSGiContext;
 import org.everit.osgi.dev.e4.plugin.core.EOSGiContextManager;
-import org.everit.osgi.dev.e4.plugin.ui.EOSGiPluginActivator;
+import org.everit.osgi.dev.e4.plugin.ui.EOSGiEclipsePlugin;
 import org.everit.osgi.dev.e4.plugin.ui.navigator.nodes.AbstractNode;
 import org.everit.osgi.dev.e4.plugin.ui.navigator.nodes.RootNode;
 
@@ -44,7 +44,7 @@ public class DistContentProvider extends TreeNodeContentProvider
 
   private EOSGiContextManager manager;
 
-  private final EOSGiPluginActivator plugin;
+  private final EOSGiEclipsePlugin plugin;
 
   private Map<IProject, AbstractNode[]> projectCache = new ConcurrentHashMap<>();
 
@@ -55,7 +55,7 @@ public class DistContentProvider extends TreeNodeContentProvider
    */
   public DistContentProvider() {
     super();
-    plugin = EOSGiPluginActivator.getDefault();
+    plugin = EOSGiEclipsePlugin.getDefault();
     if (plugin != null) {
       manager = plugin.getEOSGiManager();
     } else {
@@ -138,17 +138,6 @@ public class DistContentProvider extends TreeNodeContentProvider
       return NO_CHILDREN;
     }
   }
-
-  // FIXME unused
-  // @SuppressWarnings("unused")
-  // private Runnable getUpdateRunnable(final AbstractNode resource) {
-  // return new Runnable() {
-  // @Override
-  // public void run() {
-  // viewer.update(resource, null);
-  // }
-  // };
-  // }
 
   @Override
   public boolean hasChildren(final Object element) {

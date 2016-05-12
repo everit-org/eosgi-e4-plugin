@@ -23,7 +23,7 @@ import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.TreeSelection;
 import org.eclipse.ui.handlers.HandlerUtil;
 import org.everit.osgi.dev.e4.plugin.ui.EOSGiLog;
-import org.everit.osgi.dev.e4.plugin.ui.EOSGiPluginActivator;
+import org.everit.osgi.dev.e4.plugin.ui.EOSGiEclipsePlugin;
 import org.everit.osgi.dev.e4.plugin.ui.jobs.DistGenerationJob;
 
 /**
@@ -35,7 +35,7 @@ public class CreateDistHandler extends AbstractDistHandler implements IHandler {
 
   public CreateDistHandler() {
     super();
-    log = new EOSGiLog(EOSGiPluginActivator.getDefault().getLog());
+    log = new EOSGiLog(EOSGiEclipsePlugin.getDefault().getLog());
   }
 
   @Override
