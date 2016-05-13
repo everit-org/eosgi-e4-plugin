@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.everit.osgi.dev.e4.plugin.ui.nature;
+package org.everit.osgi.dev.e4.plugin;
 
 import java.util.logging.Logger;
 
@@ -24,10 +24,10 @@ import org.eclipse.core.runtime.CoreException;
 /**
  * Nature implementation for EOSGI dist projects.
  */
-public class EosgiNature implements IProjectNature {
-  private static final Logger LOGGER = Logger.getLogger(EosgiNature.class.getName());
+public class EOSGiNature implements IProjectNature {
+  private static final Logger LOGGER = Logger.getLogger(EOSGiNature.class.getName());
 
-  public static final String NATURE_ID = "org.everit.osgi.dev.e4.plugin.nature";
+  public static final String NATURE_ID = "org.everit.osgi.dev.e4.plugin.EosgiNature";
 
   private String name;
 

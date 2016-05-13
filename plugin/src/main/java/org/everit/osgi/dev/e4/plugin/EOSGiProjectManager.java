@@ -13,24 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.everit.osgi.dev.e4.plugin.core.m2e.xml;
+package org.everit.osgi.dev.e4.plugin;
 
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
+
+import org.eclipse.core.resources.IProject;
 
 /**
- * DTO class for environments.
+ * Storing and managing {@link EOSGiProject} instances.
  */
-public class EnvironmentsDTO {
-  public List<EnvironmentDTO> environments;
+public class EOSGiProjectManager {
 
-  public EnvironmentsDTO environments(final List<EnvironmentDTO> environments) {
-    this.environments = environments;
-    return this;
+  private final Map<IProject, EOSGiProject> eosgiProjects = new HashMap<>();
+
+  public EOSGiProject get(final Object key) {
+    return eosgiProjects.get(key);
   }
 
-  @Override
-  public String toString() {
-    return "EnvironmentsDTO [environments=" + environments + "]";
+  public EOSGiProject put(final IProject key, final EOSGiProject value) {
+    return eosgiProjects.put(key, value);
+  }
+
+  public void remove(final IProject project) {
+    eosgiProjects.remove(project);
   }
 
 }

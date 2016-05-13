@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.everit.osgi.dev.e4.plugin.core.m2e.xml;
+package org.everit.osgi.dev.e4.plugin.m2e.xml;
 
 import java.util.List;
 import java.util.Map;
 
-import org.everit.osgi.dev.e4.plugin.core.m2e.model.BundleSettings;
+import org.everit.osgi.dev.e4.plugin.m2e.model.BundleSettings;
 
 /**
  * DTO class for an environment.

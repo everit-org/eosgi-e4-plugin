@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.everit.osgi.dev.e4.plugin.core.m2e.model;
+package org.everit.osgi.dev.e4.plugin.m2e.model;
 
 import java.util.List;
 

@@ -13,27 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.everit.osgi.dev.e4.plugin.core.m2e.model;
+package org.everit.osgi.dev.e4.plugin.m2e.model;
 
-import java.util.Map;
+import java.util.List;
 
 /**
- * Model class for storing bundle information about an environment.
+ * Model class for storing bundle settings about an environment.
  */
-public class Bundle {
-  private Map<String, String> bundlePropertiesMap;
+public class BundleSettings {
+  private List<Bundle> bundles;
 
-  public Map<String, String> getBundlePropertiesMap() {
-    return bundlePropertiesMap;
+  public List<Bundle> getBundles() {
+    return bundles;
   }
 
-  public void setBundlePropertiesMap(final Map<String, String> bundlePropertiesMap) {
-    this.bundlePropertiesMap = bundlePropertiesMap;
+  public void setBundles(final List<Bundle> bundles) {
+    this.bundles = bundles;
   }
 
   @Override
   public String toString() {
-    return "Bundle [bundlePropertiesMap=" + bundlePropertiesMap + "]";
+    return "BundleSettings [bundles=" + bundles + "]";
   }
 
 }

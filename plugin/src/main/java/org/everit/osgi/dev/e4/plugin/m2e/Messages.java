@@ -13,18 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.everit.osgi.dev.e4.plugin.core;
+package org.everit.osgi.dev.e4.plugin.m2e;
 
-import org.eclipse.core.resources.IProject;
+import org.eclipse.osgi.util.NLS;
 
 /**
- * Interface for EOSGI contexts manager.
+ * I18N constants.
  */
-public interface EOSGiContextManager {
+public final class Messages extends NLS {
+  private static final String BUNDLE_NAME = "org.everit.osgi.dev.e4.plugin.core.m2e.messages";
 
-  void dispose();
+  public static String dialogMessageIncompatibleMavenPlugin;
 
-  EOSGiContext findOrCreate(IProject project);
+  public static String dialogTitleIncompatibleMavenPlugin;
 
-  void remove(IProject project);
+  public static String monitorCreateServer;
+
+  public static String monitorLoadDistXML;
+
+  static {
+    // initialize resource bundle
+    NLS.initializeMessages(BUNDLE_NAME, Messages.class);
+  }
+
+  private Messages() {
+  }
 }

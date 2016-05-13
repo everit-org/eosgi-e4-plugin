@@ -34,8 +34,8 @@ import org.eclipse.debug.core.ILaunchManager;
 import org.eclipse.jdt.launching.IJavaLaunchConfigurationConstants;
 import org.eclipse.jdt.launching.IRuntimeClasspathEntry;
 import org.eclipse.jdt.launching.JavaRuntime;
-import org.everit.osgi.dev.e4.plugin.ui.EOSGiLog;
-import org.everit.osgi.dev.e4.plugin.ui.EOSGiEclipsePlugin;
+import org.everit.osgi.dev.e4.plugin.EOSGiEclipsePlugin;
+import org.everit.osgi.dev.e4.plugin.EOSGiLog;
 import org.everit.osgi.dev.eosgi.dist.schema.util.LaunchConfigurationDTO;
 
 /**

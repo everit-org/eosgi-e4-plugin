@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.everit.osgi.dev.e4.plugin.core.m2e;
+package org.everit.osgi.dev.e4.plugin.m2e;
 
 import java.util.List;
 
@@ -28,8 +28,8 @@ import org.eclipse.m2e.core.MavenPlugin;
 import org.eclipse.m2e.core.embedder.IMaven;
 import org.eclipse.m2e.core.project.IMavenProjectFacade;
 import org.eclipse.m2e.core.project.IMavenProjectRegistry;
-import org.everit.osgi.dev.e4.plugin.ui.EOSGiLog;
-import org.everit.osgi.dev.e4.plugin.ui.EOSGiEclipsePlugin;
+import org.everit.osgi.dev.e4.plugin.EOSGiEclipsePlugin;
+import org.everit.osgi.dev.e4.plugin.EOSGiLog;
 
 /**
  * Class for executing maven goals.

@@ -34,13 +34,14 @@
           id="org.everit.osgi.dev.e4.plugin.ui.navigator"
           point="org.eclipse.ui.navigator.navigatorContent">
         <navigatorContent
-          id="org.everit.osgi.dev.e4.plugin.ui.navigator.dist"
-          name="%navigatorContent.everitOsgiContext"
-          activeByDefault="true"
-          icon="icons/everit.gif"
-          priority="normal"
-          contentProvider="org.everit.osgi.dev.e4.plugin.ui.navigator.DistContentProvider"
-          labelProvider="org.everit.osgi.dev.e4.plugin.ui.navigator.DistLabelProvider">
+              activeByDefault="true"
+              appearsBefore="org.eclipse.jdt.java.ui.javaContent"
+              contentProvider="org.everit.osgi.dev.e4.plugin.ui.navigator.DistContentProvider"
+              icon="icons/everit.gif"
+              id="org.everit.osgi.dev.e4.plugin.ui.navigator.dist"
+              labelProvider="org.everit.osgi.dev.e4.plugin.ui.navigator.DistLabelProvider"
+              name="%navigatorContent.everitOsgiContext"
+              priority="normal">
           <triggerPoints>
              <or>
                <instanceof
@@ -61,22 +62,13 @@
         </navigatorContent>
     </extension>
     
-    <extension
-      point="org.eclipse.ui.ide.projectNatureImages"
-      name="Bundle project nature image">
-      <image
-        id="org.everit.osgi.dev.e4.plugin.ui.projectNatureImages.eosgiNatureImage"
-        natureId="org.everit.osgi.dev.e4.plugin.nature"
-        icon="icons/everit_8_8.gif">
-      </image>
-    </extension>
 
     <!--m2e staffs -->   
     <extension
         point="org.eclipse.m2e.core.projectConfigurators">
         <configurator
-            class="org.everit.osgi.dev.e4.plugin.core.m2e.EOSGiM2EProjectConfigurator"
-            id="org.everit.osgi.dev.e4.plugin.core.m2e.EOSGiM2EProjectConfigurator"
+            class="org.everit.osgi.dev.e4.plugin.m2e.EOSGiM2EProjectConfigurator"
+            id="org.everit.osgi.dev.e4.plugin.m2e.EOSGiM2EProjectConfigurator"
             name="Project configurator for EOSGI dist projects.">
         </configurator>
     </extension>
@@ -117,11 +109,11 @@
     </extension>
     
     <extension
-      id="org.everit.osgi.dev.e4.plugin.nature"
+      id="org.everit.osgi.dev.e4.plugin.EOSGiNature"
       point="org.eclipse.core.resources.natures"
       name="%name.eosgiDistNature">
       <runtime>
-        <run class="org.everit.osgi.dev.e4.plugin.ui.nature.EosgiNature" />
+        <run class="org.everit.osgi.dev.e4.plugin.EOSGiNature" />
       </runtime>
     </extension>
     

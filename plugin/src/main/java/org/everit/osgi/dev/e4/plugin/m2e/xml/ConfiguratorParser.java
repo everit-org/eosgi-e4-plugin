@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.everit.osgi.dev.e4.plugin.core.m2e.xml;
+package org.everit.osgi.dev.e4.plugin.m2e.xml;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -21,10 +21,10 @@ import java.util.List;
 import java.util.Map;
 
 import org.codehaus.plexus.util.xml.Xpp3Dom;
-import org.everit.osgi.dev.e4.plugin.core.m2e.model.Bundle;
-import org.everit.osgi.dev.e4.plugin.core.m2e.model.BundleSettings;
-import org.everit.osgi.dev.e4.plugin.ui.EOSGiLog;
-import org.everit.osgi.dev.e4.plugin.ui.EOSGiEclipsePlugin;
+import org.everit.osgi.dev.e4.plugin.EOSGiEclipsePlugin;
+import org.everit.osgi.dev.e4.plugin.EOSGiLog;
+import org.everit.osgi.dev.e4.plugin.m2e.model.Bundle;
+import org.everit.osgi.dev.e4.plugin.m2e.model.BundleSettings;
 
 /**
  * XML parser for configuration XML part.

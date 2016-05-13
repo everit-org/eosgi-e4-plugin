@@ -13,11 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.everit.osgi.dev.e4.plugin.core;
+package org.everit.osgi.dev.e4.plugin.m2e.model;
+
+import java.util.Map;
 
 /**
- * Event type.
+ * Model class for storing bundle information about an environment.
  */
-public enum EventType {
-  ENVIRONMENT, ENVIRONMENTS, PROJECT;
+public class Bundle {
+  private Map<String, String> bundlePropertiesMap;
+
+  public Map<String, String> getBundlePropertiesMap() {
+    return bundlePropertiesMap;
+  }
+
+  public void setBundlePropertiesMap(final Map<String, String> bundlePropertiesMap) {
+    this.bundlePropertiesMap = bundlePropertiesMap;
+  }
+
+  @Override
+  public String toString() {
+    return "Bundle [bundlePropertiesMap=" + bundlePropertiesMap + "]";
+  }
+
 }

@@ -13,23 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.everit.osgi.dev.e4.plugin.ui.navigator;
+package org.everit.osgi.dev.e4.plugin.m2e.xml;
 
-import org.everit.osgi.dev.e4.plugin.ui.navigator.nodes.AbstractNode;
+import java.util.List;
 
 /**
- * Event class for node changes.
+ * DTO class for environments.
  */
-public class EosgiNodeChangeEvent {
+public class EnvironmentsDTO {
+  public List<EnvironmentDTO> environments;
 
-  private AbstractNode node;
-
-  public EosgiNodeChangeEvent(final AbstractNode node) {
-    super();
-    this.node = node;
+  public EnvironmentsDTO environments(final List<EnvironmentDTO> environments) {
+    this.environments = environments;
+    return this;
   }
 
-  public AbstractNode getNode() {
-    return node;
+  @Override
+  public String toString() {
+    return "EnvironmentsDTO [environments=" + environments + "]";
   }
+
 }

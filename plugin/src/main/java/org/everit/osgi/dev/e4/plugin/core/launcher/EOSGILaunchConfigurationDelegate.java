@@ -22,8 +22,8 @@ import org.eclipse.debug.core.ILaunch;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.jdt.launching.IJavaLaunchConfigurationConstants;
 import org.eclipse.jdt.launching.JavaLaunchDelegate;
-import org.everit.osgi.dev.e4.plugin.ui.EOSGiLog;
-import org.everit.osgi.dev.e4.plugin.ui.EOSGiEclipsePlugin;
+import org.everit.osgi.dev.e4.plugin.EOSGiEclipsePlugin;
+import org.everit.osgi.dev.e4.plugin.EOSGiLog;
 
 /**
  * Extended {@link JavaLaunchDelegate} class for EOSGi launcher.

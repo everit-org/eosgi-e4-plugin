@@ -17,14 +17,14 @@ package org.everit.osgi.dev.e4.plugin.ui.dto;
 
 import java.util.Observable;
 
-import org.everit.osgi.dev.e4.plugin.core.EOSGiContext;
+import org.everit.osgi.dev.e4.plugin.EOSGiProject;
 
 /**
  * DTO class for update UI about environments.
  */
 public class EnvironmentsNodeDTO {
 
-  public EOSGiContext context;
+  public EOSGiProject context;
 
   public Observable observable;
 
@@ -33,7 +33,7 @@ public class EnvironmentsNodeDTO {
     return this;
   }
 
-  public EnvironmentsNodeDTO outdated(final EOSGiContext outdated) {
+  public EnvironmentsNodeDTO outdated(final EOSGiProject outdated) {
     this.context = outdated;
     return this;
   }

@@ -17,17 +17,17 @@ package org.everit.osgi.dev.e4.plugin.ui.dto;
 
 import java.util.Observable;
 
-import org.everit.osgi.dev.e4.plugin.core.EOSGiContext;
+import org.everit.osgi.dev.e4.plugin.EOSGiProject;
 
 /**
  * DTO class for root node changes.
  */
 public class RootNodeDTO {
-  public EOSGiContext context;
+  public EOSGiProject context;
 
   public Observable observable;
 
-  public RootNodeDTO context(final EOSGiContext eosGiContext) {
+  public RootNodeDTO context(final EOSGiProject eosGiContext) {
     context = eosGiContext;
     return this;
   }
