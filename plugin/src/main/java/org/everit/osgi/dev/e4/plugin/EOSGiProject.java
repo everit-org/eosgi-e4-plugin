@@ -16,20 +16,17 @@
 package org.everit.osgi.dev.e4.plugin;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.m2e.core.project.IMavenProjectFacade;
 import org.everit.osgi.dev.e4.plugin.core.launcher.LaunchConfigurationBuilder;
 import org.everit.osgi.dev.e4.plugin.m2e.M2EGoalExecutor;
 import org.everit.osgi.dev.e4.plugin.m2e.Messages;
 import org.everit.osgi.dev.e4.plugin.m2e.model.Environment;
-import org.everit.osgi.dev.e4.plugin.ui.dto.EnvironmentNodeDTO;
 import org.everit.osgi.dev.eosgi.dist.schema.util.DistributedEnvironmentConfigurationProvider;
 import org.everit.osgi.dev.eosgi.dist.schema.util.LaunchConfigurationDTO;
 import org.everit.osgi.dev.eosgi.dist.schema.xsd.EnvironmentType;
@@ -42,14 +39,13 @@ public class EOSGiProject {
 
   private String buildDirectory;
 
-  private final boolean enable = true;
-
   private final Map<String, Environment> environments = new HashMap<>();
 
-  private final IProject project;
+  private IMavenProjectFacade mavenProjectFacade;
 
-  public EOSGiProject(final IProject project) {
-    this.project = project;
+  public EOSGiProject(final IMavenProjectFacade mavenProjectFacade) {
+    this.mavenProjectFacade = mavenProjectFacade;
+
   }
 
   private void createLauncherForEnvironment(final String environmentId,
@@ -62,18 +58,6 @@ public class EOSGiProject {
     new LaunchConfigurationBuilder(project.getName(), environmentId, buildDirectory)
         .addEnvironmentConfigurationDTO(launchConfigurationDTO)
         .build();
-  }
-
-  public List<EnvironmentNodeDTO> fetchEnvironments() {
-    final List<EnvironmentNodeDTO> environmentList = new ArrayList<>();
-    for (Environment environment : environments.values()) {
-      environmentList.add(
-          new EnvironmentNodeDTO()
-              .id(environment.getId())
-              .outdated(environment.isOutdated())
-              .observable(environment));
-    }
-    return environmentList;
   }
 
   public void generate(final String environmentId, final IProgressMonitor monitor)
@@ -102,10 +86,6 @@ public class EOSGiProject {
     if (launchConfigurationDTO != null) {
       createLauncherForEnvironment(environmentId, launchConfigurationDTO, monitor);
     }
-  }
-
-  public boolean isEnable() {
-    return enable;
   }
 
   private LaunchConfigurationDTO loadEnvironmentConfiguration(final String environmentId) {

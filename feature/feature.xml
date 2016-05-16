@@ -243,16 +243,25 @@
       <import plugin="org.eclipse.core.expressions" version="3.4.600" match="greaterOrEqual"/>
       <import plugin="org.eclipse.ui.console" version="3.6.0" match="greaterOrEqual"/>
       <import plugin="org.eclipse.jdt.launching" version="3.8.0" match="greaterOrEqual"/>
-      <import plugin="org.eclipse.wst.server.core" version="1.7.0" match="greaterOrEqual"/>
       <import plugin="org.eclipse.debug.ui" version="3.11.100" match="greaterOrEqual"/>
-      <import plugin="org.everit.osgi.dev.eosgi.dist.schema" version="4.0.0" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.jdt.debug.ui" version="3.7.101" match="greaterOrEqual"/>
+      <import plugin="org.apache.commons.io" version="2.2.0" match="greaterOrEqual"/>
+      <import plugin="org.apache.commons.lang3" version="3.1.0" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.osgi"/>
    </requires>
 
    <plugin
          id="org.everit.osgi.dev.e4.plugin"
          download-size="0"
          install-size="0"
-         version="0.0.0" 
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
+         id="org.everit.osgi.dev.eosgi.dist.schema"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
          unpack="false"/>
 
 </feature>

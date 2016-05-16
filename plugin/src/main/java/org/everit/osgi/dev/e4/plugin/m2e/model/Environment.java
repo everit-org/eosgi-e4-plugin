@@ -18,7 +18,6 @@ package org.everit.osgi.dev.e4.plugin.m2e.model;
 import java.util.Observable;
 
 import org.everit.osgi.dev.e4.plugin.m2e.xml.EnvironmentDTO;
-import org.everit.osgi.dev.e4.plugin.ui.dto.EnvironmentNodeDTO;
 
 /**
  * Model class for storing environment informations.
@@ -52,7 +51,6 @@ public class Environment extends Observable {
   public void setGenerated() {
     this.outdated = false;
     setChanged();
-    notifyObservers(new EnvironmentNodeDTO().id(id).outdated(outdated));
   }
 
   public void setId(final String id) {
@@ -85,8 +83,6 @@ public class Environment extends Observable {
       outdated = true;
       setChanged();
     }
-    EnvironmentNodeDTO environmentNodeDTO = new EnvironmentNodeDTO().id(id).outdated(outdated);
-    notifyObservers(environmentNodeDTO);
   }
 
 }

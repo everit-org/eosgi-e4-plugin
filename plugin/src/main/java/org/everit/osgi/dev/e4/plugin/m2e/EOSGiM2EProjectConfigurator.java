@@ -25,7 +25,6 @@ import org.eclipse.m2e.core.project.configurator.AbstractProjectConfigurator;
 import org.eclipse.m2e.core.project.configurator.ProjectConfigurationRequest;
 import org.everit.osgi.dev.e4.plugin.EOSGiEclipsePlugin;
 import org.everit.osgi.dev.e4.plugin.EOSGiNature;
-import org.everit.osgi.dev.e4.plugin.EOSGiProject;
 
 /**
  * Project configurator for EOSGi projects.
@@ -53,9 +52,7 @@ public class EOSGiM2EProjectConfigurator extends AbstractProjectConfigurator {
       return;
     }
     addEosgiNature(monitor, project);
-
-    EOSGiProject eosgiProject = new EOSGiProject(project);
-    EOSGiEclipsePlugin.getDefault().getEOSGiManager().put(project, eosgiProject);
+    EOSGiEclipsePlugin.getDefault().getEOSGiManager().remove(project);
   }
 
   @Override

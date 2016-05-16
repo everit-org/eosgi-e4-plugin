@@ -29,7 +29,7 @@ public class DistContentProvider extends TreeNodeContentProvider {
   public Object[] getChildren(final Object parentElement) {
     if (parentElement instanceof IProject) {
       EOSGiProject eosgiProject =
-          EOSGiEclipsePlugin.getDefault().getEOSGiManager().get(parentElement);
+          EOSGiEclipsePlugin.getDefault().getEOSGiManager().get((IProject) parentElement);
 
       if (eosgiProject == null) {
         return new Object[0];
