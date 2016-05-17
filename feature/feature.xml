@@ -258,7 +258,14 @@
          unpack="false"/>
 
    <plugin
-         id="org.everit.osgi.dev.eosgi.dist.schema"
+         id="org.everit.osgi.dev.dist.util"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
+         id="org.everit.osgi.extension.sun.attach"
          download-size="0"
          install-size="0"
          version="0.0.0"

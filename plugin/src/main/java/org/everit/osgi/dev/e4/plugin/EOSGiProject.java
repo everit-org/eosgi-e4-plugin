@@ -23,14 +23,15 @@ import java.util.Objects;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.m2e.core.project.IMavenProjectFacade;
+import org.everit.osgi.dev.dist.util.attach.VirtualMachineManager;
+import org.everit.osgi.dev.dist.util.configuration.DistributedEnvironmentConfigurationProvider;
+import org.everit.osgi.dev.dist.util.configuration.LaunchConfigurationDTO;
+import org.everit.osgi.dev.dist.util.configuration.schema.EnvironmentType;
+import org.everit.osgi.dev.dist.util.configuration.schema.UseByType;
 import org.everit.osgi.dev.e4.plugin.core.launcher.LaunchConfigurationBuilder;
 import org.everit.osgi.dev.e4.plugin.m2e.M2EGoalExecutor;
 import org.everit.osgi.dev.e4.plugin.m2e.Messages;
 import org.everit.osgi.dev.e4.plugin.m2e.model.Environment;
-import org.everit.osgi.dev.eosgi.dist.schema.util.DistributedEnvironmentConfigurationProvider;
-import org.everit.osgi.dev.eosgi.dist.schema.util.LaunchConfigurationDTO;
-import org.everit.osgi.dev.eosgi.dist.schema.xsd.EnvironmentType;
-import org.everit.osgi.dev.eosgi.dist.schema.xsd.UseByType;
 
 /**
  * {@link EOSGiProject} base implementation.
@@ -41,11 +42,11 @@ public class EOSGiProject {
 
   private final Map<String, Environment> environments = new HashMap<>();
 
-  private IMavenProjectFacade mavenProjectFacade;
+  private final IMavenProjectFacade mavenProjectFacade;
 
   public EOSGiProject(final IMavenProjectFacade mavenProjectFacade) {
     this.mavenProjectFacade = mavenProjectFacade;
-
+    new VirtualMachineManager().listVirtualMachines();
   }
 
   private void createLauncherForEnvironment(final String environmentId,
@@ -55,9 +56,8 @@ public class EOSGiProject {
       monitor.setTaskName(Messages.monitorCreateServer);
     }
 
-    new LaunchConfigurationBuilder(project.getName(), environmentId, buildDirectory)
-        .addEnvironmentConfigurationDTO(launchConfigurationDTO)
-        .build();
+    new LaunchConfigurationBuilder(mavenProjectFacade.getProject().getName(), environmentId,
+        buildDirectory).addEnvironmentConfigurationDTO(launchConfigurationDTO).build();
   }
 
   public void generate(final String environmentId, final IProgressMonitor monitor)
@@ -69,7 +69,7 @@ public class EOSGiProject {
       throw new NullPointerException();
     }
 
-    M2EGoalExecutor executor = new M2EGoalExecutor(project, environmentId);
+    M2EGoalExecutor executor = new M2EGoalExecutor(mavenProjectFacade.getProject(), environmentId);
     if (!executor.execute(monitor)) {
       return;
     }

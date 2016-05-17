@@ -30,8 +30,13 @@
   <dependencies>
     <dependency>
       <groupId>org.everit.osgi.dev</groupId>
-      <artifactId>org.everit.osgi.dev.eosgi.dist.schema</artifactId>
+      <artifactId>org.everit.osgi.dev.dist.util</artifactId>
       <version>${eosgi-dist-schema-version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.everit.osgi.extension</groupId>
+      <artifactId>org.everit.osgi.extension.sun.attach</artifactId>
+      <version>0.0.0-v20160517</version>
     </dependency>
   </dependencies>
 
@@ -45,45 +50,6 @@
           <pomDependencies>consider</pomDependencies>
         </configuration>
       </plugin>
-<!--       <plugin> -->
-<!--         <groupId>org.eclipse.tycho</groupId> -->
-<!--         <artifactId>tycho-maven-plugin</artifactId> -->
-<!--         <version>0.25.0</version> -->
-<!--         <extensions>false</extensions> -->
-<!--       </plugin> -->
-<!--       <plugin> -->
-<!--         <groupId>org.reficio</groupId> -->
-<!--         <artifactId>p2-maven-plugin</artifactId> -->
-<!--         <version>1.2.0-SNAPSHOT</version> -->
-<!--         <executions> -->
-<!--           <execution> -->
-<!--             <id>default-cli</id> -->
-<!--             <phase>package</phase> -->
-<!--             <goals> -->
-<!--               <goal>site</goal> -->
-<!--             </goals> -->
-<!--             <configuration> -->
-<!--               <categoryFileURL>category.xml</categoryFileURL> -->
-<!--               <artifacts> -->
-<!--                 <artifact> -->
-<!--                   <id>org.everit.osgi.dev:org.everit.osgi.dev.eosgi.dist.schema:4.0.0-SNAPSHOT</id> -->
-<!--                   <transitive>false</transitive> -->
-<!--                 </artifact> -->
-<!--                 <artifact> -->
-<!--                   <id>org.everit.osgi.dev.e4:org.everit.osgi.dev.e4.plugin:1.0.0-SNAPSHOT</id> -->
-<!--                   <transitive>false</transitive> -->
-<!--                 </artifact> -->
-<!--               </artifacts> -->
-<!--               <features> -->
-<!--                 <artifact> -->
-<!--                   <id>org.everit.osgi.dev.e4:org.everit.osgi.dev.e4.feature:1.0.0-SNAPSHOT</id> -->
-<!--                   <transitive>false</transitive> -->
-<!--                 </artifact> -->
-<!--               </features> -->
-<!--             </configuration> -->
-<!--           </execution> -->
-<!--         </executions> -->
-<!--       </plugin> -->
     </plugins>
   </build>
 </project>

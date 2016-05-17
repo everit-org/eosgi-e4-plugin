@@ -14,10 +14,10 @@ Require-Bundle: org.eclipse.ui,
  org.eclipse.ui.console;bundle-version="3.6.0",
  org.eclipse.jdt.launching;bundle-version="3.8.0",
  org.eclipse.debug.ui;bundle-version="3.11.100",
- org.everit.osgi.dev.eosgi.dist.schema;bundle-version="4.0.0",
  org.eclipse.jdt.debug.ui;bundle-version="3.7.101",
  org.apache.commons.io;bundle-version="2.2.0",
- org.apache.commons.lang3;bundle-version="3.1.0"
+ org.apache.commons.lang3;bundle-version="3.1.0",
+ org.everit.osgi.dev.dist.util;bundle-version="4.0.0"
 Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Bundle-Vendor: Everit Kft.
 Bundle-ActivationPolicy: lazy
