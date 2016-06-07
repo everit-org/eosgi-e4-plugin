@@ -24,6 +24,7 @@ import java.util.Objects;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.m2e.core.project.IMavenProjectFacade;
+import org.everit.osgi.dev.dist.util.attach.EOSGiVMManager;
 import org.everit.osgi.dev.dist.util.configuration.DistributedEnvironmentConfigurationProvider;
 import org.everit.osgi.dev.dist.util.configuration.LaunchConfigurationDTO;
 import org.everit.osgi.dev.dist.util.configuration.schema.EnvironmentType;
@@ -42,10 +43,14 @@ public class EOSGiProject {
 
   private final Map<String, Environment> environments = new HashMap<>();
 
+  private final EOSGiVMManager eosgiVMManager;
+
   private final IMavenProjectFacade mavenProjectFacade;
 
-  public EOSGiProject(final IMavenProjectFacade mavenProjectFacade) {
+  public EOSGiProject(final IMavenProjectFacade mavenProjectFacade,
+      final EOSGiVMManager eosgiVMManager) {
     this.mavenProjectFacade = mavenProjectFacade;
+    this.eosgiVMManager = eosgiVMManager;
   }
 
   private void createLauncherForEnvironment(final String environmentId,
@@ -59,7 +64,25 @@ public class EOSGiProject {
         buildDirectory).addEnvironmentConfigurationDTO(launchConfigurationDTO).build();
   }
 
-  public void generate(final String environmentId, final IProgressMonitor monitor)
+  public Collection<String> getEnvironmentNames() {
+    return null;
+  }
+
+  private LaunchConfigurationDTO loadEnvironmentConfiguration(final String environmentId) {
+    String distXmlFilePath = buildDirectory + File.separator + "eosgi-dist" //$NON-NLS-1$
+        + File.separator + environmentId;
+    DistributedEnvironmentConfigurationProvider distSchemaProvider =
+        new DistributedEnvironmentConfigurationProvider();
+
+    EnvironmentType distributedEnvironment = distSchemaProvider
+        .getOverriddenDistributedEnvironmentConfig(new File(distXmlFilePath), UseByType.IDE);
+
+    // EnvironmentConfigurationDTO environmentConfigurationDTO = distSchemaProvider
+    // .getEnvironmentConfiguration(new File(distXmlFilePath), UseByType.IDE);
+    return distSchemaProvider.getLaunchConfiguration(distributedEnvironment);
+  }
+
+  public void packDepsAndExecuteDist(final String environmentId, final IProgressMonitor monitor)
       throws CoreException {
     Objects.requireNonNull(environmentId, "environmentName must be not null!");
 
@@ -85,24 +108,6 @@ public class EOSGiProject {
     if (launchConfigurationDTO != null) {
       createLauncherForEnvironment(environmentId, launchConfigurationDTO, monitor);
     }
-  }
-
-  public Collection<String> getEnvironmentNames() {
-    return null;
-  }
-
-  private LaunchConfigurationDTO loadEnvironmentConfiguration(final String environmentId) {
-    String distXmlFilePath = buildDirectory + File.separator + "eosgi-dist" //$NON-NLS-1$
-        + File.separator + environmentId;
-    DistributedEnvironmentConfigurationProvider distSchemaProvider =
-        new DistributedEnvironmentConfigurationProvider();
-
-    EnvironmentType distributedEnvironment = distSchemaProvider
-        .getOverriddenDistributedEnvironmentConfig(new File(distXmlFilePath), UseByType.IDE);
-
-    // EnvironmentConfigurationDTO environmentConfigurationDTO = distSchemaProvider
-    // .getEnvironmentConfiguration(new File(distXmlFilePath), UseByType.IDE);
-    return distSchemaProvider.getLaunchConfiguration(distributedEnvironment);
   }
 
 }

@@ -19,9 +19,9 @@ import java.net.URL;
 
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.viewers.LabelProvider;
+import org.eclipse.jface.viewers.LabelProviderChangedEvent;
 import org.eclipse.swt.graphics.Image;
-import org.eclipse.ui.ISharedImages;
-import org.eclipse.ui.PlatformUI;
+import org.everit.osgi.dev.e4.plugin.EOSGiEclipsePlugin;
 import org.everit.osgi.dev.e4.plugin.EOSGiProject;
 
 /**
@@ -29,19 +29,38 @@ import org.everit.osgi.dev.e4.plugin.EOSGiProject;
  */
 public class DistLabelProvider extends LabelProvider {
 
-  private static final Image EVERIT_LOGO_IMAGE;
+  private static final Image IMAGE_ENVIRONMENT;
+
+  private static final Image IMAGE_EVERIT_LOGO;
 
   static {
     URL everitLogoIconURL = DistLabelProvider.class.getResource("/icons/everit.gif");
-    EVERIT_LOGO_IMAGE = ImageDescriptor.createFromURL(everitLogoIconURL).createImage();
+    IMAGE_EVERIT_LOGO = ImageDescriptor.createFromURL(everitLogoIconURL).createImage();
+
+    URL environmentImageURL = DistLabelProvider.class.getResource("/icons/console_view.gif");
+    IMAGE_ENVIRONMENT = ImageDescriptor.createFromURL(environmentImageURL).createImage();
+  }
+
+  public DistLabelProvider() {
+    EOSGiEclipsePlugin.getDefault().getEOSGiManager().addLabelProvider(this);
+  }
+
+  @Override
+  public void dispose() {
+    EOSGiEclipsePlugin.getDefault().getEOSGiManager().removeLabelProvider(this);
+    super.dispose();
+  }
+
+  public void eosgiProjectChanged(final EOSGiProject eosgiProject) {
+    fireLabelProviderChanged(new LabelProviderChangedEvent(this, eosgiProject));
   }
 
   @Override
   public Image getImage(final Object element) {
     if (element instanceof EOSGiProject) {
-      return EVERIT_LOGO_IMAGE;
+      return IMAGE_EVERIT_LOGO;
     } else if (element instanceof String) {
-      return PlatformUI.getWorkbench().getSharedImages().getImage(ISharedImages.IMG_DEF_VIEW);
+      return IMAGE_ENVIRONMENT;
     } else {
       return super.getImage(element);
     }

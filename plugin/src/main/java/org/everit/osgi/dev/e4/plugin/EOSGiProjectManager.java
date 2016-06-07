@@ -22,6 +22,8 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.maven.plugin.MojoExecution;
 import org.eclipse.core.resources.IProject;
@@ -32,6 +34,8 @@ import org.eclipse.m2e.core.MavenPlugin;
 import org.eclipse.m2e.core.lifecyclemapping.model.IPluginExecutionMetadata;
 import org.eclipse.m2e.core.project.IMavenProjectFacade;
 import org.eclipse.m2e.core.project.configurator.MojoExecutionKey;
+import org.everit.osgi.dev.dist.util.attach.EOSGiVMManager;
+import org.everit.osgi.dev.e4.plugin.ui.navigator.DistLabelProvider;
 import org.osgi.framework.Version;
 import org.osgi.framework.VersionRange;
 
@@ -49,9 +53,29 @@ public class EOSGiProjectManager {
 
   private static final VersionRange EOSGI_VERSION_RANGE = new VersionRange("[4.0.0,5.0)");
 
+  private static final long EOSGI_VM_MANAGER_UPDATE_PERIOD = 1000;
+
   private final Map<IProject, EOSGiProject> eosgiProjects = new HashMap<>();
 
+  private final EOSGiVMManager eosgiVMManager = new EOSGiVMManager();
+
+  private final AtomicLong eosgiVMManagerLastUpdateTime = new AtomicLong();
+
+  private final Map<DistLabelProvider, Boolean> labelProviders = new ConcurrentHashMap<>();
+
   private final Set<IProject> nonEOSGiProjects = new HashSet<>();
+
+  public void addLabelProvider(final DistLabelProvider labelProvider) {
+    labelProviders.put(labelProvider, Boolean.TRUE);
+  }
+
+  private void checkEOSGiVMManagerUpToDate() {
+    long currentTimeMillis = System.currentTimeMillis();
+    long lastUpdateTime = eosgiVMManagerLastUpdateTime.get();
+    if (currentTimeMillis - lastUpdateTime > EOSGI_VM_MANAGER_UPDATE_PERIOD) {
+      eosgiVMManager.refresh();
+    }
+  }
 
   public synchronized EOSGiProject get(final IProject project) {
     if (nonEOSGiProjects.contains(project)) {
@@ -80,6 +104,10 @@ public class EOSGiProjectManager {
   public synchronized void remove(final IProject project) {
     nonEOSGiProjects.remove(project);
     eosgiProjects.remove(project);
+  }
+
+  public void removeLabelProvider(final DistLabelProvider labelProvider) {
+    labelProviders.remove(labelProvider);
   }
 
   private EOSGiProject resolveProject(final IProject project, final IProgressMonitor monitor) {
@@ -114,7 +142,8 @@ public class EOSGiProjectManager {
       return null;
     }
     // TODO
-    EOSGiProject eosgiProject = new EOSGiProject(mavenProjectFacade);
+    checkEOSGiVMManagerUpToDate();
+    EOSGiProject eosgiProject = new EOSGiProject(mavenProjectFacade, eosgiVMManager);
     eosgiProjects.put(project, eosgiProject);
 
     return eosgiProject;
