@@ -20,7 +20,9 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 
+import org.apache.maven.plugin.MojoExecution;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.m2e.core.project.IMavenProjectFacade;
@@ -43,13 +45,16 @@ public class EOSGiProject {
 
   private final Map<String, Environment> environments = new HashMap<>();
 
+  private final Set<MojoExecution> eosgiExecutions;
+
   private final EOSGiVMManager eosgiVMManager;
 
   private final IMavenProjectFacade mavenProjectFacade;
 
   public EOSGiProject(final IMavenProjectFacade mavenProjectFacade,
-      final EOSGiVMManager eosgiVMManager) {
+      final Set<MojoExecution> eosgiExecutions, final EOSGiVMManager eosgiVMManager) {
     this.mavenProjectFacade = mavenProjectFacade;
+    this.eosgiExecutions = eosgiExecutions;
     this.eosgiVMManager = eosgiVMManager;
   }
 

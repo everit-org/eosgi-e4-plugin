@@ -141,9 +141,10 @@ public class EOSGiProjectManager {
       nonEOSGiProjects.add(project);
       return null;
     }
-    // TODO
+
     checkEOSGiVMManagerUpToDate();
-    EOSGiProject eosgiProject = new EOSGiProject(mavenProjectFacade, eosgiVMManager);
+    EOSGiProject eosgiProject =
+        new EOSGiProject(mavenProjectFacade, eosgiExecutions, eosgiVMManager);
     eosgiProjects.put(project, eosgiProject);
 
     return eosgiProject;
