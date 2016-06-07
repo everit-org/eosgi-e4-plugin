@@ -16,6 +16,7 @@
 package org.everit.osgi.dev.e4.plugin;
 
 import java.io.File;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -23,7 +24,6 @@ import java.util.Objects;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.m2e.core.project.IMavenProjectFacade;
-import org.everit.osgi.dev.dist.util.attach.VirtualMachineManager;
 import org.everit.osgi.dev.dist.util.configuration.DistributedEnvironmentConfigurationProvider;
 import org.everit.osgi.dev.dist.util.configuration.LaunchConfigurationDTO;
 import org.everit.osgi.dev.dist.util.configuration.schema.EnvironmentType;
@@ -46,7 +46,6 @@ public class EOSGiProject {
 
   public EOSGiProject(final IMavenProjectFacade mavenProjectFacade) {
     this.mavenProjectFacade = mavenProjectFacade;
-    new VirtualMachineManager().listVirtualMachines();
   }
 
   private void createLauncherForEnvironment(final String environmentId,
@@ -86,6 +85,10 @@ public class EOSGiProject {
     if (launchConfigurationDTO != null) {
       createLauncherForEnvironment(environmentId, launchConfigurationDTO, monitor);
     }
+  }
+
+  public Collection<String> getEnvironmentNames() {
+    return null;
   }
 
   private LaunchConfigurationDTO loadEnvironmentConfiguration(final String environmentId) {

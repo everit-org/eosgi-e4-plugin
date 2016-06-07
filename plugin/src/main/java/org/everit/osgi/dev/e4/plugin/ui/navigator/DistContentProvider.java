@@ -36,7 +36,7 @@ public class DistContentProvider extends TreeNodeContentProvider {
       }
       return new Object[] { eosgiProject };
     } else if (parentElement instanceof EOSGiProject) {
-      return new Object[0];
+      return new Object[] { "equinox", "felix" };
     } else {
       return super.getChildren(parentElement);
     }
@@ -44,6 +44,6 @@ public class DistContentProvider extends TreeNodeContentProvider {
 
   @Override
   public boolean hasChildren(final Object element) {
-    return element instanceof IProject;
+    return element instanceof IProject || element instanceof EOSGiProject;
   }
 }

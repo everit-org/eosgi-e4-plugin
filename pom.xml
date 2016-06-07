@@ -34,7 +34,7 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <maven-compiler-plugin-version>3.2</maven-compiler-plugin-version>
     <tycho-maven-plugin-version>0.25.0</tycho-maven-plugin-version>
-    <eosgi-dist-schema-version>4.0.0-SNAPSHOT</eosgi-dist-schema-version>
+    <eosgi-dist-util-version>4.0.0-201606061621</eosgi-dist-util-version>
     <tycho.localArtifacts>default</tycho.localArtifacts>
 
     <maven.compiler.source>1.7</maven.compiler.source>
@@ -44,8 +44,8 @@
   <dependencies>
     <dependency>
       <groupId>org.everit.osgi.dev</groupId>
-      <artifactId>org.everit.osgi.dev.eosgi.dist.schema</artifactId>
-      <version>${eosgi-dist-schema-version}</version>
+      <artifactId>org.everit.osgi.dev.dist.util</artifactId>
+      <version>${eosgi-dist-util-version}</version>
     </dependency>
   </dependencies>
 

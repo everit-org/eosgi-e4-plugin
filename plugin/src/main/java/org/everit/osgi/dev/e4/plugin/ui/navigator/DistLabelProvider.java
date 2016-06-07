@@ -20,6 +20,8 @@ import java.net.URL;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.ui.ISharedImages;
+import org.eclipse.ui.PlatformUI;
 import org.everit.osgi.dev.e4.plugin.EOSGiProject;
 
 /**
@@ -38,6 +40,8 @@ public class DistLabelProvider extends LabelProvider {
   public Image getImage(final Object element) {
     if (element instanceof EOSGiProject) {
       return EVERIT_LOGO_IMAGE;
+    } else if (element instanceof String) {
+      return PlatformUI.getWorkbench().getSharedImages().getImage(ISharedImages.IMG_DEF_VIEW);
     } else {
       return super.getImage(element);
     }
@@ -47,6 +51,8 @@ public class DistLabelProvider extends LabelProvider {
   public String getText(final Object element) {
     if (element instanceof EOSGiProject) {
       return "OSGi Environments";
+    } else if (element instanceof String) {
+      return (String) element;
     } else {
       return super.getText(element);
     }

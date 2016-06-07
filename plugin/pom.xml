@@ -32,7 +32,7 @@
     <dependency>
       <groupId>org.everit.osgi.dev</groupId>
       <artifactId>org.everit.osgi.dev.dist.util</artifactId>
-      <version>${eosgi-dist-schema-version}</version>
+      <version>${eosgi-dist-util-version}</version>
     </dependency>
     <dependency>
       <groupId>org.everit.osgi.extension</groupId>
