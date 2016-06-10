@@ -52,7 +52,7 @@ public class EOSGiM2EProjectConfigurator extends AbstractProjectConfigurator {
       return;
     }
     addEosgiNature(monitor, project);
-    EOSGiEclipsePlugin.getDefault().getEOSGiManager().remove(project);
+    EOSGiEclipsePlugin.getDefault().getEOSGiManager().putOrOverride(project, monitor);
   }
 
   @Override
@@ -60,7 +60,8 @@ public class EOSGiM2EProjectConfigurator extends AbstractProjectConfigurator {
       final IProgressMonitor monitor)
       throws CoreException {
 
-    super.mavenProjectChanged(event, monitor);
+    EOSGiEclipsePlugin.getDefault().getEOSGiManager()
+        .putOrOverride(event.getMavenProject().getProject(), monitor);
   }
 
   private void removeProjectNature(final IProject project, final IProgressMonitor monitor)
