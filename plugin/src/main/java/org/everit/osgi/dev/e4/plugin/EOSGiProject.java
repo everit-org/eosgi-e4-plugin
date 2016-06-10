@@ -18,14 +18,15 @@ package org.everit.osgi.dev.e4.plugin;
 import java.io.File;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.TreeMap;
 
 import org.apache.maven.plugin.MojoExecution;
+import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.m2e.core.lifecyclemapping.model.IPluginExecutionMetadata;
@@ -37,9 +38,7 @@ import org.everit.osgi.dev.dist.util.configuration.LaunchConfigurationDTO;
 import org.everit.osgi.dev.dist.util.configuration.schema.EnvironmentType;
 import org.everit.osgi.dev.dist.util.configuration.schema.UseByType;
 import org.everit.osgi.dev.e4.plugin.core.launcher.LaunchConfigurationBuilder;
-import org.everit.osgi.dev.e4.plugin.m2e.M2EGoalExecutor;
 import org.everit.osgi.dev.e4.plugin.m2e.Messages;
-import org.everit.osgi.dev.e4.plugin.m2e.model.Environment;
 import org.osgi.framework.Version;
 import org.osgi.framework.VersionRange;
 
@@ -59,19 +58,16 @@ public class EOSGiProject {
 
   private String buildDirectory;
 
-  private final Map<String, Environment> environments = new HashMap<>();
-
-  private final Set<MojoExecution> eosgiExecutions;
-
   private final EOSGiVMManager eosgiVMManager;
 
-  private final IMavenProjectFacade mavenProjectFacade;
+  private Map<String, Map<String, MojoExecution>> executionsByEnvironmentIds;
+
+  private IMavenProjectFacade mavenProjectFacade;
 
   public EOSGiProject(final IMavenProjectFacade mavenProjectFacade,
       final EOSGiVMManager eosgiVMManager, final IProgressMonitor monitor) {
-    this.mavenProjectFacade = mavenProjectFacade;
-    this.eosgiExecutions = resolveEOSGiExecutions(monitor);
     this.eosgiVMManager = eosgiVMManager;
+    refresh(mavenProjectFacade, monitor);
   }
 
   private void createLauncherForEnvironment(final String environmentId,
@@ -89,8 +85,8 @@ public class EOSGiProject {
     removeLaunchers();
   }
 
-  public Collection<String> getEnvironmentNames() {
-    return null;
+  public Collection<String> getEnvironmentIds() {
+    return executionsByEnvironmentIds.keySet();
   }
 
   private boolean isEOSGiExecution(final MojoExecutionKey mojoExecutionKey) {
@@ -124,33 +120,72 @@ public class EOSGiProject {
       throws CoreException {
     Objects.requireNonNull(environmentId, "environmentName must be not null!");
 
-    Environment environment = environments.get(environmentId);
-    if (environment == null) {
-      throw new NullPointerException();
-    }
+    // Environment environment = environments.get(environmentId);
+    // if (environment == null) {
+    // throw new NullPointerException();
+    // }
+    //
+    // M2EGoalExecutor executor = new M2EGoalExecutor(mavenProjectFacade.getProject(),
+    // environmentId);
+    // if (!executor.execute(monitor)) {
+    // return;
+    // }
+    //
+    // environment.setGenerated();
+    //
+    // if (monitor != null) {
+    // monitor.setTaskName(Messages.monitorLoadDistXML);
+    // }
+    //
+    // LaunchConfigurationDTO launchConfigurationDTO = loadEnvironmentConfiguration(
+    // environmentId);
+    //
+    // if (launchConfigurationDTO != null) {
+    // createLauncherForEnvironment(environmentId, launchConfigurationDTO, monitor);
+    // }
+  }
 
-    M2EGoalExecutor executor = new M2EGoalExecutor(mavenProjectFacade.getProject(), environmentId);
-    if (!executor.execute(monitor)) {
-      return;
-    }
+  public synchronized void refresh(final IMavenProjectFacade mavenProjectFacade,
+      final IProgressMonitor monitor) {
 
-    environment.setGenerated();
+    monitor.subTask("Resolving OSGi environments");
 
-    if (monitor != null) {
-      monitor.setTaskName(Messages.monitorLoadDistXML);
-    }
-
-    LaunchConfigurationDTO launchConfigurationDTO = loadEnvironmentConfiguration(
-        environmentId);
-
-    if (launchConfigurationDTO != null) {
-      createLauncherForEnvironment(environmentId, launchConfigurationDTO, monitor);
+    this.mavenProjectFacade = mavenProjectFacade;
+    this.executionsByEnvironmentIds = new TreeMap<>();
+    Set<MojoExecution> executions = resolveEOSGiExecutions(monitor);
+    for (MojoExecution mojoExecution : executions) {
+      Collection<String> environmentIds = resolveEnvironmentIds(mojoExecution);
+      for (String environmentId : environmentIds) {
+        Map<String, MojoExecution> executionMap = executionsByEnvironmentIds.get(environmentId);
+        if (executionMap == null) {
+          executionMap = new TreeMap<>();
+          executionsByEnvironmentIds.put(environmentId, executionMap);
+        }
+        executionMap.put(mojoExecution.getExecutionId(), mojoExecution);
+      }
     }
   }
 
   private void removeLaunchers() {
     // TODO Auto-generated method stub
 
+  }
+
+  private Collection<String> resolveEnvironmentIds(final MojoExecution mojoExecution) {
+    Xpp3Dom configuration = mojoExecution.getConfiguration();
+    Xpp3Dom environmentsNode = configuration.getChild("environments");
+    if (environmentsNode == null) {
+      return Arrays.asList("equinox");
+    }
+    Set<String> result = new LinkedHashSet<>();
+    Xpp3Dom[] environmentsChildNodes = environmentsNode.getChildren();
+    for (Xpp3Dom environmentNode : environmentsChildNodes) {
+      Xpp3Dom environmentIdNode = environmentNode.getChild("id");
+      if (environmentIdNode != null) {
+        result.add(environmentIdNode.getValue());
+      }
+    }
+    return result;
   }
 
   private Set<MojoExecution> resolveEOSGiExecutions(final IProgressMonitor monitor) {
@@ -173,11 +208,6 @@ public class EOSGiProject {
       }
     }
     return eosgiExecutions;
-  }
-
-  public void refresh(final IMavenProjectFacade project, final IProgressMonitor monitor) {
-    // TODO Auto-generated method stub
-
   }
 
 }

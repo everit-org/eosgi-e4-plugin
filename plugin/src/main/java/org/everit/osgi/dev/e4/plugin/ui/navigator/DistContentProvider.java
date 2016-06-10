@@ -36,7 +36,7 @@ public class DistContentProvider extends TreeNodeContentProvider {
       }
       return new Object[] { eosgiProject };
     } else if (parentElement instanceof EOSGiProject) {
-      return new Object[] { "equinox", "felix" };
+      return ((EOSGiProject) parentElement).getEnvironmentIds().toArray(new String[0]);
     } else {
       return super.getChildren(parentElement);
     }
