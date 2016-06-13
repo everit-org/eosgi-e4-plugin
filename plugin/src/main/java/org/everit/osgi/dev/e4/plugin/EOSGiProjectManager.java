@@ -21,8 +21,11 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.m2e.core.MavenPlugin;
+import org.eclipse.m2e.core.project.IMavenProjectFacade;
 import org.everit.osgi.dev.dist.util.attach.EOSGiVMManager;
 import org.everit.osgi.dev.e4.plugin.ui.navigator.DistLabelProvider;
 
@@ -54,16 +57,29 @@ public class EOSGiProjectManager {
   }
 
   public synchronized EOSGiProject get(final IProject project) {
-    return eosgiProjects.get(project);
+    EOSGiProject eosgiProject = eosgiProjects.get(project);
+    if (eosgiProject == null) {
+      try {
+        if (project.getNature(EOSGiNature.NATURE_ID) != null) {
+          putOrOverride(MavenPlugin.getMavenProjectRegistry().getProject(project),
+              new NullProgressMonitor());
+          eosgiProject = eosgiProjects.get(project);
+        }
+      } catch (CoreException e) {
+        throw new RuntimeException(e);
+      }
+    }
+    return eosgiProject;
   }
 
-  public synchronized void putOrOverride(final IProject project, final IProgressMonitor monitor) {
-    EOSGiProject eosgiProject = eosgiProjects.get(project);
+  public synchronized void putOrOverride(final IMavenProjectFacade mavenProject,
+      final IProgressMonitor monitor) {
+    EOSGiProject eosgiProject = eosgiProjects.get(mavenProject.getProject());
     if (eosgiProject != null) {
       checkEOSGiVMManagerUpToDate();
-      eosgiProject.refresh(MavenPlugin.getMavenProjectRegistry().getProject(project), monitor);
+      eosgiProject.refresh(mavenProject, monitor);
     } else {
-      resolveProject(project, monitor);
+      resolveProject(mavenProject, monitor);
     }
   }
 
@@ -76,13 +92,13 @@ public class EOSGiProjectManager {
     labelProviders.remove(labelProvider);
   }
 
-  private EOSGiProject resolveProject(final IProject project, final IProgressMonitor monitor) {
+  private EOSGiProject resolveProject(final IMavenProjectFacade mavenProject,
+      final IProgressMonitor monitor) {
 
     checkEOSGiVMManagerUpToDate();
     EOSGiProject eosgiProject =
-        new EOSGiProject(MavenPlugin.getMavenProjectRegistry().getProject(project), eosgiVMManager,
-            monitor);
-    eosgiProjects.put(project, eosgiProject);
+        new EOSGiProject(mavenProject, eosgiVMManager, monitor);
+    eosgiProjects.put(mavenProject.getProject(), eosgiProject);
 
     return eosgiProject;
   }

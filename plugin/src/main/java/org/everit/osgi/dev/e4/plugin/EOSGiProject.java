@@ -47,14 +47,16 @@ import org.osgi.framework.VersionRange;
  */
 public class EOSGiProject {
 
-  private static final String EOSGI_ARTIFACT_ID = "eosgi-maven-plugin";
+  private static final List<String> DEFAULT_ENVIRONMENT_LIST = Arrays.asList("equinox");
 
-  private static final String EOSGI_GROUP_ID = "org.everit.osgi.dev";
+  public static final String EOSGI_ARTIFACT_ID = "eosgi-maven-plugin";
 
-  private static final String[] EOSGI_SORTED_ACCEPTED_GOAL_ARRAY =
+  public static final String EOSGI_GROUP_ID = "org.everit.osgi.dev";
+
+  public static final String[] EOSGI_SORTED_ACCEPTED_GOAL_ARRAY =
       new String[] { "dist", "integration-test" };
 
-  private static final VersionRange EOSGI_VERSION_RANGE = new VersionRange("[4.0.0,5.0)");
+  public static final VersionRange EOSGI_VERSION_RANGE = new VersionRange("[4.0.0,5.0)");
 
   private String buildDirectory;
 
@@ -175,10 +177,15 @@ public class EOSGiProject {
     Xpp3Dom configuration = mojoExecution.getConfiguration();
     Xpp3Dom environmentsNode = configuration.getChild("environments");
     if (environmentsNode == null) {
-      return Arrays.asList("equinox");
+      return DEFAULT_ENVIRONMENT_LIST;
     }
     Set<String> result = new LinkedHashSet<>();
     Xpp3Dom[] environmentsChildNodes = environmentsNode.getChildren();
+
+    if (environmentsChildNodes.length == 0) {
+      return DEFAULT_ENVIRONMENT_LIST;
+    }
+
     for (Xpp3Dom environmentNode : environmentsChildNodes) {
       Xpp3Dom environmentIdNode = environmentNode.getChild("id");
       if (environmentIdNode != null) {

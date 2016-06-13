@@ -64,14 +64,6 @@
     
 
     <!--m2e staffs -->   
-    <extension
-        point="org.eclipse.m2e.core.projectConfigurators">
-        <configurator
-            class="org.everit.osgi.dev.e4.plugin.m2e.EOSGiM2EProjectConfigurator"
-            id="org.everit.osgi.dev.e4.plugin.m2e.EOSGiM2EProjectConfigurator"
-            name="Project configurator for EOSGI dist projects.">
-        </configurator>
-    </extension>
     
     <extension
         point="org.eclipse.m2e.core.lifecycleMappingMetadataSource">
@@ -166,5 +158,19 @@
       type="org.everit.osgi.dev.e4.plugin.core.launcher.launchConfigurationType"
       class="org.everit.osgi.dev.e4.plugin.ui.launcher.LaunchConfigurationTabGroup">
     </launchConfigurationTabGroup>
+  </extension>
+  <extension
+        point="org.eclipse.m2e.core.mavenProjectChangedListeners">
+     <listener
+           class="org.everit.osgi.dev.e4.plugin.m2e.EOSGiMavenProjectChangeListener">
+     </listener>
+  </extension>
+  <extension
+        point="org.eclipse.m2e.core.projectConfigurators">
+     <configurator
+           class="org.everit.osgi.dev.e4.plugin.m2e.EOSGiM2EProjectConfigurator"
+           id="org.everit.osgi.dev.e4.plugin.m2e.EOSGiM2EProjectConfigurator"
+           name="EOSGi Maven Project Configurator">
+     </configurator>
   </extension>
 </plugin>
