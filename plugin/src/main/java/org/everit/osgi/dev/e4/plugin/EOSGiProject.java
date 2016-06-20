@@ -33,12 +33,7 @@ import org.eclipse.m2e.core.lifecyclemapping.model.IPluginExecutionMetadata;
 import org.eclipse.m2e.core.project.IMavenProjectFacade;
 import org.eclipse.m2e.core.project.configurator.MojoExecutionKey;
 import org.everit.osgi.dev.dist.util.attach.EOSGiVMManager;
-import org.everit.osgi.dev.dist.util.configuration.DistributedEnvironmentConfigurationProvider;
-import org.everit.osgi.dev.dist.util.configuration.LaunchConfigurationDTO;
-import org.everit.osgi.dev.dist.util.configuration.schema.EnvironmentType;
-import org.everit.osgi.dev.dist.util.configuration.schema.UseByType;
-import org.everit.osgi.dev.e4.plugin.core.launcher.LaunchConfigurationBuilder;
-import org.everit.osgi.dev.e4.plugin.m2e.Messages;
+import org.everit.osgi.dev.e4.plugin.m2e.M2EUtil;
 import org.osgi.framework.Version;
 import org.osgi.framework.VersionRange;
 
@@ -46,6 +41,12 @@ import org.osgi.framework.VersionRange;
  * {@link EOSGiProject} base implementation.
  */
 public class EOSGiProject {
+
+  private static class ExecutionInfo {
+    File distFolder;
+
+    MojoExecution mojoExecution;
+  }
 
   private static final List<String> DEFAULT_ENVIRONMENT_LIST = Arrays.asList("equinox");
 
@@ -58,11 +59,9 @@ public class EOSGiProject {
 
   public static final VersionRange EOSGI_VERSION_RANGE = new VersionRange("[4.0.0,5.0)");
 
-  private String buildDirectory;
-
   private final EOSGiVMManager eosgiVMManager;
 
-  private Map<String, Map<String, MojoExecution>> executionsByEnvironmentIds;
+  private Map<String, Map<String, ExecutionInfo>> executionsByEnvironmentIds;
 
   private IMavenProjectFacade mavenProjectFacade;
 
@@ -72,16 +71,16 @@ public class EOSGiProject {
     refresh(mavenProjectFacade, monitor);
   }
 
-  private void createLauncherForEnvironment(final String environmentId,
-      final LaunchConfigurationDTO launchConfigurationDTO,
-      final IProgressMonitor monitor) throws CoreException {
-    if (monitor != null) {
-      monitor.setTaskName(Messages.monitorCreateServer);
-    }
-
-    new LaunchConfigurationBuilder(mavenProjectFacade.getProject().getName(), environmentId,
-        buildDirectory).addEnvironmentConfigurationDTO(launchConfigurationDTO).build();
-  }
+  // private void createLauncherForEnvironment(final String environmentId,
+  // final LaunchConfigurationDTO launchConfigurationDTO,
+  // final IProgressMonitor monitor) throws CoreException {
+  // if (monitor != null) {
+  // monitor.setTaskName(Messages.monitorCreateServer);
+  // }
+  //
+  // new LaunchConfigurationBuilder(mavenProjectFacade.getProject().getName(), environmentId,
+  // distFolder).addEnvironmentConfigurationDTO(launchConfigurationDTO).build();
+  // }
 
   public void dispose() {
     removeLaunchers();
@@ -90,6 +89,20 @@ public class EOSGiProject {
   public Collection<String> getEnvironmentIds() {
     return executionsByEnvironmentIds.keySet();
   }
+
+  // private LaunchConfigurationDTO loadEnvironmentConfiguration(final String environmentId) {
+  // String distXmlFilePath = distFolder + File.separator + "eosgi-dist" //$NON-NLS-1$
+  // + File.separator + environmentId;
+  // DistributedEnvironmentConfigurationProvider distSchemaProvider =
+  // new DistributedEnvironmentConfigurationProvider();
+  //
+  // EnvironmentType distributedEnvironment = distSchemaProvider
+  // .getOverriddenDistributedEnvironmentConfig(new File(distXmlFilePath), UseByType.IDE);
+  //
+  // // EnvironmentConfigurationDTO environmentConfigurationDTO = distSchemaProvider
+  // // .getEnvironmentConfiguration(new File(distXmlFilePath), UseByType.IDE);
+  // return distSchemaProvider.getLaunchConfiguration(distributedEnvironment);
+  // }
 
   private boolean isEOSGiExecution(final MojoExecutionKey mojoExecutionKey) {
 
@@ -102,20 +115,6 @@ public class EOSGiProject {
       return EOSGI_VERSION_RANGE.includes(version);
     }
     return false;
-  }
-
-  private LaunchConfigurationDTO loadEnvironmentConfiguration(final String environmentId) {
-    String distXmlFilePath = buildDirectory + File.separator + "eosgi-dist" //$NON-NLS-1$
-        + File.separator + environmentId;
-    DistributedEnvironmentConfigurationProvider distSchemaProvider =
-        new DistributedEnvironmentConfigurationProvider();
-
-    EnvironmentType distributedEnvironment = distSchemaProvider
-        .getOverriddenDistributedEnvironmentConfig(new File(distXmlFilePath), UseByType.IDE);
-
-    // EnvironmentConfigurationDTO environmentConfigurationDTO = distSchemaProvider
-    // .getEnvironmentConfiguration(new File(distXmlFilePath), UseByType.IDE);
-    return distSchemaProvider.getLaunchConfiguration(distributedEnvironment);
   }
 
   public void packDepsAndExecuteDist(final String environmentId, final IProgressMonitor monitor)
@@ -156,14 +155,15 @@ public class EOSGiProject {
     this.executionsByEnvironmentIds = new TreeMap<>();
     Set<MojoExecution> executions = resolveEOSGiExecutions(monitor);
     for (MojoExecution mojoExecution : executions) {
+      ExecutionInfo executionInfo = resolveExecutionInfo(mojoExecution, monitor);
       Collection<String> environmentIds = resolveEnvironmentIds(mojoExecution);
       for (String environmentId : environmentIds) {
-        Map<String, MojoExecution> executionMap = executionsByEnvironmentIds.get(environmentId);
+        Map<String, ExecutionInfo> executionMap = executionsByEnvironmentIds.get(environmentId);
         if (executionMap == null) {
           executionMap = new TreeMap<>();
           executionsByEnvironmentIds.put(environmentId, executionMap);
         }
-        executionMap.put(mojoExecution.getExecutionId(), mojoExecution);
+        executionMap.put(mojoExecution.getExecutionId(), executionInfo);
       }
     }
   }
@@ -171,6 +171,16 @@ public class EOSGiProject {
   private void removeLaunchers() {
     // TODO Auto-generated method stub
 
+  }
+
+  private String resolveDistFolder(final MojoExecution mojoExecution,
+      final IProgressMonitor monitor) {
+    try {
+      return M2EUtil.getParameterValue(mavenProjectFacade.getMavenProject(monitor), "distFolder",
+          String.class, mojoExecution, monitor);
+    } catch (CoreException e) {
+      throw new RuntimeException(e);
+    }
   }
 
   private Collection<String> resolveEnvironmentIds(final MojoExecution mojoExecution) {
@@ -215,6 +225,14 @@ public class EOSGiProject {
       }
     }
     return eosgiExecutions;
+  }
+
+  private ExecutionInfo resolveExecutionInfo(final MojoExecution mojoExecution,
+      final IProgressMonitor monitor) {
+    ExecutionInfo result = new ExecutionInfo();
+    result.mojoExecution = mojoExecution;
+    result.distFolder = new File(resolveDistFolder(mojoExecution, monitor));
+    return result;
   }
 
 }
