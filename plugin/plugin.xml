@@ -75,24 +75,30 @@
       id="org.everit.osgi.dev.e4.plugin.ui.menus"
       name="eosgiMenus">
       <menuContribution
-        locationURI="popup:org.eclipse.ui.popup.any"
-        allPopups="false">
-        <command
-          commandId="org.everit.osgi.dev.e4.plugin.ui.command.create"
-          label="%command.createDistribution">
-          <visibleWhen>
-            <with variable="selection">
-              <iterate ifEmpty="false">
-                <instanceof value="org.everit.osgi.dev.e4.plugin.ui.navigator.nodes.EnvironmentNode" />
-              </iterate>
-            </with>
-          </visibleWhen>
-        </command>
+            allPopups="false"
+            class="org.everit.osgi.dev.e4.plugin.ui.navigator.EOSGiProjectPopupMenu"
+            locationURI="popup:org.eclipse.ui.popup.any">
+         <dynamic
+               class="org.everit.osgi.dev.e4.plugin.ContributionItem3"
+               id="org.everit.osgi.dev.e4.plugin.dynamic3">
+         </dynamic>
+         <dynamic
+               class="org.everit.osgi.dev.e4.plugin.ui.navigator.DynamicContributionItem"
+               id="org.everit.osgi.dev.e4.plugin.dynamic4">
+         </dynamic>
       </menuContribution>
     </extension>
 
     <extension
-      id="org.everit.osgi.dev.e4.plugin.ui.command"
+      id="org.everit.os
+      <command
+            id="org.everit.osgi.dev.e4.plugin.ui.command.launch"
+            name="launch">
+      </command>
+      <command
+            id="org.everit.osgi.dev.e4.plugin.ui.command..launch"
+            name="launch">
+      </command>gi.dev.e4.plugin.ui.command"
       point="org.eclipse.ui.commands">
       <command
         id="org.everit.osgi.dev.e4.plugin.ui.command.create"

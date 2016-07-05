@@ -34,7 +34,10 @@ import org.eclipse.debug.core.ILaunchManager;
 import org.eclipse.jdt.launching.IJavaLaunchConfigurationConstants;
 import org.eclipse.jdt.launching.IRuntimeClasspathEntry;
 import org.eclipse.jdt.launching.JavaRuntime;
+import org.everit.osgi.dev.dist.util.configuration.DistributedEnvironmentConfigurationProvider;
 import org.everit.osgi.dev.dist.util.configuration.LaunchConfigurationDTO;
+import org.everit.osgi.dev.dist.util.configuration.schema.EnvironmentType;
+import org.everit.osgi.dev.dist.util.configuration.schema.UseByType;
 import org.everit.osgi.dev.e4.plugin.EOSGiEclipsePlugin;
 import org.everit.osgi.dev.e4.plugin.EOSGiLog;
 
@@ -43,19 +46,9 @@ import org.everit.osgi.dev.e4.plugin.EOSGiLog;
  */
 public class LaunchConfigurationBuilder {
 
-  private final String buildDirectory;
-
-  private final String environmentId;
-
   private final EOSGiLog eosgiLog;
 
-  private LaunchConfigurationDTO launchConfiguration;
-
   private final ILaunchManager manager = DebugPlugin.getDefault().getLaunchManager();
-
-  private final String projectName;
-
-  private ILaunchConfigurationWorkingCopy wc;
 
   /**
    * Constructor.
@@ -67,26 +60,9 @@ public class LaunchConfigurationBuilder {
    * @param buildDirectory
    *          build directory of the project.
    */
-  public LaunchConfigurationBuilder(final String projectName, final String environmentId,
-      final String buildDirectory) {
-    super();
+  public LaunchConfigurationBuilder() {
     ILog log = EOSGiEclipsePlugin.getDefault().getLog();
     eosgiLog = new EOSGiLog(log);
-    this.projectName = projectName;
-    this.environmentId = environmentId;
-    this.buildDirectory = buildDirectory;
-  }
-
-  public LaunchConfigurationBuilder addEnvironmentConfigurationDTO(
-      final LaunchConfigurationDTO environmentConfigurationDTO) {
-    this.launchConfiguration = environmentConfigurationDTO;
-    return this;
-  }
-
-  public LaunchConfigurationBuilder addLauncherConfigurationWorkingCopy(
-      final ILaunchConfigurationWorkingCopy configurationWorkingCopy) {
-    this.wc = configurationWorkingCopy;
-    return this;
   }
 
   /**
@@ -94,37 +70,39 @@ public class LaunchConfigurationBuilder {
    *
    * @return {@link ILaunchConfiguration} instance.
    */
-  public ILaunchConfiguration build() {
+  public ILaunchConfiguration build(final String projectName, final String environmentId,
+      final String buildDirectory) {
     ILaunchConfigurationType type = manager
         .getLaunchConfigurationType(
             "org.everit.osgi.dev.e4.plugin.core.launcher.launchConfigurationType");
 
-    if (launchConfiguration == null) {
-      return null;
+    ILaunchConfigurationWorkingCopy launchConfig = null;
+    try {
+      launchConfig = type.newInstance(null, environmentId + "_" + projectName);
+    } catch (CoreException e) {
+      eosgiLog.error("Could not create laucher working copy", e);
     }
 
-    if (wc == null) {
-      try {
-        wc = type.newInstance(null, environmentId + "_" + projectName);
-      } catch (CoreException e) {
-        eosgiLog.error("Could not create laucher working copy", e);
-      }
-    }
-    if (wc == null) {
+    if (launchConfig == null) {
       return null;
     }
 
     String workingDirectory = buildDirectory + File.separator + "eosgi-dist" + File.separator
         + environmentId;
-    wc = updateCurrentLauncherConfigurationWorkingCopy(workingDirectory,
-        launchConfiguration);
 
-    try {
-      return wc.doSave();
-    } catch (CoreException e) {
-      eosgiLog.error("Could not save new launch configuration.", e);
-      return null;
-    }
+    DistributedEnvironmentConfigurationProvider configurationProvider =
+        new DistributedEnvironmentConfigurationProvider();
+
+    EnvironmentType environmentConfig = configurationProvider
+        .getOverriddenDistributedEnvironmentConfig(new File(workingDirectory), UseByType.IDE);
+
+    LaunchConfigurationDTO launchConfigDTO =
+        configurationProvider.getLaunchConfiguration(environmentConfig);
+
+    updateCurrentLauncherConfigurationWorkingCopy(launchConfig, projectName,
+        environmentId, workingDirectory, launchConfigDTO);
+
+    return launchConfig;
   }
 
   private String createArgumentsString(
@@ -197,7 +175,9 @@ public class LaunchConfigurationBuilder {
     return classpathEntry.getMemento();
   }
 
-  private ILaunchConfigurationWorkingCopy updateCurrentLauncherConfigurationWorkingCopy(
+  private void updateCurrentLauncherConfigurationWorkingCopy(
+      final ILaunchConfigurationWorkingCopy launchConfig,
+      final String projectName, final String environmentId,
       final String workingDirectory,
       final LaunchConfigurationDTO environmentConfigurationDTO) {
 
@@ -212,19 +192,21 @@ public class LaunchConfigurationBuilder {
       eosgiLog.error("Could not resolv classpath entries.", e);
     }
 
-    wc.setAttribute(IJavaLaunchConfigurationConstants.ATTR_PROJECT_NAME, projectName);
-    wc.setAttribute(IJavaLaunchConfigurationConstants.ATTR_MAIN_TYPE_NAME,
+    launchConfig.setAttribute(IJavaLaunchConfigurationConstants.ATTR_PROJECT_NAME, projectName);
+    launchConfig.setAttribute(IJavaLaunchConfigurationConstants.ATTR_MAIN_TYPE_NAME,
         environmentConfigurationDTO.mainClass);
-    wc.setAttribute(IJavaLaunchConfigurationConstants.ATTR_WORKING_DIRECTORY, workingDirectory);
-    wc.setAttribute(IJavaLaunchConfigurationConstants.ATTR_PROGRAM_ARGUMENTS, argumentsString);
-    wc.setAttribute(IJavaLaunchConfigurationConstants.ATTR_DEFAULT_CLASSPATH, false);
-    wc.setAttribute(IJavaLaunchConfigurationConstants.ATTR_CLASSPATH, classPathList);
-    wc.setAttribute(IJavaLaunchConfigurationConstants.ATTR_VM_ARGUMENTS, vmArgsList);
-    wc.setAttribute(IJavaLaunchConfigurationConstants.ATTR_ALLOW_TERMINATE, false);
+    launchConfig.setAttribute(IJavaLaunchConfigurationConstants.ATTR_WORKING_DIRECTORY,
+        workingDirectory);
+    launchConfig.setAttribute(IJavaLaunchConfigurationConstants.ATTR_PROGRAM_ARGUMENTS,
+        argumentsString);
+    launchConfig.setAttribute(IJavaLaunchConfigurationConstants.ATTR_DEFAULT_CLASSPATH, false);
+    launchConfig.setAttribute(IJavaLaunchConfigurationConstants.ATTR_CLASSPATH, classPathList);
+    launchConfig.setAttribute(IJavaLaunchConfigurationConstants.ATTR_VM_ARGUMENTS, vmArgsList);
+    launchConfig.setAttribute(IJavaLaunchConfigurationConstants.ATTR_ALLOW_TERMINATE, false);
 
-    wc.setAttribute(EOSGILaunchConfigurationDelegate.LAUNCHER_ATTR_ENVIRONMENT_ID, environmentId);
+    launchConfig.setAttribute(EOSGILaunchConfigurationDelegate.LAUNCHER_ATTR_ENVIRONMENT_ID,
+        environmentId);
 
-    return wc;
   }
 
 }

@@ -29,10 +29,12 @@ import org.apache.maven.plugin.MojoExecution;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.m2e.core.lifecyclemapping.model.IPluginExecutionMetadata;
 import org.eclipse.m2e.core.project.IMavenProjectFacade;
 import org.eclipse.m2e.core.project.configurator.MojoExecutionKey;
 import org.everit.osgi.dev.dist.util.attach.EOSGiVMManager;
+import org.everit.osgi.dev.e4.plugin.core.launcher.LaunchConfigurationBuilder;
 import org.everit.osgi.dev.e4.plugin.m2e.M2EUtil;
 import org.osgi.framework.Version;
 import org.osgi.framework.VersionRange;
@@ -117,9 +119,46 @@ public class EOSGiProject {
     return false;
   }
 
-  public void packDepsAndExecuteDist(final String environmentId, final IProgressMonitor monitor)
+  public void launch(final String environmentId, final String executionId, final String mode,
+      final IProgressMonitor monitor) {
+
+    Objects.requireNonNull(environmentId, "environmentName must be not null!");
+
+    Map<String, ExecutionInfo> executionById = executionsByEnvironmentIds.get(environmentId);
+    Objects.requireNonNull(executionById,
+        "Could not find execution " + executionId + " that hold the environment: " + environmentId);
+
+    ExecutionInfo executionInfo = executionById.get(executionId);
+
+    Objects.requireNonNull(executionById,
+        "Could not find execution " + executionId + " that hold the environment: " + environmentId);
+
+    // TODO run execution
+
+    ILaunchConfiguration launchConfiguration = new LaunchConfigurationBuilder().build(
+        mavenProjectFacade.getProject().getName(), environmentId,
+        resolveDistFolder(executionInfo.mojoExecution, monitor));
+
+    try {
+      launchConfiguration.launch(mode, monitor);
+    } catch (CoreException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  public void packModifiedDepsAndExecuteDist(final String environmentId, final String executionId,
+      final IProgressMonitor monitor)
       throws CoreException {
     Objects.requireNonNull(environmentId, "environmentName must be not null!");
+
+    Map<String, ExecutionInfo> executionById = executionsByEnvironmentIds.get(environmentId);
+    Objects.requireNonNull(executionById,
+        "Could not find execution " + executionId + " that hold the environment: " + environmentId);
+
+    ExecutionInfo executionInfo = executionById.get(executionId);
+
+    Objects.requireNonNull(executionById,
+        "Could not find execution " + executionId + " that hold the environment: " + environmentId);
 
     // Environment environment = environments.get(environmentId);
     // if (environment == null) {
