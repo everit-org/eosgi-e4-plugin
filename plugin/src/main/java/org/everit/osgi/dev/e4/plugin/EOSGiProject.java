@@ -29,7 +29,9 @@ import org.apache.maven.plugin.MojoExecution;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.debug.core.ILaunch;
 import org.eclipse.debug.core.ILaunchConfiguration;
+import org.eclipse.debug.core.model.IProcess;
 import org.eclipse.m2e.core.lifecyclemapping.model.IPluginExecutionMetadata;
 import org.eclipse.m2e.core.project.IMavenProjectFacade;
 import org.eclipse.m2e.core.project.configurator.MojoExecutionKey;
@@ -140,7 +142,9 @@ public class EOSGiProject {
         resolveDistFolder(executionInfo.mojoExecution, monitor));
 
     try {
-      launchConfiguration.launch(mode, monitor);
+      ILaunch launch = launchConfiguration.launch(mode, monitor);
+      IProcess[] processes = launch.getProcesses();
+      System.out.println(processes);
     } catch (CoreException e) {
       throw new RuntimeException(e);
     }

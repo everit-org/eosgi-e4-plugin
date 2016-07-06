@@ -90,19 +90,15 @@
     </extension>
 
     <extension
-      id="org.everit.os
-      <command
-            id="org.everit.osgi.dev.e4.plugin.ui.command.launch"
-            name="launch">
-      </command>
-      <command
-            id="org.everit.osgi.dev.e4.plugin.ui.command..launch"
-            name="launch">
-      </command>gi.dev.e4.plugin.ui.command"
+      id="org.everit.osgi.dev.e4.plugin.ui.command"
       point="org.eclipse.ui.commands">
       <command
         id="org.everit.osgi.dev.e4.plugin.ui.command.create"
         name="distCommand">
+      </command>
+      <command
+            id="org.everit.osgi.dev.e4.plugin.command.start"
+            name="start">
       </command>
     </extension>
     
@@ -134,6 +130,10 @@
               </iterate>
           </with>
         </enabledWhen>
+      </handler>
+      <handler
+            class="org.everit.osgi.dev.e4.plugin.ui.command.StartCommandHandler"
+            commandId="org.everit.osgi.dev.e4.plugin.command.start">
       </handler>
     </extension>
 

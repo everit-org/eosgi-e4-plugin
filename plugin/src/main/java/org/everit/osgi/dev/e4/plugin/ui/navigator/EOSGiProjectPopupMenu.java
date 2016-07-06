@@ -15,30 +15,34 @@
  */
 package org.everit.osgi.dev.e4.plugin.ui.navigator;
 
-import java.util.Iterator;
-
 import org.eclipse.core.expressions.Expression;
 import org.eclipse.core.expressions.IEvaluationContext;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IConfigurationElement;
-import org.eclipse.jface.viewers.IStructuredSelection;
-import org.eclipse.ui.ISources;
 import org.eclipse.ui.handlers.IHandlerService;
 import org.eclipse.ui.menus.CommandContributionItem;
+import org.eclipse.ui.menus.CommandContributionItemParameter;
 import org.eclipse.ui.menus.ExtensionContributionFactory;
 import org.eclipse.ui.menus.IContributionRoot;
 import org.eclipse.ui.services.IServiceLocator;
 import org.everit.osgi.dev.e4.plugin.EOSGiProject;
+import org.everit.osgi.dev.e4.plugin.ui.command.CommandUtil;
 
 public class EOSGiProjectPopupMenu extends ExtensionContributionFactory {
 
   public EOSGiProjectPopupMenu() {
   }
 
-  private void addMenuItemsForEOSGiProject(final EOSGiProject selectionObject,
+  private void addMenuItemsForEOSGiProject(final EOSGiProject eosgiProject,
+      final IServiceLocator serviceLocator,
       final IContributionRoot additions) {
-    // TODO Auto-generated method stub
-    additions.addContributionItem(new CommandContributionItem(), Expression.TRUE);
+    CommandContributionItemParameter parameter = new CommandContributionItemParameter(
+        serviceLocator, null, "org.everit.osgi.dev.e4.plugin.command.start",
+        CommandContributionItem.STYLE_PUSH);
+    parameter.label = "Start";
+    parameter.visibleEnabled = true;
+    additions.addContributionItem(new CommandContributionItem(parameter), Expression.TRUE);
+
   }
 
   @Override
@@ -47,50 +51,21 @@ public class EOSGiProjectPopupMenu extends ExtensionContributionFactory {
 
     Object selectionObject = getSingleSelection(serviceLocator);
     if (selectionObject instanceof EOSGiProject) {
-      addMenuItemsForEOSGiProject((EOSGiProject) selectionObject, additions);
+      addMenuItemsForEOSGiProject((EOSGiProject) selectionObject, serviceLocator, additions);
     }
 
   }
 
   private Object getSingleSelection(final IServiceLocator serviceLocator) {
-    IStructuredSelection structuredSelection = getStructuredSelection(serviceLocator);
-    if (structuredSelection == null) {
-      return null;
-    }
-
-    Iterator<?> iterator = structuredSelection.iterator();
-
-    Object selectionObject = null;
-    if (iterator.hasNext()) {
-      selectionObject = iterator.next();
-    }
-
-    if (iterator.hasNext()) {
-      return null;
-    }
-
-    return selectionObject;
-  }
-
-  private IStructuredSelection getStructuredSelection(final IServiceLocator serviceLocator) {
     IHandlerService handlerService = serviceLocator.getService(IHandlerService.class);
 
     if (handlerService == null) {
       return null;
     }
 
-    IEvaluationContext currentState = handlerService.getCurrentState();
+    IEvaluationContext evaluationContext = handlerService.getCurrentState();
 
-    if (currentState == null) {
-      return null;
-    }
-
-    Object activeMenuSelection = currentState.getVariable(ISources.ACTIVE_MENU_SELECTION_NAME);
-    if (!(activeMenuSelection instanceof IStructuredSelection)) {
-      return null;
-    }
-
-    return (IStructuredSelection) activeMenuSelection;
+    return CommandUtil.getSingleSelection(evaluationContext);
   }
 
   @Override

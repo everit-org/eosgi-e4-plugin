@@ -87,7 +87,7 @@ public class LaunchConfigurationBuilder {
       return null;
     }
 
-    String workingDirectory = buildDirectory + File.separator + "eosgi-dist" + File.separator
+    String workingDirectory = buildDirectory + File.separator
         + environmentId;
 
     DistributedEnvironmentConfigurationProvider configurationProvider =
