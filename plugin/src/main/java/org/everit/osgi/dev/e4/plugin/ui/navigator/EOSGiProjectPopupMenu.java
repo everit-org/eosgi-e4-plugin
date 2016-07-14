@@ -25,7 +25,7 @@ import org.eclipse.ui.menus.CommandContributionItemParameter;
 import org.eclipse.ui.menus.ExtensionContributionFactory;
 import org.eclipse.ui.menus.IContributionRoot;
 import org.eclipse.ui.services.IServiceLocator;
-import org.everit.osgi.dev.e4.plugin.EOSGiProject;
+import org.everit.osgi.dev.e4.plugin.ExecutableEnvironment;
 import org.everit.osgi.dev.e4.plugin.ui.command.CommandUtil;
 
 public class EOSGiProjectPopupMenu extends ExtensionContributionFactory {
@@ -33,16 +33,14 @@ public class EOSGiProjectPopupMenu extends ExtensionContributionFactory {
   public EOSGiProjectPopupMenu() {
   }
 
-  private void addMenuItemsForEOSGiProject(final EOSGiProject eosgiProject,
-      final IServiceLocator serviceLocator,
-      final IContributionRoot additions) {
+  private void addMenuItemsForEnvironment(final ExecutableEnvironment eosgiProject,
+      final IServiceLocator serviceLocator, final IContributionRoot additions) {
     CommandContributionItemParameter parameter = new CommandContributionItemParameter(
         serviceLocator, null, "org.everit.osgi.dev.e4.plugin.command.start",
         CommandContributionItem.STYLE_PUSH);
     parameter.label = "Start";
     parameter.visibleEnabled = true;
     additions.addContributionItem(new CommandContributionItem(parameter), Expression.TRUE);
-
   }
 
   @Override
@@ -50,8 +48,9 @@ public class EOSGiProjectPopupMenu extends ExtensionContributionFactory {
       final IContributionRoot additions) {
 
     Object selectionObject = getSingleSelection(serviceLocator);
-    if (selectionObject instanceof EOSGiProject) {
-      addMenuItemsForEOSGiProject((EOSGiProject) selectionObject, serviceLocator, additions);
+    if (selectionObject instanceof ExecutableEnvironment) {
+      addMenuItemsForEnvironment((ExecutableEnvironment) selectionObject, serviceLocator,
+          additions);
     }
 
   }

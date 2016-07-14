@@ -19,9 +19,13 @@ import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.core.expressions.IEvaluationContext;
-import org.eclipse.core.runtime.NullProgressMonitor;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.jobs.IJobFunction;
+import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.debug.core.ILaunchManager;
-import org.everit.osgi.dev.e4.plugin.EOSGiProject;
+import org.everit.osgi.dev.e4.plugin.ExecutableEnvironment;
 
 /**
  * Command handler that launches an OSGi environment.
@@ -39,14 +43,25 @@ public class StartCommandHandler extends AbstractHandler {
     Object singleSelection =
         CommandUtil.getSingleSelection((IEvaluationContext) applicationContext);
 
-    if (!(singleSelection instanceof EOSGiProject)) {
+    if (!(singleSelection instanceof ExecutableEnvironment)) {
       throw new IllegalArgumentException(
           "Selected item should be instance of EOSGiProject: " + singleSelection);
     }
 
-    EOSGiProject eosgiProject = (EOSGiProject) singleSelection;
-    eosgiProject.launch("equinoxtest", "integration-test", ILaunchManager.RUN_MODE,
-        new NullProgressMonitor());
+    final ExecutableEnvironment executableEnvironment = (ExecutableEnvironment) singleSelection;
+
+    Job job = Job.create("Launching OSGi Environment", new IJobFunction() {
+
+      @Override
+      public IStatus run(final IProgressMonitor monitor) {
+        executableEnvironment.getEOSGiProject().launch(executableEnvironment,
+            ILaunchManager.RUN_MODE,
+            monitor);
+        return Status.OK_STATUS;
+      }
+    });
+    job.schedule();
+
     return null;
   }
 

@@ -22,6 +22,8 @@ import java.util.Collections;
 import java.util.List;
 
 import org.apache.commons.io.filefilter.SuffixFileFilter;
+import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.ILog;
 import org.eclipse.core.runtime.IPath;
@@ -34,6 +36,7 @@ import org.eclipse.debug.core.ILaunchManager;
 import org.eclipse.jdt.launching.IJavaLaunchConfigurationConstants;
 import org.eclipse.jdt.launching.IRuntimeClasspathEntry;
 import org.eclipse.jdt.launching.JavaRuntime;
+import org.everit.osgi.dev.dist.util.DistConstants;
 import org.everit.osgi.dev.dist.util.configuration.DistributedEnvironmentConfigurationProvider;
 import org.everit.osgi.dev.dist.util.configuration.LaunchConfigurationDTO;
 import org.everit.osgi.dev.dist.util.configuration.schema.EnvironmentType;
@@ -70,15 +73,15 @@ public class LaunchConfigurationBuilder {
    *
    * @return {@link ILaunchConfiguration} instance.
    */
-  public ILaunchConfiguration build(final String projectName, final String environmentId,
-      final String buildDirectory) {
+  public ILaunchConfiguration build(final IProject project, final String environmentId,
+      final File buildDirectory, final String launchUniqueId) {
     ILaunchConfigurationType type = manager
         .getLaunchConfigurationType(
             "org.everit.osgi.dev.e4.plugin.core.launcher.launchConfigurationType");
 
     ILaunchConfigurationWorkingCopy launchConfig = null;
     try {
-      launchConfig = type.newInstance(null, environmentId + "_" + projectName);
+      launchConfig = type.newInstance(null, environmentId + "_" + project.getName());
     } catch (CoreException e) {
       eosgiLog.error("Could not create laucher working copy", e);
     }
@@ -87,19 +90,21 @@ public class LaunchConfigurationBuilder {
       return null;
     }
 
-    String workingDirectory = buildDirectory + File.separator
-        + environmentId;
+    File workingDirectory = new File(buildDirectory, environmentId);
 
     DistributedEnvironmentConfigurationProvider configurationProvider =
         new DistributedEnvironmentConfigurationProvider();
 
     EnvironmentType environmentConfig = configurationProvider
-        .getOverriddenDistributedEnvironmentConfig(new File(workingDirectory), UseByType.IDE);
+        .getOverriddenDistributedEnvironmentConfig(workingDirectory, UseByType.IDE);
 
     LaunchConfigurationDTO launchConfigDTO =
         configurationProvider.getLaunchConfiguration(environmentConfig);
 
-    updateCurrentLauncherConfigurationWorkingCopy(launchConfig, projectName,
+    launchConfigDTO.vmArguments
+        .add("-D" + DistConstants.SYSPROP_LAUNCH_UNIQUE_ID + "=" + launchUniqueId);
+
+    updateCurrentLauncherConfigurationWorkingCopy(launchConfig, project,
         environmentId, workingDirectory, launchConfigDTO);
 
     return launchConfig;
@@ -121,7 +126,8 @@ public class LaunchConfigurationBuilder {
     return argumentsString;
   }
 
-  private List<String> createClasspathList(final String rootDirectory, final String classpath)
+  private List<String> createClasspathList(final IProject project, final String rootDirectory,
+      final String classpath)
       throws CoreException {
     List<String> classpathEntryList = new ArrayList<>();
 
@@ -134,7 +140,7 @@ public class LaunchConfigurationBuilder {
 
     List<String> classpathMementoEntryList = new ArrayList<>();
     for (String classpathEntry : classpathEntryList) {
-      classpathMementoEntryList.add(toMemento(rootDirectory, classpathEntry));
+      classpathMementoEntryList.add(toMemento(project, rootDirectory, classpathEntry));
     }
     return classpathMementoEntryList;
   }
@@ -165,10 +171,20 @@ public class LaunchConfigurationBuilder {
     return Collections.emptyList();
   }
 
-  private String toMemento(final String rootDirectory, final String classpath)
+  private String toMemento(final IProject project, final String rootDirectory,
+      final String classpath)
       throws CoreException {
     IPath path = new Path(rootDirectory + "/" + classpath);
-    IRuntimeClasspathEntry classpathEntry = JavaRuntime.newArchiveRuntimeClasspathEntry(path);
+    IPath projectLocationPath = project.getLocation();
+
+    IRuntimeClasspathEntry classpathEntry;
+    if (projectLocationPath.isPrefixOf(path)) {
+      IFile file = project.getFile(path.makeRelativeTo(projectLocationPath));
+      classpathEntry = JavaRuntime.newArchiveRuntimeClasspathEntry(file);
+    } else {
+      classpathEntry = JavaRuntime.newArchiveRuntimeClasspathEntry(path);
+    }
+
     // IRuntimeClasspathEntry2 newRuntimeClasspathEntry =
     // LaunchingPlugin.getDefault().newRuntimeClasspathEntry("");
     classpathEntry.setExternalAnnotationsPath(path);
@@ -177,8 +193,8 @@ public class LaunchConfigurationBuilder {
 
   private void updateCurrentLauncherConfigurationWorkingCopy(
       final ILaunchConfigurationWorkingCopy launchConfig,
-      final String projectName, final String environmentId,
-      final String workingDirectory,
+      final IProject project, final String environmentId,
+      final File workingDirectory,
       final LaunchConfigurationDTO environmentConfigurationDTO) {
 
     String argumentsString = createArgumentsString(environmentConfigurationDTO.programArguments);
@@ -186,20 +202,25 @@ public class LaunchConfigurationBuilder {
 
     List<String> classPathList = new ArrayList<>();
     try {
-      classPathList = createClasspathList(workingDirectory,
+      classPathList = createClasspathList(project, workingDirectory.toString(),
           environmentConfigurationDTO.classpath);
     } catch (CoreException e) {
       eosgiLog.error("Could not resolv classpath entries.", e);
     }
 
-    launchConfig.setAttribute(IJavaLaunchConfigurationConstants.ATTR_PROJECT_NAME, projectName);
+    launchConfig.setAttribute(IJavaLaunchConfigurationConstants.ATTR_PROJECT_NAME,
+        project.getName());
     launchConfig.setAttribute(IJavaLaunchConfigurationConstants.ATTR_MAIN_TYPE_NAME,
         environmentConfigurationDTO.mainClass);
     launchConfig.setAttribute(IJavaLaunchConfigurationConstants.ATTR_WORKING_DIRECTORY,
-        workingDirectory);
+        workingDirectory.toString());
     launchConfig.setAttribute(IJavaLaunchConfigurationConstants.ATTR_PROGRAM_ARGUMENTS,
         argumentsString);
     launchConfig.setAttribute(IJavaLaunchConfigurationConstants.ATTR_DEFAULT_CLASSPATH, false);
+
+    launchConfig.setAttribute(IJavaLaunchConfigurationConstants.ATTR_SOURCE_PATH_PROVIDER,
+        "org.eclipse.m2e.launchconfig.sourcepathProvider");
+
     launchConfig.setAttribute(IJavaLaunchConfigurationConstants.ATTR_CLASSPATH, classPathList);
     launchConfig.setAttribute(IJavaLaunchConfigurationConstants.ATTR_VM_ARGUMENTS, vmArgsList);
     launchConfig.setAttribute(IJavaLaunchConfigurationConstants.ATTR_ALLOW_TERMINATE, false);

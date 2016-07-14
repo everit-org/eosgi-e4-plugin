@@ -19,6 +19,7 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.jface.viewers.TreeNodeContentProvider;
 import org.everit.osgi.dev.e4.plugin.EOSGiEclipsePlugin;
 import org.everit.osgi.dev.e4.plugin.EOSGiProject;
+import org.everit.osgi.dev.e4.plugin.ExecutableEnvironmentContainer;
 
 /**
  * TreeNodeContentProvider implementation for manage the EOSGI nodes in ProjectExplorer.
@@ -36,7 +37,10 @@ public class DistContentProvider extends TreeNodeContentProvider {
       }
       return new Object[] { eosgiProject };
     } else if (parentElement instanceof EOSGiProject) {
-      return ((EOSGiProject) parentElement).getEnvironmentIds().toArray(new String[0]);
+      ExecutableEnvironmentContainer executableEnvironmentContainer =
+          ((EOSGiProject) parentElement).getExecutableEnvironmentContainer();
+
+      return executableEnvironmentContainer.getExecutableEnvironments().toArray();
     } else {
       return super.getChildren(parentElement);
     }

@@ -149,22 +149,8 @@
   </extension>
   
   <!-- Icon for EOSGi launcher type -->
-  <extension point="org.eclipse.debug.ui.launchConfigurationTypeImages">
-    <launchConfigurationTypeImage
-      id="org.everit.osgi.dev.e4.plugin.server.launchConfigurationTypeImage"
-      configTypeID="org.everit.osgi.dev.e4.plugin.server.launchConfigurationType"
-      icon="icons/everit.gif">
-    </launchConfigurationTypeImage>
-  </extension>
 
   <!-- TabGroups for EOSGi laucher configuration -->
-  <extension point="org.eclipse.debug.ui.launchConfigurationTabGroups">
-    <launchConfigurationTabGroup
-      id="org.everit.osgi.dev.e4.plugin.ui.launcher.launchConfigurationTabGroup"
-      type="org.everit.osgi.dev.e4.plugin.core.launcher.launchConfigurationType"
-      class="org.everit.osgi.dev.e4.plugin.ui.launcher.LaunchConfigurationTabGroup">
-    </launchConfigurationTabGroup>
-  </extension>
   <extension
         point="org.eclipse.m2e.core.mavenProjectChangedListeners">
      <listener

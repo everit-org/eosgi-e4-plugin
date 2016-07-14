@@ -23,6 +23,7 @@ import org.eclipse.jface.viewers.LabelProviderChangedEvent;
 import org.eclipse.swt.graphics.Image;
 import org.everit.osgi.dev.e4.plugin.EOSGiEclipsePlugin;
 import org.everit.osgi.dev.e4.plugin.EOSGiProject;
+import org.everit.osgi.dev.e4.plugin.ExecutableEnvironment;
 
 /**
  * LabelProvider implementation.
@@ -59,7 +60,7 @@ public class DistLabelProvider extends LabelProvider {
   public Image getImage(final Object element) {
     if (element instanceof EOSGiProject) {
       return IMAGE_EVERIT_LOGO;
-    } else if (element instanceof String) {
+    } else if (element instanceof ExecutableEnvironment) {
       return IMAGE_ENVIRONMENT;
     } else {
       return super.getImage(element);
@@ -70,8 +71,10 @@ public class DistLabelProvider extends LabelProvider {
   public String getText(final Object element) {
     if (element instanceof EOSGiProject) {
       return "OSGi Environments";
-    } else if (element instanceof String) {
-      return (String) element;
+    } else if (element instanceof ExecutableEnvironment) {
+      ExecutableEnvironment eosgiEnvironment = (ExecutableEnvironment) element;
+      return eosgiEnvironment.getEnvironmentId() + " ("
+          + eosgiEnvironment.getMojoExecution().getExecutionId() + ")";
     } else {
       return super.getText(element);
     }

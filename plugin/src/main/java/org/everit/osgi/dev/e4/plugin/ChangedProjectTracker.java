@@ -23,6 +23,8 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceChangeEvent;
 import org.eclipse.core.resources.IResourceChangeListener;
 import org.eclipse.core.resources.IResourceDelta;
+import org.eclipse.m2e.core.MavenPlugin;
+import org.eclipse.m2e.core.project.IMavenProjectFacade;
 
 /**
  * Listens to workspace resource changes.
@@ -30,6 +32,13 @@ import org.eclipse.core.resources.IResourceDelta;
 public class ChangedProjectTracker implements IResourceChangeListener {
 
   Set<IProject> changedProjects = new HashSet<>();
+
+  public ChangedProjectTracker() {
+    IMavenProjectFacade[] mavenProjects = MavenPlugin.getMavenProjectRegistry().getProjects();
+    for (IMavenProjectFacade mavenProjectFacade : mavenProjects) {
+      changedProjects.add(mavenProjectFacade.getProject());
+    }
+  }
 
   private void processChangeEventRecurse(final IResourceDelta delta) {
     IResource resource = delta.getResource();
@@ -48,8 +57,12 @@ public class ChangedProjectTracker implements IResourceChangeListener {
     }
   }
 
+  public synchronized boolean removeProject(final IProject project) {
+    return changedProjects.remove(project);
+  }
+
   @Override
-  public void resourceChanged(final IResourceChangeEvent event) {
+  public synchronized void resourceChanged(final IResourceChangeEvent event) {
     int eventType = event.getType();
 
     switch (eventType) {
