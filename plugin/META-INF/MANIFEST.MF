@@ -18,7 +18,8 @@ Require-Bundle: org.eclipse.ui,
  org.apache.commons.io;bundle-version="2.2.0",
  org.apache.commons.lang3;bundle-version="3.1.0",
  org.everit.osgi.dev.dist.util;bundle-version="4.0.0",
- org.eclipse.e4.core.contexts;bundle-version="1.4.0"
-Bundle-RequiredExecutionEnvironment: JavaSE-1.7
+ org.eclipse.e4.core.contexts;bundle-version="1.4.0",
+ org.apache.commons.collections;bundle-version="3.2.2"
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Bundle-Vendor: Everit Kft.
 Bundle-ActivationPolicy: lazy

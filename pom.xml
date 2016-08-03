@@ -37,8 +37,8 @@
     <eosgi-dist-util-version>4.0.0-201607140030</eosgi-dist-util-version>
     <tycho.localArtifacts>default</tycho.localArtifacts>
 
-    <maven.compiler.source>1.7</maven.compiler.source>
-    <maven.compiler.target>1.7</maven.compiler.target>
+    <maven.compiler.source>1.8</maven.compiler.source>
+    <maven.compiler.target>1.8</maven.compiler.target>
   </properties>
 
   <dependencies>

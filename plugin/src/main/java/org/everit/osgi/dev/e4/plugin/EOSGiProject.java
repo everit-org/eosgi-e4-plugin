@@ -29,6 +29,7 @@ import java.util.UUID;
 
 import org.apache.maven.plugin.MojoExecution;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
+import org.eclipse.aether.artifact.Artifact;
 import org.eclipse.aether.graph.DependencyNode;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
@@ -37,7 +38,7 @@ import org.eclipse.debug.core.ILaunch;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.model.IProcess;
 import org.eclipse.m2e.core.MavenPlugin;
-import org.eclipse.m2e.core.embedder.ICallable;
+import org.eclipse.m2e.core.embedder.ArtifactKey;
 import org.eclipse.m2e.core.embedder.IMavenExecutionContext;
 import org.eclipse.m2e.core.lifecyclemapping.model.IPluginExecutionMetadata;
 import org.eclipse.m2e.core.project.IMavenProjectFacade;
@@ -46,6 +47,9 @@ import org.everit.osgi.dev.dist.util.DistConstants;
 import org.everit.osgi.dev.dist.util.attach.EOSGiVMManager;
 import org.everit.osgi.dev.e4.plugin.core.launcher.LaunchConfigurationBuilder;
 import org.everit.osgi.dev.e4.plugin.m2e.M2EUtil;
+import org.everit.osgi.dev.e4.plugin.util.DAGFlattener;
+import org.everit.osgi.dev.e4.plugin.util.DependencyNodeChildResolver;
+import org.everit.osgi.dev.e4.plugin.util.DependencyNodeComparator;
 import org.osgi.framework.Version;
 import org.osgi.framework.VersionRange;
 
@@ -55,6 +59,9 @@ import org.osgi.framework.VersionRange;
 public class EOSGiProject {
 
   private static final List<String> DEFAULT_ENVIRONMENT_LIST = Arrays.asList("equinox");
+
+  private static final DAGFlattener<DependencyNode> DEPENDENCY_TREE_FLATTENER =
+      new DAGFlattener<>(new DependencyNodeComparator(), new DependencyNodeChildResolver());
 
   public static final String EOSGI_ARTIFACT_ID = "eosgi-maven-plugin";
 
@@ -75,6 +82,13 @@ public class EOSGiProject {
       final EOSGiVMManager eosgiVMManager, final IProgressMonitor monitor) {
     this.eosgiVMManager = eosgiVMManager;
     refresh(mavenProjectFacade, monitor);
+  }
+
+  private ArtifactKey createArtifactKey(final DependencyNode dependencyNode) {
+    Artifact childArtifact = dependencyNode.getArtifact();
+    ArtifactKey childArtifactKey = new ArtifactKey(childArtifact.getGroupId(),
+        childArtifact.getArtifactId(), dependencyNode.getVersion().toString(), null);
+    return childArtifactKey;
   }
 
   public void dispose() {
@@ -109,41 +123,29 @@ public class EOSGiProject {
       IMavenExecutionContext mavenExecutionContext =
           MavenPlugin.getMaven().createExecutionContext();
 
-      mavenExecutionContext.execute(new ICallable<Object>() {
+      mavenExecutionContext.execute((context, monitor1) -> {
 
-        @Override
-        public Object call(final IMavenExecutionContext context, final IProgressMonitor monitor)
-            throws CoreException {
+        packModifiedDepsAndExecuteDist(executableEnvironment.getEnvironmentId(),
+            executableEnvironment.getMojoExecution().getExecutionId(), monitor);
 
-          DependencyNode dependencyNode =
-              MavenPlugin.getMavenModelManager().readDependencyTree(mavenProjectFacade,
-                  mavenProjectFacade.getMavenProject(), null, monitor);
+        M2EUtil.packageProject(mavenProjectFacade, monitor1);
 
-          System.out.println(dependencyNode);
+        Map<String, Object> properties = new HashMap<>();
+        properties.put(DistConstants.PLUGIN_PROPERTY_DIST_ONLY, Boolean.TRUE.toString());
+        M2EUtil.executeProjectWithProperties(mavenProjectFacade.getMavenProject(), properties,
+            () -> {
+              try {
+                MavenPlugin.getMaven().execute(mavenProjectFacade.getMavenProject(),
+                    executableEnvironment.getMojoExecution(), monitor1);
+              } catch (CoreException e) {
+                throw new RuntimeException(e);
+              }
+            });
 
-          M2EUtil.packageProject(mavenProjectFacade, monitor);
-
-          Map<String, Object> properties = new HashMap<>();
-          properties.put(DistConstants.PLUGIN_PROPERTY_DIST_ONLY, Boolean.TRUE.toString());
-          M2EUtil.executeProjectWithProperties(mavenProjectFacade.getMavenProject(), properties,
-              new Runnable() {
-
-                @Override
-                public void run() {
-                  try {
-                    MavenPlugin.getMaven().execute(mavenProjectFacade.getMavenProject(),
-                        executableEnvironment.getMojoExecution(), monitor);
-                  } catch (CoreException e) {
-                    throw new RuntimeException(e);
-                  }
-                }
-              });
-
-          mavenProjectFacade.getProject().refreshLocal(IProject.DEPTH_INFINITE, monitor);
-          EOSGiEclipsePlugin.getDefault().getChangedProjectTracker()
-              .removeProject(mavenProjectFacade.getProject());
-          return null;
-        }
+        mavenProjectFacade.getProject().refreshLocal(IProject.DEPTH_INFINITE, monitor1);
+        EOSGiEclipsePlugin.getDefault().getChangedProjectTracker()
+            .removeProject(mavenProjectFacade.getProject());
+        return null;
       }, monitor);
 
     } catch (CoreException e1) {
@@ -179,6 +181,14 @@ public class EOSGiProject {
       final IProgressMonitor monitor)
       throws CoreException {
     Objects.requireNonNull(environmentId, "environmentName must be not null!");
+
+    DependencyNode rootNode =
+        MavenPlugin.getMavenModelManager().readDependencyTree(mavenProjectFacade,
+            mavenProjectFacade.getMavenProject(), null, monitor);
+
+    List<DependencyNode> flattenedDependencyTree = DEPENDENCY_TREE_FLATTENER.flatten(rootNode);
+
+    System.out.println(flattenedDependencyTree);
 
     // Environment environment = environments.get(environmentId);
     // if (environment == null) {
