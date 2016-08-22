@@ -28,11 +28,15 @@ public class ExecutableEnvironment implements Comparable<ExecutableEnvironment> 
 
   private final MojoExecution mojoExecution;
 
+  private final long shutdownTimeout;
+
   public ExecutableEnvironment(final String environmentId,
-      final MojoExecution mojoExecution, final EOSGiProject eosgiProject) {
+      final MojoExecution mojoExecution, final EOSGiProject eosgiProject,
+      final long shutdownTimeout) {
     this.environmentId = environmentId;
     this.mojoExecution = mojoExecution;
     this.eosgiProject = eosgiProject;
+    this.shutdownTimeout = shutdownTimeout;
   }
 
   @Override
@@ -60,5 +64,9 @@ public class ExecutableEnvironment implements Comparable<ExecutableEnvironment> 
 
   public MojoExecution getMojoExecution() {
     return mojoExecution;
+  }
+
+  public long getShutdownTimeout() {
+    return shutdownTimeout;
   }
 }

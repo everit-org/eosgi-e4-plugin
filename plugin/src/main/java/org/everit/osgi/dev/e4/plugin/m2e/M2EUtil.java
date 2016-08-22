@@ -16,14 +16,11 @@
 package org.everit.osgi.dev.e4.plugin.m2e;
 
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Properties;
 import java.util.Set;
 
+import org.apache.maven.execution.MavenExecutionRequest;
 import org.apache.maven.lifecycle.MavenExecutionPlan;
 import org.apache.maven.model.PluginExecution;
 import org.apache.maven.plugin.MojoExecution;
@@ -31,6 +28,7 @@ import org.apache.maven.project.MavenProject;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.m2e.core.MavenPlugin;
+import org.eclipse.m2e.core.embedder.ICallable;
 import org.eclipse.m2e.core.embedder.IMaven;
 import org.eclipse.m2e.core.project.IMavenProjectFacade;
 
@@ -52,33 +50,18 @@ public final class M2EUtil {
     SKIPPED_LIFECYCLE_PHASES.add("test");
   }
 
-  public static void executeProjectWithProperties(final MavenProject project,
-      final Map<String, Object> properties, final Runnable runnable) {
+  public static <V> V executeInEOSGiMavenContext(final IMavenProjectFacade mavenProjectFacade,
+      final ICallable<V> callable, final IProgressMonitor monitor) throws CoreException {
 
-    Properties projectProperties = project.getProperties();
-    Map<String, Object> oldValues = new HashMap<>();
-    for (Entry<String, Object> entry : properties.entrySet()) {
-      String key = entry.getKey();
-      String value = projectProperties.getProperty(key);
-      if (value != null) {
-        oldValues.put(key, value);
-      }
-      projectProperties.put(key, entry.getValue());
-    }
+    return MavenPlugin.getMavenProjectRegistry().execute(mavenProjectFacade,
+        (context, monitor1) -> {
+          MavenExecutionRequest executionRequest = context.getExecutionRequest();
+          executionRequest.setWorkspaceReader(arg0);
+          // TODO
 
-    try {
-      runnable.run();
-    } finally {
-      for (Entry<String, Object> entry : properties.entrySet()) {
-        String key = entry.getKey();
-        Object oldValue = oldValues.get(key);
-        if (oldValue != null) {
-          projectProperties.put(key, oldValue);
-        } else {
-          projectProperties.remove(key);
-        }
-      }
-    }
+          return MavenPlugin.getMaven().createExecutionContext().execute(
+              mavenProjectFacade.getMavenProject(monitor1), callable, monitor1);
+        }, monitor);
   }
 
   /**
@@ -109,19 +92,28 @@ public final class M2EUtil {
 
   public static void packageProject(final IMavenProjectFacade mavenProjectFacade,
       final IProgressMonitor monitor) throws CoreException {
-    IMaven maven = MavenPlugin.getMaven();
-    MavenExecutionPlan executionPlan =
-        maven.calculateExecutionPlan(mavenProjectFacade.getMavenProject(),
-            Arrays.asList(new String[] { "package" }), true, monitor);
+    MavenPlugin.getMavenProjectRegistry().execute(mavenProjectFacade, (context, monitor1) -> {
+      IMaven maven = MavenPlugin.getMaven();
+      MavenProject mavenProject = mavenProjectFacade.getMavenProject(monitor);
 
-    List<MojoExecution> mojoExecutions = executionPlan.getMojoExecutions();
+      maven.createExecutionContext().execute(mavenProject, (context1, monitor2) -> {
+        MavenExecutionPlan executionPlan =
+            maven.calculateExecutionPlan(mavenProject,
+                Arrays.asList(new String[] { "package" }), true, monitor);
 
-    for (MojoExecution mojoExecution : mojoExecutions) {
-      if (!SKIPPED_LIFECYCLE_PHASES.contains(mojoExecution.getLifecyclePhase())) {
-        maven.execute(mavenProjectFacade.getMavenProject(), mojoExecution,
-            monitor);
-      }
-    }
+        List<MojoExecution> mojoExecutions = executionPlan.getMojoExecutions();
+
+        for (MojoExecution mojoExecution : mojoExecutions) {
+          if (!SKIPPED_LIFECYCLE_PHASES.contains(mojoExecution.getLifecyclePhase())) {
+            maven.execute(mavenProject, mojoExecution, monitor);
+          }
+        }
+        return null;
+      }, monitor);
+
+      return null;
+    }, monitor);
+
   }
 
   private M2EUtil() {

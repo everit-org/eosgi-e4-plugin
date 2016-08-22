@@ -16,11 +16,13 @@
 package org.everit.osgi.dev.e4.plugin;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -34,14 +36,14 @@ import org.eclipse.aether.graph.DependencyNode;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.SubMonitor;
 import org.eclipse.debug.core.ILaunch;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.model.IProcess;
 import org.eclipse.m2e.core.MavenPlugin;
-import org.eclipse.m2e.core.embedder.ArtifactKey;
-import org.eclipse.m2e.core.embedder.IMavenExecutionContext;
 import org.eclipse.m2e.core.lifecyclemapping.model.IPluginExecutionMetadata;
 import org.eclipse.m2e.core.project.IMavenProjectFacade;
+import org.eclipse.m2e.core.project.IMavenProjectRegistry;
 import org.eclipse.m2e.core.project.configurator.MojoExecutionKey;
 import org.everit.osgi.dev.dist.util.DistConstants;
 import org.everit.osgi.dev.dist.util.attach.EOSGiVMManager;
@@ -57,8 +59,6 @@ import org.osgi.framework.VersionRange;
  * {@link EOSGiProject} base implementation.
  */
 public class EOSGiProject {
-
-  private static final List<String> DEFAULT_ENVIRONMENT_LIST = Arrays.asList("equinox");
 
   private static final DAGFlattener<DependencyNode> DEPENDENCY_TREE_FLATTENER =
       new DAGFlattener<>(new DependencyNodeComparator(), new DependencyNodeChildResolver());
@@ -84,15 +84,17 @@ public class EOSGiProject {
     refresh(mavenProjectFacade, monitor);
   }
 
-  private ArtifactKey createArtifactKey(final DependencyNode dependencyNode) {
-    Artifact childArtifact = dependencyNode.getArtifact();
-    ArtifactKey childArtifactKey = new ArtifactKey(childArtifact.getGroupId(),
-        childArtifact.getArtifactId(), dependencyNode.getVersion().toString(), null);
-    return childArtifactKey;
-  }
-
   public void dispose() {
     // TODO stop launched vms
+  }
+
+  public List<ExecutableEnvironment> getDefaultExecutableEnvironmentList(
+      final MojoExecution mojoExecution) {
+    List<ExecutableEnvironment> defaultExecutableEnvironments = new ArrayList<>();
+    defaultExecutableEnvironments.add(new ExecutableEnvironment("equinox", mojoExecution, this,
+        DistConstants.DEFAULT_SHUTDOWN_TIMEOUT));
+    return defaultExecutableEnvironments;
+
   }
 
   public ExecutableEnvironmentContainer getExecutableEnvironmentContainer() {
@@ -120,15 +122,14 @@ public class EOSGiProject {
       final IProgressMonitor monitor) {
 
     try {
-      IMavenExecutionContext mavenExecutionContext =
-          MavenPlugin.getMaven().createExecutionContext();
+      packModifiedDeps(executableEnvironment.getEnvironmentId(),
+          executableEnvironment.getMojoExecution().getExecutionId(), monitor);
 
-      mavenExecutionContext.execute((context, monitor1) -> {
+      M2EUtil.packageProject(mavenProjectFacade, monitor);
 
-        packModifiedDepsAndExecuteDist(executableEnvironment.getEnvironmentId(),
-            executableEnvironment.getMojoExecution().getExecutionId(), monitor);
-
-        M2EUtil.packageProject(mavenProjectFacade, monitor1);
+      MavenPlugin.getMavenProjectRegistry().execute(mavenProjectFacade, (context, monitor1) -> {
+        SubMonitor subMonitor =
+            SubMonitor.convert(monitor1, "Calling \"mvn eosgi:dist\" on project", 0);
 
         Map<String, Object> properties = new HashMap<>();
         properties.put(DistConstants.PLUGIN_PROPERTY_DIST_ONLY, Boolean.TRUE.toString());
@@ -147,12 +148,10 @@ public class EOSGiProject {
             .removeProject(mavenProjectFacade.getProject());
         return null;
       }, monitor);
-
     } catch (CoreException e1) {
       throw new RuntimeException();
     }
 
-    // TODO run execution
     String launchUniqueId = UUID.randomUUID().toString();
 
     File distFolder =
@@ -171,48 +170,58 @@ public class EOSGiProject {
 
       launch.removeProcess(processes[0]);
       launch.addProcess(
-          new GracefulShutdownProcessWrapper(processes[0], eosgiVMManager, launchUniqueId));
+          new GracefulShutdownProcessWrapper(processes[0], eosgiVMManager, launchUniqueId,
+              executableEnvironment.getShutdownTimeout()));
     } catch (CoreException e) {
       throw new RuntimeException(e);
     }
   }
 
-  public void packModifiedDepsAndExecuteDist(final String environmentId, final String executionId,
+  private void packageDependenciesWhereNecessary(
+      final List<DependencyNode> flattenedDependencyTree, final IProgressMonitor monitor) {
+
+    ListIterator<DependencyNode> listIterator =
+        flattenedDependencyTree.listIterator(flattenedDependencyTree.size());
+
+    IMavenProjectRegistry mavenProjectRegistry = MavenPlugin.getMavenProjectRegistry();
+
+    while (listIterator.hasPrevious()) {
+      DependencyNode dependencyNode = listIterator.previous();
+      Artifact artifact = dependencyNode.getArtifact();
+
+      if (artifact != null) {
+        IMavenProjectFacade dependencyMavenProject =
+            mavenProjectRegistry.getMavenProject(artifact.getGroupId(), artifact.getArtifactId(),
+                artifact.getVersion());
+
+        if (dependencyMavenProject != null) {
+          SubMonitor subMonitor = SubMonitor.convert(monitor);
+          subMonitor.beginTask("Packaging dependency: " + artifact.getGroupId() + ":"
+              + artifact.getArtifactId() + ":" + artifact.getVersion(), 1);
+          try {
+            M2EUtil.packageProject(dependencyMavenProject, subMonitor);
+          } catch (CoreException e) {
+            throw new RuntimeException(e);
+          } finally {
+            subMonitor.done();
+          }
+        }
+      }
+    }
+  }
+
+  public void packModifiedDeps(final String environmentId, final String executionId,
       final IProgressMonitor monitor)
       throws CoreException {
     Objects.requireNonNull(environmentId, "environmentName must be not null!");
 
     DependencyNode rootNode =
-        MavenPlugin.getMavenModelManager().readDependencyTree(mavenProjectFacade,
+        MavenPlugin.getMavenModelManager().readDependencyTree(null,
             mavenProjectFacade.getMavenProject(), null, monitor);
 
     List<DependencyNode> flattenedDependencyTree = DEPENDENCY_TREE_FLATTENER.flatten(rootNode);
 
-    System.out.println(flattenedDependencyTree);
-
-    // Environment environment = environments.get(environmentId);
-    // if (environment == null) {
-    // throw new NullPointerException();
-    // }
-    //
-    // M2EGoalExecutor executor = new M2EGoalExecutor(mavenProjectFacade.getProject(),
-    // environmentId);
-    // if (!executor.execute(monitor)) {
-    // return;
-    // }
-    //
-    // environment.setGenerated();
-    //
-    // if (monitor != null) {
-    // monitor.setTaskName(Messages.monitorLoadDistXML);
-    // }
-    //
-    // LaunchConfigurationDTO launchConfigurationDTO = loadEnvironmentConfiguration(
-    // environmentId);
-    //
-    // if (launchConfigurationDTO != null) {
-    // createLauncherForEnvironment(environmentId, launchConfigurationDTO, monitor);
-    // }
+    packageDependenciesWhereNecessary(flattenedDependencyTree, monitor);
   }
 
   public synchronized void refresh(final IMavenProjectFacade mavenProjectFacade,
@@ -224,13 +233,7 @@ public class EOSGiProject {
     Set<ExecutableEnvironment> executableEnvironments = new TreeSet<>();
     Set<MojoExecution> executions = resolveEOSGiExecutions(monitor);
     for (MojoExecution mojoExecution : executions) {
-      Collection<String> environmentIds = resolveEnvironmentIds(mojoExecution);
-      for (String environmentId : environmentIds) {
-        ExecutableEnvironment executableEnvironment =
-            new ExecutableEnvironment(environmentId, mojoExecution, this);
-
-        executableEnvironments.add(executableEnvironment);
-      }
+      executableEnvironments.addAll(resolveExecutableEnvironments(mojoExecution));
     }
 
     this.executableEnvironmentContainer =
@@ -245,28 +248,6 @@ public class EOSGiProject {
     } catch (CoreException e) {
       throw new RuntimeException(e);
     }
-  }
-
-  private Collection<String> resolveEnvironmentIds(final MojoExecution mojoExecution) {
-    Xpp3Dom configuration = mojoExecution.getConfiguration();
-    Xpp3Dom environmentsNode = configuration.getChild("environments");
-    if (environmentsNode == null) {
-      return DEFAULT_ENVIRONMENT_LIST;
-    }
-    Set<String> result = new LinkedHashSet<>();
-    Xpp3Dom[] environmentsChildNodes = environmentsNode.getChildren();
-
-    if (environmentsChildNodes.length == 0) {
-      return DEFAULT_ENVIRONMENT_LIST;
-    }
-
-    for (Xpp3Dom environmentNode : environmentsChildNodes) {
-      Xpp3Dom environmentIdNode = environmentNode.getChild("id");
-      if (environmentIdNode != null) {
-        result.add(environmentIdNode.getValue());
-      }
-    }
-    return result;
   }
 
   private Set<MojoExecution> resolveEOSGiExecutions(final IProgressMonitor monitor) {
@@ -289,6 +270,39 @@ public class EOSGiProject {
       }
     }
     return eosgiExecutions;
+  }
+
+  private Collection<ExecutableEnvironment> resolveExecutableEnvironments(
+      final MojoExecution mojoExecution) {
+    Xpp3Dom configuration = mojoExecution.getConfiguration();
+    Xpp3Dom environmentsNode = configuration.getChild("environments");
+    if (environmentsNode == null) {
+      return getDefaultExecutableEnvironmentList(mojoExecution);
+    }
+    Set<ExecutableEnvironment> result = new LinkedHashSet<>();
+    Xpp3Dom[] environmentsChildNodes = environmentsNode.getChildren();
+
+    if (environmentsChildNodes.length == 0) {
+      return getDefaultExecutableEnvironmentList(mojoExecution);
+    }
+
+    for (Xpp3Dom environmentNode : environmentsChildNodes) {
+      Xpp3Dom environmentIdNode = environmentNode.getChild("id");
+      if (environmentIdNode != null) {
+        result.add(new ExecutableEnvironment(environmentIdNode.getValue(), mojoExecution, this,
+            resolveShutdownTimeout(environmentNode)));
+      }
+
+    }
+    return result;
+  }
+
+  private long resolveShutdownTimeout(final Xpp3Dom environmentNode) {
+    Xpp3Dom shutdownTimeoutNode = environmentNode.getChild("shutdownTimeout");
+    if (shutdownTimeoutNode == null) {
+      return DistConstants.DEFAULT_SHUTDOWN_TIMEOUT;
+    }
+    return Long.parseLong(shutdownTimeoutNode.getValue());
   }
 
 }

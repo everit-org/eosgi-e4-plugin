@@ -17,11 +17,8 @@ package org.everit.osgi.dev.e4.plugin;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.SubMonitor;
-import org.eclipse.core.runtime.jobs.IJobFunction;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.debug.core.DebugException;
 import org.eclipse.debug.core.ILaunch;
@@ -37,6 +34,8 @@ import org.everit.osgi.dev.dist.util.attach.EOSGiVMManager;
 public class GracefulShutdownProcessWrapper implements IProcess {
 
   private final EOSGiVMManager eosgiVMManager;
+
+  private final long shutdownTimeout;
 
   private final AtomicBoolean terminateCalled = new AtomicBoolean(false);
 
@@ -55,10 +54,12 @@ public class GracefulShutdownProcessWrapper implements IProcess {
    *          The unique launch id.
    */
   public GracefulShutdownProcessWrapper(final IProcess wrapped,
-      final EOSGiVMManager eosgiVMManager, final String uniqueLaunchId) {
+      final EOSGiVMManager eosgiVMManager, final String uniqueLaunchId,
+      final Long shutdownTimeout) {
     this.wrapped = wrapped;
     this.eosgiVMManager = eosgiVMManager;
     this.uniqueLaunchId = uniqueLaunchId;
+    this.shutdownTimeout = shutdownTimeout;
   }
 
   @Override
@@ -97,30 +98,39 @@ public class GracefulShutdownProcessWrapper implements IProcess {
   }
 
   private void gracefulTerminate(final String virtualMachineId) throws DebugException {
-    Job job = Job.create("myjob", new IJobFunction() {
 
-      @Override
-      public IStatus run(final IProgressMonitor monitor) {
-        SubMonitor subMonitor = SubMonitor.convert(monitor);
+    Object waitObj = new Object();
+    AtomicBoolean terminated = new AtomicBoolean(false);
+
+    Job job = Job.create("Terminating JVM gracefully", (monitor) -> {
+      SubMonitor subMonitor = SubMonitor.convert(monitor);
+      try {
+        eosgiVMManager.shutDownVirtualMachine(virtualMachineId, null);
+      } catch (RuntimeException e) {
         try {
-          eosgiVMManager.shutDownVirtualMachine(virtualMachineId, null);
-          try {
-            Thread.sleep(5000);
-          } catch (InterruptedException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-          }
-        } catch (RuntimeException e) {
-          try {
-            wrapped.terminate();
-          } catch (DebugException e1) {
-            throw new RuntimeException(e1);
-          }
+          wrapped.terminate();
+        } catch (DebugException e1) {
+          throw new RuntimeException(e1);
         }
-        return Status.OK_STATUS;
+      } finally {
+        synchronized (waitObj) {
+          terminated.set(true);
+          waitObj.notifyAll();
+        }
       }
+      return Status.OK_STATUS;
     });
     job.schedule();
+
+    synchronized (waitObj) {
+      if (!terminated.get()) {
+        try {
+          waitObj.wait(shutdownTimeout);
+        } catch (InterruptedException e) {
+          Thread.currentThread().interrupt();
+        }
+      }
+    }
   }
 
   @Override
@@ -147,17 +157,12 @@ public class GracefulShutdownProcessWrapper implements IProcess {
       return;
     }
 
-    Display.getDefault().asyncExec(new Runnable() {
-
-      @Override
-      public void run() {
-        try {
-          gracefulTerminate(virtualMachineId);
-        } catch (DebugException e) {
-          throw new RuntimeException(e);
-        }
+    Display.getDefault().asyncExec(() -> {
+      try {
+        gracefulTerminate(virtualMachineId);
+      } catch (DebugException e) {
+        throw new RuntimeException(e);
       }
-
     });
   }
 }
