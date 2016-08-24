@@ -29,6 +29,7 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.UUID;
 
+import org.apache.maven.execution.MavenExecutionRequest;
 import org.apache.maven.plugin.MojoExecution;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.eclipse.aether.artifact.Artifact;
@@ -40,6 +41,7 @@ import org.eclipse.debug.core.ILaunch;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.model.IProcess;
 import org.eclipse.m2e.core.MavenPlugin;
+import org.eclipse.m2e.core.embedder.IMavenExecutionContext;
 import org.eclipse.m2e.core.lifecyclemapping.model.IPluginExecutionMetadata;
 import org.eclipse.m2e.core.project.IMavenProjectFacade;
 import org.eclipse.m2e.core.project.IMavenProjectRegistry;
@@ -128,16 +130,20 @@ public class EOSGiProject {
 
       Properties systemProperties = new Properties();
       systemProperties.put(DistConstants.PLUGIN_PROPERTY_DIST_ONLY, Boolean.TRUE.toString());
-      M2EUtil.executeInEOSGiMavenContext(mavenProjectFacade,
-          (executionRequest) -> executionRequest.setSystemProperties(systemProperties),
-          (context, monitor1) -> {
-            SubMonitor.convert(monitor1, "Calling \"mvn eosgi:dist\" on project", 0);
 
-            MavenPlugin.getMaven().execute(mavenProjectFacade.getMavenProject(),
-                executableEnvironment.getMojoExecution(), monitor1);
+      IMavenExecutionContext executionContext =
+          M2EUtil.createExecutionContext(mavenProjectFacade, monitor);
+      MavenExecutionRequest executionRequest = executionContext.getExecutionRequest();
+      systemProperties.putAll(executionRequest.getSystemProperties());
+      executionRequest.setSystemProperties(systemProperties);
+      executionContext.execute((context, monitor1) -> {
+        SubMonitor.convert(monitor1, "Calling \"mvn eosgi:dist\" on project", 0);
 
-            return null;
-          }, monitor);
+        MavenPlugin.getMaven().execute(mavenProjectFacade.getMavenProject(),
+            executableEnvironment.getMojoExecution(), monitor1);
+
+        return null;
+      }, monitor);
     } catch (CoreException e) {
       throw new RuntimeException(e);
     }

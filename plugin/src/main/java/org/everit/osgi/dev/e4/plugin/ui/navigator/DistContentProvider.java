@@ -15,7 +15,11 @@
  */
 package org.everit.osgi.dev.e4.plugin.ui.navigator;
 
+import java.util.concurrent.atomic.AtomicReference;
+
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.viewers.TreeNodeContentProvider;
 import org.everit.osgi.dev.e4.plugin.EOSGiEclipsePlugin;
 import org.everit.osgi.dev.e4.plugin.EOSGiProject;
@@ -29,13 +33,29 @@ public class DistContentProvider extends TreeNodeContentProvider {
   @Override
   public Object[] getChildren(final Object parentElement) {
     if (parentElement instanceof IProject) {
-      EOSGiProject eosgiProject =
-          EOSGiEclipsePlugin.getDefault().getEOSGiManager().get((IProject) parentElement);
+      AtomicReference<EOSGiProject> eosgiProjectReference = new AtomicReference<>();
+      IProject project = (IProject) parentElement;
+      String taskName = "Getting EOSGi information of project: " + project.getName();
+      Job job =
+          Job.create(taskName, (monitor) -> {
+            monitor.beginTask(taskName, 1000);
+            EOSGiProject eosgiProject =
+                EOSGiEclipsePlugin.getDefault().getEOSGiManager().get(project, monitor);
 
-      if (eosgiProject == null) {
+            eosgiProjectReference.set(eosgiProject);
+            return Status.OK_STATUS;
+          });
+      job.schedule();
+      try {
+        job.join();
+      } catch (InterruptedException e) {
+        Thread.currentThread().interrupt();
+      }
+
+      if (eosgiProjectReference.get() == null) {
         return new Object[0];
       }
-      return new Object[] { eosgiProject };
+      return new Object[] { eosgiProjectReference.get() };
     } else if (parentElement instanceof EOSGiProject) {
       ExecutableEnvironmentContainer executableEnvironmentContainer =
           ((EOSGiProject) parentElement).getExecutableEnvironmentContainer();

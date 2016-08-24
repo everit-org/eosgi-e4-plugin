@@ -19,9 +19,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.function.Consumer;
 
-import org.apache.maven.execution.MavenExecutionRequest;
 import org.apache.maven.lifecycle.MavenExecutionPlan;
 import org.apache.maven.model.PluginExecution;
 import org.apache.maven.plugin.MojoExecution;
@@ -29,8 +27,9 @@ import org.apache.maven.project.MavenProject;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.m2e.core.MavenPlugin;
-import org.eclipse.m2e.core.embedder.ICallable;
 import org.eclipse.m2e.core.embedder.IMaven;
+import org.eclipse.m2e.core.embedder.IMavenExecutionContext;
+import org.eclipse.m2e.core.internal.MavenPluginActivator;
 import org.eclipse.m2e.core.project.IMavenProjectFacade;
 
 /**
@@ -51,18 +50,11 @@ public final class M2EUtil {
     SKIPPED_LIFECYCLE_PHASES.add("test");
   }
 
-  public static <V> V executeInEOSGiMavenContext(final IMavenProjectFacade mavenProjectFacade,
-      final Consumer<MavenExecutionRequest> executionRequestModifier, final ICallable<V> callable,
+  @SuppressWarnings("restriction")
+  public static IMavenExecutionContext createExecutionContext(final IMavenProjectFacade facade,
       final IProgressMonitor monitor) throws CoreException {
-
-    return MavenPlugin.getMavenProjectRegistry().execute(mavenProjectFacade,
-        (context, monitor1) -> {
-          MavenExecutionRequest executionRequest = context.getExecutionRequest();
-          executionRequestModifier.accept(executionRequest);
-
-          return MavenPlugin.getMaven().createExecutionContext().execute(
-              mavenProjectFacade.getMavenProject(monitor1), callable, monitor1);
-        }, monitor);
+    return MavenPluginActivator.getDefault().getMavenProjectManagerImpl()
+        .createExecutionContext(facade.getPom(), facade.getResolverConfiguration());
   }
 
   /**

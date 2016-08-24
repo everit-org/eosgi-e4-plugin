@@ -17,6 +17,8 @@ package org.everit.osgi.dev.e4.plugin;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import org.eclipse.core.runtime.NullProgressMonitor;
+import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.SubMonitor;
 import org.eclipse.core.runtime.jobs.Job;
@@ -99,11 +101,8 @@ public class GracefulShutdownProcessWrapper implements IProcess {
 
   private void gracefulTerminate(final String virtualMachineId) throws DebugException {
 
-    Object waitObj = new Object();
-    AtomicBoolean terminated = new AtomicBoolean(false);
-
     Job job = Job.create("Terminating JVM gracefully", (monitor) -> {
-      SubMonitor subMonitor = SubMonitor.convert(monitor);
+      SubMonitor.convert(monitor);
       try {
         eosgiVMManager.shutDownVirtualMachine(virtualMachineId, null);
       } catch (RuntimeException e) {
@@ -112,24 +111,15 @@ public class GracefulShutdownProcessWrapper implements IProcess {
         } catch (DebugException e1) {
           throw new RuntimeException(e1);
         }
-      } finally {
-        synchronized (waitObj) {
-          terminated.set(true);
-          waitObj.notifyAll();
-        }
       }
       return Status.OK_STATUS;
     });
     job.schedule();
 
-    synchronized (waitObj) {
-      if (!terminated.get()) {
-        try {
-          waitObj.wait(shutdownTimeout);
-        } catch (InterruptedException e) {
-          Thread.currentThread().interrupt();
-        }
-      }
+    try {
+      job.join(shutdownTimeout, new NullProgressMonitor());
+    } catch (OperationCanceledException | InterruptedException e) {
+      Thread.currentThread().interrupt();
     }
   }
 

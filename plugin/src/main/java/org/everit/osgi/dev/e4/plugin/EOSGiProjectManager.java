@@ -23,7 +23,6 @@ import java.util.concurrent.atomic.AtomicLong;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.m2e.core.MavenPlugin;
 import org.eclipse.m2e.core.project.IMavenProjectFacade;
 import org.everit.osgi.dev.dist.util.attach.EOSGiVMManager;
@@ -56,13 +55,12 @@ public class EOSGiProjectManager {
     }
   }
 
-  public synchronized EOSGiProject get(final IProject project) {
+  public synchronized EOSGiProject get(final IProject project, final IProgressMonitor monitor) {
     EOSGiProject eosgiProject = eosgiProjects.get(project);
     if (eosgiProject == null) {
       try {
         if (project.getNature(EOSGiNature.NATURE_ID) != null) {
-          putOrOverride(MavenPlugin.getMavenProjectRegistry().getProject(project),
-              new NullProgressMonitor());
+          putOrOverride(MavenPlugin.getMavenProjectRegistry().getProject(project), monitor);
           eosgiProject = eosgiProjects.get(project);
         }
       } catch (CoreException e) {
