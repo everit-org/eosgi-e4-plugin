@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.everit.osgi.dev.e4.plugin;
+package org.everit.osgi.dev.e4.plugin.m2e;
 
 import java.util.HashSet;
 import java.util.Set;

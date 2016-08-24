@@ -19,12 +19,12 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Properties;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.UUID;
@@ -33,7 +33,6 @@ import org.apache.maven.plugin.MojoExecution;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.eclipse.aether.artifact.Artifact;
 import org.eclipse.aether.graph.DependencyNode;
-import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.SubMonitor;
@@ -127,29 +126,20 @@ public class EOSGiProject {
 
       M2EUtil.packageProject(mavenProjectFacade, monitor);
 
-      MavenPlugin.getMavenProjectRegistry().execute(mavenProjectFacade, (context, monitor1) -> {
-        SubMonitor subMonitor =
+      Properties systemProperties = new Properties();
+      systemProperties.put(DistConstants.PLUGIN_PROPERTY_DIST_ONLY, Boolean.TRUE.toString());
+      M2EUtil.executeInEOSGiMavenContext(mavenProjectFacade,
+          (executionRequest) -> executionRequest.setSystemProperties(systemProperties),
+          (context, monitor1) -> {
             SubMonitor.convert(monitor1, "Calling \"mvn eosgi:dist\" on project", 0);
 
-        Map<String, Object> properties = new HashMap<>();
-        properties.put(DistConstants.PLUGIN_PROPERTY_DIST_ONLY, Boolean.TRUE.toString());
-        M2EUtil.executeProjectWithProperties(mavenProjectFacade.getMavenProject(), properties,
-            () -> {
-              try {
-                MavenPlugin.getMaven().execute(mavenProjectFacade.getMavenProject(),
-                    executableEnvironment.getMojoExecution(), monitor1);
-              } catch (CoreException e) {
-                throw new RuntimeException(e);
-              }
-            });
+            MavenPlugin.getMaven().execute(mavenProjectFacade.getMavenProject(),
+                executableEnvironment.getMojoExecution(), monitor1);
 
-        mavenProjectFacade.getProject().refreshLocal(IProject.DEPTH_INFINITE, monitor1);
-        EOSGiEclipsePlugin.getDefault().getChangedProjectTracker()
-            .removeProject(mavenProjectFacade.getProject());
-        return null;
-      }, monitor);
-    } catch (CoreException e1) {
-      throw new RuntimeException();
+            return null;
+          }, monitor);
+    } catch (CoreException e) {
+      throw new RuntimeException(e);
     }
 
     String launchUniqueId = UUID.randomUUID().toString();

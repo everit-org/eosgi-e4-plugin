@@ -19,6 +19,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Consumer;
 
 import org.apache.maven.execution.MavenExecutionRequest;
 import org.apache.maven.lifecycle.MavenExecutionPlan;
@@ -51,13 +52,13 @@ public final class M2EUtil {
   }
 
   public static <V> V executeInEOSGiMavenContext(final IMavenProjectFacade mavenProjectFacade,
-      final ICallable<V> callable, final IProgressMonitor monitor) throws CoreException {
+      final Consumer<MavenExecutionRequest> executionRequestModifier, final ICallable<V> callable,
+      final IProgressMonitor monitor) throws CoreException {
 
     return MavenPlugin.getMavenProjectRegistry().execute(mavenProjectFacade,
         (context, monitor1) -> {
           MavenExecutionRequest executionRequest = context.getExecutionRequest();
-          executionRequest.setWorkspaceReader(arg0);
-          // TODO
+          executionRequestModifier.accept(executionRequest);
 
           return MavenPlugin.getMaven().createExecutionContext().execute(
               mavenProjectFacade.getMavenProject(monitor1), callable, monitor1);
