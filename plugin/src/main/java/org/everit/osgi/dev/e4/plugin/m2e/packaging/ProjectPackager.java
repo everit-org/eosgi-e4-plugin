@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.everit.osgi.dev.e4.plugin.m2e;
+package org.everit.osgi.dev.e4.plugin.m2e.packaging;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -30,21 +30,18 @@ import org.eclipse.m2e.core.MavenPlugin;
 import org.eclipse.m2e.core.embedder.IMaven;
 import org.eclipse.m2e.core.project.IMavenProjectFacade;
 
-public class ProjectPackageUtil {
+public class ProjectPackager {
 
   private static final Set<String> SKIPPED_LIFECYCLE_PHASES;
   static {
     SKIPPED_LIFECYCLE_PHASES = new HashSet<>();
-    // SKIPPED_LIFECYCLE_PHASES.add("generate-test-sources");
-    // SKIPPED_LIFECYCLE_PHASES.add("process-test-sources");
-    // SKIPPED_LIFECYCLE_PHASES.add("generate-test-resources");
-    // SKIPPED_LIFECYCLE_PHASES.add("process-test-resources");
-    // SKIPPED_LIFECYCLE_PHASES.add("test-compile");
-    // SKIPPED_LIFECYCLE_PHASES.add("process-test-classes");
     SKIPPED_LIFECYCLE_PHASES.add("test");
   }
 
   private ChangedProjectTracker changedProjectTracker;
+
+  private final PackagedArtifactContainer packagedArtifactContainer =
+      new PackagedArtifactContainer();
 
   public void close() {
     ResourcesPlugin.getWorkspace().removeResourceChangeListener(changedProjectTracker);
@@ -52,7 +49,9 @@ public class ProjectPackageUtil {
   }
 
   public void open() {
-    changedProjectTracker = new ChangedProjectTracker();
+    changedProjectTracker = new ChangedProjectTracker((eclipseProject) -> {
+    }, (eclipseProject) -> packagedArtifactContainer.getProjectArtifactFiles(eclipseProject));
+
     ResourcesPlugin.getWorkspace().addResourceChangeListener(changedProjectTracker);
   }
 

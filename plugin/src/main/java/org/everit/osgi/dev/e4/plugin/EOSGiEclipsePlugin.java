@@ -17,7 +17,7 @@ package org.everit.osgi.dev.e4.plugin;
 
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
-import org.everit.osgi.dev.e4.plugin.m2e.ProjectPackageUtil;
+import org.everit.osgi.dev.e4.plugin.m2e.packaging.ProjectPackager;
 import org.osgi.framework.BundleContext;
 
 /**
@@ -41,7 +41,7 @@ public class EOSGiEclipsePlugin extends AbstractUIPlugin {
 
   private EOSGiLog log;
 
-  private ProjectPackageUtil projectPackageUtil;
+  private ProjectPackager projectPackageUtil;
 
   public EOSGiLog getEOSGiLog() {
     return log;
@@ -51,7 +51,7 @@ public class EOSGiEclipsePlugin extends AbstractUIPlugin {
     return eosgiProjectManager;
   }
 
-  public ProjectPackageUtil getProjectPackageUtil() {
+  public ProjectPackager getProjectPackageUtil() {
     return projectPackageUtil;
   }
 
@@ -60,7 +60,7 @@ public class EOSGiEclipsePlugin extends AbstractUIPlugin {
     super.start(context);
     EOSGiEclipsePlugin.plugin = this;
     log = new EOSGiLog(getLog());
-    projectPackageUtil = new ProjectPackageUtil();
+    projectPackageUtil = new ProjectPackager();
     projectPackageUtil.open();
     eosgiProjectManager = new EOSGiProjectManager();
   }

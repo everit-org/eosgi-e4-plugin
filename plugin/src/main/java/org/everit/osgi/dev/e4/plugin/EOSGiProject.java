@@ -33,6 +33,7 @@ import org.apache.maven.plugin.MojoExecution;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.eclipse.aether.artifact.Artifact;
 import org.eclipse.aether.graph.DependencyNode;
+import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.SubMonitor;
@@ -137,6 +138,7 @@ public class EOSGiProject {
         MavenPlugin.getMaven().execute(mavenProjectFacade.getMavenProject(),
             executableEnvironment.getMojoExecution(), monitor1);
 
+        mavenProjectFacade.getProject().refreshLocal(IProject.DEPTH_INFINITE, monitor1);
         return null;
       }, monitor);
     } catch (CoreException e) {

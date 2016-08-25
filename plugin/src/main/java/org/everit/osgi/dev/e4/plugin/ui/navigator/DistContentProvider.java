@@ -19,6 +19,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.SubMonitor;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.viewers.TreeNodeContentProvider;
 import org.everit.osgi.dev.e4.plugin.EOSGiEclipsePlugin;
@@ -38,9 +39,9 @@ public class DistContentProvider extends TreeNodeContentProvider {
       String taskName = "Getting EOSGi information of project: " + project.getName();
       Job job =
           Job.create(taskName, (monitor) -> {
-            monitor.beginTask(taskName, 1000);
+            SubMonitor subMonitor = SubMonitor.convert(monitor, taskName, 1);
             EOSGiProject eosgiProject =
-                EOSGiEclipsePlugin.getDefault().getEOSGiManager().get(project, monitor);
+                EOSGiEclipsePlugin.getDefault().getEOSGiManager().get(project, subMonitor);
 
             eosgiProjectReference.set(eosgiProject);
             return Status.OK_STATUS;

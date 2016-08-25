@@ -13,12 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.everit.osgi.dev.e4.plugin;
+package org.everit.osgi.dev.e4.plugin.m2e.packaging;
 
 import java.io.File;
 import java.util.HashMap;
-import java.util.List;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -27,11 +28,9 @@ import javax.annotation.Generated;
 
 import org.apache.maven.project.MavenProject;
 import org.eclipse.aether.artifact.Artifact;
-import org.eclipse.aether.repository.WorkspaceReader;
-import org.eclipse.aether.repository.WorkspaceRepository;
 import org.eclipse.core.resources.IProject;
 
-public class EOSGiWorkspaceReader implements WorkspaceReader {
+public class PackagedArtifactContainer {
 
   private static class ClassifierAndExtension {
 
@@ -47,23 +46,30 @@ public class EOSGiWorkspaceReader implements WorkspaceReader {
     @Override
     @Generated("eclipse")
     public boolean equals(final Object obj) {
-      if (this == obj)
+      if (this == obj) {
         return true;
-      if (obj == null)
+      }
+      if (obj == null) {
         return false;
-      if (getClass() != obj.getClass())
+      }
+      if (getClass() != obj.getClass()) {
         return false;
+      }
       ClassifierAndExtension other = (ClassifierAndExtension) obj;
       if (classifier == null) {
-        if (other.classifier != null)
+        if (other.classifier != null) {
           return false;
-      } else if (!classifier.equals(other.classifier))
+        }
+      } else if (!classifier.equals(other.classifier)) {
         return false;
+      }
       if (extension == null) {
-        if (other.extension != null)
+        if (other.extension != null) {
           return false;
-      } else if (!extension.equals(other.extension))
+        }
+      } else if (!extension.equals(other.extension)) {
         return false;
+      }
       return true;
     }
 
@@ -76,13 +82,14 @@ public class EOSGiWorkspaceReader implements WorkspaceReader {
       result = prime * result + ((extension == null) ? 0 : extension.hashCode());
       return result;
     }
-
   }
 
   private static String createArtifactKey(final String groupId, final String artifactId,
       final String version) {
     return groupId + ':' + artifactId + ':' + version;
   }
+
+  private final Map<IProject, Set<File>> artifactFilesByProject = new HashMap<>();
 
   private final Map<IProject, String> artifactKeyByEclipseProject = new HashMap<>();
 
@@ -91,13 +98,6 @@ public class EOSGiWorkspaceReader implements WorkspaceReader {
 
   private final ReadWriteLock readWriteLock = new ReentrantReadWriteLock();
 
-  private final WorkspaceReader wrapped;
-
-  public EOSGiWorkspaceReader(final WorkspaceReader wrapped) {
-    this.wrapped = wrapped;
-  }
-
-  @Override
   public File findArtifact(final Artifact artifact) {
     Lock readLock = readWriteLock.readLock();
     readLock.lock();
@@ -115,31 +115,40 @@ public class EOSGiWorkspaceReader implements WorkspaceReader {
           return file;
         }
       }
-      return wrapped.findArtifact(artifact);
+      return null;
     } finally {
       readLock.unlock();
     }
   }
 
-  @Override
-  public List<String> findVersions(final Artifact artifact) {
-    return wrapped.findVersions(artifact);
-  }
-
-  @Override
-  public WorkspaceRepository getRepository() {
-    return wrapped.getRepository();
+  public Set<File> getProjectArtifactFiles(final IProject eclipseProject) {
+    Lock readLock = readWriteLock.readLock();
+    readLock.lock();
+    try {
+      return artifactFilesByProject.get(eclipseProject);
+    } finally {
+      readLock.unlock();
+    }
   }
 
   private void putArtifact(final org.apache.maven.artifact.Artifact artifact,
-      final Map<ClassifierAndExtension, File> fileByClassifierAndExtensionMap) {
+      final Map<ClassifierAndExtension, File> fileByClassifierAndExtensionMap,
+      final Set<File> artifactFiles) {
+
+    File artifactFile = artifact.getFile();
+
+    if (artifactFile == null) {
+      return;
+    }
+
+    artifactFiles.add(artifactFile);
 
     String classifier = artifact.getClassifier();
     String extension = artifact.getArtifactHandler().getExtension();
 
     ClassifierAndExtension classifierAndExtension =
         new ClassifierAndExtension(classifier, extension);
-    fileByClassifierAndExtensionMap.put(classifierAndExtension, artifact.getFile());
+    fileByClassifierAndExtensionMap.put(classifierAndExtension, artifactFile);
 
   }
 
@@ -157,12 +166,15 @@ public class EOSGiWorkspaceReader implements WorkspaceReader {
       artifactKeyByEclipseProject.put(eclipseProject, artifactKey);
 
       Map<ClassifierAndExtension, File> fileByClassifierAndExtensionMap = new HashMap<>();
+      Set<File> artifactFiles = new HashSet<>();
 
-      putArtifact(mavenProject.getArtifact(), fileByClassifierAndExtensionMap);
+      putArtifact(mavenProject.getArtifact(), fileByClassifierAndExtensionMap, artifactFiles);
 
       for (org.apache.maven.artifact.Artifact artifact : mavenProject.getAttachedArtifacts()) {
-        putArtifact(artifact, fileByClassifierAndExtensionMap);
+        putArtifact(artifact, fileByClassifierAndExtensionMap, artifactFiles);
       }
+      artifactFilesByProject.put(eclipseProject, artifactFiles);
+      gavAndFileByClassifierAndExtensionMap.put(artifactKey, fileByClassifierAndExtensionMap);
     } finally {
       writeLock.unlock();
     }
@@ -176,6 +188,7 @@ public class EOSGiWorkspaceReader implements WorkspaceReader {
       if (artifactKey != null) {
         gavAndFileByClassifierAndExtensionMap.remove(artifactKey);
       }
+      artifactFilesByProject.remove(eclipseProject);
     } finally {
       writeLock.unlock();
     }
