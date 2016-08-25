@@ -19,7 +19,9 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Consumer;
 
+import org.apache.maven.execution.MavenExecutionRequest;
 import org.apache.maven.lifecycle.MavenExecutionPlan;
 import org.apache.maven.model.PluginExecution;
 import org.apache.maven.plugin.MojoExecution;
@@ -27,6 +29,7 @@ import org.apache.maven.project.MavenProject;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.m2e.core.MavenPlugin;
+import org.eclipse.m2e.core.embedder.ICallable;
 import org.eclipse.m2e.core.embedder.IMaven;
 import org.eclipse.m2e.core.embedder.IMavenExecutionContext;
 import org.eclipse.m2e.core.internal.MavenPluginActivator;
@@ -55,6 +58,23 @@ public final class M2EUtil {
       final IProgressMonitor monitor) throws CoreException {
     return MavenPluginActivator.getDefault().getMavenProjectManagerImpl()
         .createExecutionContext(facade.getPom(), facade.getResolverConfiguration());
+  }
+
+  public static <V> V executeInContext(final IMavenProjectFacade facade,
+      final Consumer<MavenExecutionRequest> executionRequestModifier,
+      final ICallable<V> callable, final IProgressMonitor monitor) throws CoreException {
+
+    IMavenExecutionContext executionContext = createExecutionContext(facade, monitor);
+    MavenExecutionRequest executionRequest = executionContext.getExecutionRequest();
+
+    return executionContext.execute((context, monitor1) -> {
+      if (executionRequestModifier != null) {
+        executionRequestModifier.accept(executionRequest);
+      }
+
+      return MavenPlugin.getMaven().createExecutionContext()
+          .execute(facade.getMavenProject(monitor), callable, monitor);
+    }, monitor);
   }
 
   /**
