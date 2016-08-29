@@ -44,6 +44,32 @@ import org.eclipse.m2e.core.project.IMavenProjectFacade;
  */
 public class ChangedProjectTracker implements IResourceChangeListener {
 
+  private static boolean isResourceArtifactFileOrSource(final IResourceDelta resourceDelta,
+      final Set<File> attachedFiles, final boolean inTargetFolder) {
+    IResource resource = resourceDelta.getResource();
+    File resourceFile = resource.getLocation().toFile();
+
+    if (attachedFiles.contains(resourceFile)) {
+      return true;
+    }
+
+    return !inTargetFolder;
+  }
+
+  /**
+   * The function returns whether the a resource is changed.
+   * 
+   * @param delta
+   *          The delta of the resource.
+   * @return True if the resource is affected, but false if the resource is a folder that has some
+   *         resource that is affected.
+   */
+  private static boolean resourceDeltaMeansResourceChange(final IResourceDelta delta) {
+    int kind = delta.getKind();
+    return delta.getFlags() != 0
+        || (kind != 0 && (kind & IResourceDelta.CHANGED) == 0);
+  }
+
   private final Function<IProject, Set<File>> projectArtifactFileProvider;
 
   private final Consumer<IProject> projectChangeHandler;
@@ -54,13 +80,17 @@ public class ChangedProjectTracker implements IResourceChangeListener {
     this.projectArtifactFileProvider = projectArtifactFileProvider;
   }
 
-  private void processChangeEventOnMavenProject(final IMavenProjectFacade mavenProjectFacade) {
+  private void processChangeEventOnMavenProject(final IResourceDelta delta,
+      final IMavenProjectFacade mavenProjectFacade) {
     try {
       String targetDirectory = mavenProjectFacade.getMavenProject(new NullProgressMonitor())
           .getBuild().getDirectory();
+      File targetDirectoryFile = new File(targetDirectory);
 
-      // TODO
-      System.out.println(targetDirectory);
+      Set<File> attachedFiles = projectArtifactFileProvider.apply(mavenProjectFacade.getProject());
+
+      processMavenProjectChangeDeltaRecurce(delta.getAffectedChildren(), targetDirectoryFile,
+          attachedFiles, false);
     } catch (CoreException e) {
       throw new RuntimeException(e);
     }
@@ -70,6 +100,11 @@ public class ChangedProjectTracker implements IResourceChangeListener {
     IResource resource = delta.getResource();
     if (resource instanceof IProject) {
       IProject eclipseProject = (IProject) resource;
+
+      if (!projectArtifactsEvaluated(eclipseProject)) {
+        return;
+      }
+
       if (eclipseProject.isOpen()) {
         IMavenProjectFacade mavenProjectFacade =
             MavenPlugin.getMavenProjectRegistry().getProject(eclipseProject);
@@ -77,7 +112,7 @@ public class ChangedProjectTracker implements IResourceChangeListener {
         if (mavenProjectFacade == null) {
           projectChangeHandler.accept((IProject) resource);
         } else {
-          processChangeEventOnMavenProject(mavenProjectFacade);
+          processChangeEventOnMavenProject(delta, mavenProjectFacade);
         }
       }
     } else {
@@ -90,6 +125,31 @@ public class ChangedProjectTracker implements IResourceChangeListener {
     }
   }
 
+  private boolean processMavenProjectChangeDeltaRecurce(final IResourceDelta[] deltaArray,
+      final File targetDirectoryFile, final Set<File> attachedFiles,
+      final boolean pInTargetFolder) {
+
+    for (IResourceDelta delta : deltaArray) {
+      boolean inTargetFolder =
+          pInTargetFolder || targetDirectoryFile.equals(delta.getResource().getFullPath().toFile());
+
+      if (resourceDeltaMeansResourceChange(delta)
+          && isResourceArtifactFileOrSource(delta, attachedFiles, inTargetFolder)) {
+        return true;
+      }
+
+      if (processMavenProjectChangeDeltaRecurce(delta.getAffectedChildren(), targetDirectoryFile,
+          attachedFiles, inTargetFolder)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  private boolean projectArtifactsEvaluated(final IProject resource) {
+    return projectArtifactFileProvider.apply(resource) != null;
+  }
+
   @Override
   public synchronized void resourceChanged(final IResourceChangeEvent event) {
     int eventType = event.getType();
@@ -98,7 +158,7 @@ public class ChangedProjectTracker implements IResourceChangeListener {
       case IResourceChangeEvent.PRE_DELETE:
       case IResourceChangeEvent.PRE_CLOSE:
         IResource resource = event.getResource();
-        if (resource instanceof IProject) {
+        if (resource instanceof IProject && projectArtifactsEvaluated((IProject) resource)) {
           projectChangeHandler.accept((IProject) resource);
         }
         break;
