@@ -23,6 +23,8 @@ import java.util.Set;
 import org.apache.maven.lifecycle.MavenExecutionPlan;
 import org.apache.maven.plugin.MojoExecution;
 import org.apache.maven.project.MavenProject;
+import org.eclipse.aether.repository.WorkspaceReader;
+import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -48,6 +50,10 @@ public class ProjectPackager {
 
   }
 
+  public WorkspaceReader createWorkspaceReader(final WorkspaceReader original) {
+    return new EOSGiWorkspaceReader(original, packagedArtifactContainer);
+  }
+
   public void open() {
     changedProjectTracker = new ChangedProjectTracker((eclipseProject) -> {
     }, (eclipseProject) -> packagedArtifactContainer.getProjectArtifactFiles(eclipseProject));
@@ -57,6 +63,13 @@ public class ProjectPackager {
 
   public void packageProject(final IMavenProjectFacade mavenProjectFacade,
       final IProgressMonitor monitor) throws CoreException {
+
+    IProject eclipseProject = mavenProjectFacade.getProject();
+
+    if (packagedArtifactContainer.getProjectArtifactFiles(eclipseProject) != null) {
+      return;
+    }
+
     MavenPlugin.getMavenProjectRegistry().execute(mavenProjectFacade, (context, monitor1) -> {
       IMaven maven = MavenPlugin.getMaven();
       MavenProject mavenProject = mavenProjectFacade.getMavenProject(monitor);
@@ -73,6 +86,7 @@ public class ProjectPackager {
             maven.execute(mavenProject, mojoExecution, monitor);
           }
         }
+        packagedArtifactContainer.putArtifactsOfMavenProject(mavenProject, eclipseProject);
         return null;
       }, monitor);
 
