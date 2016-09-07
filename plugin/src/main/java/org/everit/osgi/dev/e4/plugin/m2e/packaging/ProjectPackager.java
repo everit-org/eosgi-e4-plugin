@@ -31,6 +31,8 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.m2e.core.MavenPlugin;
 import org.eclipse.m2e.core.embedder.IMaven;
 import org.eclipse.m2e.core.project.IMavenProjectFacade;
+import org.everit.osgi.dev.e4.plugin.m2e.M2EUtil;
+import org.everit.osgi.dev.e4.plugin.m2e.MavenExecutionContextModifiers;
 
 public class ProjectPackager {
 
@@ -55,8 +57,9 @@ public class ProjectPackager {
   }
 
   public void open() {
-    changedProjectTracker = new ChangedProjectTracker((eclipseProject) -> {
-    }, (eclipseProject) -> packagedArtifactContainer.getProjectArtifactFiles(eclipseProject));
+    changedProjectTracker = new ChangedProjectTracker(
+        (eclipseProject) -> packagedArtifactContainer.removeArtifactFiles(eclipseProject),
+        (eclipseProject) -> packagedArtifactContainer.getProjectArtifactFiles(eclipseProject));
 
     ResourcesPlugin.getWorkspace().addResourceChangeListener(changedProjectTracker);
   }
@@ -70,28 +73,26 @@ public class ProjectPackager {
       return;
     }
 
-    MavenPlugin.getMavenProjectRegistry().execute(mavenProjectFacade, (context, monitor1) -> {
+    MavenExecutionContextModifiers modifiers = new MavenExecutionContextModifiers();
+    modifiers.workspaceReaderReplacer = (original) -> createWorkspaceReader(original);
+
+    M2EUtil.executeInContext(mavenProjectFacade, modifiers, (context, monitor1) -> {
       IMaven maven = MavenPlugin.getMaven();
       MavenProject mavenProject = mavenProjectFacade.getMavenProject(monitor);
+      MavenExecutionPlan executionPlan =
+          maven.calculateExecutionPlan(mavenProject,
+              Arrays.asList(new String[] { "package" }), true, monitor);
 
-      maven.createExecutionContext().execute(mavenProject, (context1, monitor2) -> {
-        MavenExecutionPlan executionPlan =
-            maven.calculateExecutionPlan(mavenProject,
-                Arrays.asList(new String[] { "package" }), true, monitor);
+      List<MojoExecution> mojoExecutions = executionPlan.getMojoExecutions();
 
-        List<MojoExecution> mojoExecutions = executionPlan.getMojoExecutions();
-
-        for (MojoExecution mojoExecution : mojoExecutions) {
-          if (!SKIPPED_LIFECYCLE_PHASES.contains(mojoExecution.getLifecyclePhase())) {
-            maven.execute(mavenProject, mojoExecution, monitor);
-          }
+      for (MojoExecution mojoExecution : mojoExecutions) {
+        if (!SKIPPED_LIFECYCLE_PHASES.contains(mojoExecution.getLifecyclePhase())) {
+          maven.execute(mavenProject, mojoExecution, monitor);
         }
-        packagedArtifactContainer.putArtifactsOfMavenProject(mavenProject, eclipseProject);
-        return null;
-      }, monitor);
-
+      }
+      eclipseProject.refreshLocal(IProject.DEPTH_INFINITE, monitor1);
+      packagedArtifactContainer.putArtifactsOfMavenProject(mavenProject, eclipseProject);
       return null;
     }, monitor);
-
   }
 }

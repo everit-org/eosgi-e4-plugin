@@ -46,14 +46,15 @@ public class ChangedProjectTracker implements IResourceChangeListener {
 
   private static boolean isResourceArtifactFileOrSource(final IResourceDelta resourceDelta,
       final Set<File> attachedFiles, final boolean inTargetFolder) {
+
+    if (!inTargetFolder) {
+      return true;
+    }
     IResource resource = resourceDelta.getResource();
     File resourceFile = resource.getLocation().toFile();
 
-    if (attachedFiles.contains(resourceFile)) {
-      return true;
-    }
+    return attachedFiles.contains(resourceFile);
 
-    return !inTargetFolder;
   }
 
   /**
@@ -80,7 +81,7 @@ public class ChangedProjectTracker implements IResourceChangeListener {
     this.projectArtifactFileProvider = projectArtifactFileProvider;
   }
 
-  private void processChangeEventOnMavenProject(final IResourceDelta delta,
+  private boolean processChangeEventOnMavenProject(final IResourceDelta delta,
       final IMavenProjectFacade mavenProjectFacade) {
     try {
       String targetDirectory = mavenProjectFacade.getMavenProject(new NullProgressMonitor())
@@ -89,7 +90,7 @@ public class ChangedProjectTracker implements IResourceChangeListener {
 
       Set<File> attachedFiles = projectArtifactFileProvider.apply(mavenProjectFacade.getProject());
 
-      processMavenProjectChangeDeltaRecurce(delta.getAffectedChildren(), targetDirectoryFile,
+      return processMavenProjectChangeDeltaRecurce(delta.getAffectedChildren(), targetDirectoryFile,
           attachedFiles, false);
     } catch (CoreException e) {
       throw new RuntimeException(e);
@@ -109,10 +110,9 @@ public class ChangedProjectTracker implements IResourceChangeListener {
         IMavenProjectFacade mavenProjectFacade =
             MavenPlugin.getMavenProjectRegistry().getProject(eclipseProject);
 
-        if (mavenProjectFacade == null) {
-          projectChangeHandler.accept((IProject) resource);
-        } else {
-          processChangeEventOnMavenProject(delta, mavenProjectFacade);
+        if (mavenProjectFacade != null
+            && processChangeEventOnMavenProject(delta, mavenProjectFacade)) {
+          projectChangeHandler.accept(eclipseProject);
         }
       }
     } else {

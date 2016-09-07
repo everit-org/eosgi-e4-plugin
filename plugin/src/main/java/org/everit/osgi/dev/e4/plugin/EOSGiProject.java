@@ -33,7 +33,6 @@ import org.apache.maven.plugin.MojoExecution;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.eclipse.aether.artifact.Artifact;
 import org.eclipse.aether.graph.DependencyNode;
-import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.SubMonitor;
@@ -49,6 +48,8 @@ import org.everit.osgi.dev.dist.util.DistConstants;
 import org.everit.osgi.dev.dist.util.attach.EOSGiVMManager;
 import org.everit.osgi.dev.e4.plugin.core.launcher.LaunchConfigurationBuilder;
 import org.everit.osgi.dev.e4.plugin.m2e.M2EUtil;
+import org.everit.osgi.dev.e4.plugin.m2e.MavenExecutionContextModifiers;
+import org.everit.osgi.dev.e4.plugin.m2e.packaging.ProjectPackager;
 import org.everit.osgi.dev.e4.plugin.util.DAGFlattener;
 import org.everit.osgi.dev.e4.plugin.util.DependencyNodeChildResolver;
 import org.everit.osgi.dev.e4.plugin.util.DependencyNodeComparator;
@@ -125,20 +126,26 @@ public class EOSGiProject {
       packModifiedDeps(executableEnvironment.getEnvironmentId(),
           executableEnvironment.getMojoExecution().getExecutionId(), monitor);
 
-      M2EUtil.packageProject(mavenProjectFacade, monitor);
+      EOSGiEclipsePlugin.getDefault().getProjectPackageUtil().packageProject(mavenProjectFacade,
+          monitor);
 
-      M2EUtil.executeInContext(mavenProjectFacade, (executionRequest) -> {
+      MavenExecutionContextModifiers modifiers = new MavenExecutionContextModifiers();
+      modifiers.systemPropertiesReplacer = (originalProperties) -> {
         Properties systemProperties = new Properties();
+        systemProperties.putAll(originalProperties);
         systemProperties.put(DistConstants.PLUGIN_PROPERTY_DIST_ONLY, Boolean.TRUE.toString());
-        systemProperties.putAll(executionRequest.getSystemProperties());
-        executionRequest.setSystemProperties(systemProperties);
-      }, (context, monitor1) -> {
+        return systemProperties;
+      };
+
+      ProjectPackager packageUtil = EOSGiEclipsePlugin.getDefault().getProjectPackageUtil();
+      modifiers.workspaceReaderReplacer = (original) -> packageUtil.createWorkspaceReader(original);
+
+      M2EUtil.executeInContext(mavenProjectFacade, modifiers, (context, monitor1) -> {
         SubMonitor.convert(monitor1, "Calling \"mvn eosgi:dist\" on project", 0);
 
         MavenPlugin.getMaven().execute(mavenProjectFacade.getMavenProject(),
             executableEnvironment.getMojoExecution(), monitor1);
 
-        mavenProjectFacade.getProject().refreshLocal(IProject.DEPTH_INFINITE, monitor1);
         return null;
       }, monitor);
     } catch (CoreException e) {
@@ -177,6 +184,7 @@ public class EOSGiProject {
         flattenedDependencyTree.listIterator(flattenedDependencyTree.size());
 
     IMavenProjectRegistry mavenProjectRegistry = MavenPlugin.getMavenProjectRegistry();
+    ProjectPackager projectPackageUtil = EOSGiEclipsePlugin.getDefault().getProjectPackageUtil();
 
     while (listIterator.hasPrevious()) {
       DependencyNode dependencyNode = listIterator.previous();
@@ -192,7 +200,7 @@ public class EOSGiProject {
           subMonitor.beginTask("Packaging dependency: " + artifact.getGroupId() + ":"
               + artifact.getArtifactId() + ":" + artifact.getVersion(), 1);
           try {
-            M2EUtil.packageProject(dependencyMavenProject, subMonitor);
+            projectPackageUtil.packageProject(dependencyMavenProject, subMonitor);
           } catch (CoreException e) {
             throw new RuntimeException(e);
           } finally {

@@ -39,8 +39,8 @@ public class PackagedArtifactContainer {
     String extension;
 
     public ClassifierAndExtension(final String classifier, final String extension) {
-      this.classifier = classifier;
-      this.extension = extension;
+      this.classifier = ((classifier != null) ? classifier : "").trim();
+      this.extension = ((extension != null) ? extension : "").trim();
     }
 
     @Override

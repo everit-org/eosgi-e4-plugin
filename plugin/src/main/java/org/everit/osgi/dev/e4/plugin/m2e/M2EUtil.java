@@ -15,14 +15,10 @@
  */
 package org.everit.osgi.dev.e4.plugin.m2e;
 
-import java.util.Arrays;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
-import java.util.function.Consumer;
 
 import org.apache.maven.execution.MavenExecutionRequest;
-import org.apache.maven.lifecycle.MavenExecutionPlan;
 import org.apache.maven.model.PluginExecution;
 import org.apache.maven.plugin.MojoExecution;
 import org.apache.maven.project.MavenProject;
@@ -30,7 +26,6 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.m2e.core.MavenPlugin;
 import org.eclipse.m2e.core.embedder.ICallable;
-import org.eclipse.m2e.core.embedder.IMaven;
 import org.eclipse.m2e.core.embedder.IMavenExecutionContext;
 import org.eclipse.m2e.core.internal.MavenPluginActivator;
 import org.eclipse.m2e.core.project.IMavenProjectFacade;
@@ -61,20 +56,25 @@ public final class M2EUtil {
   }
 
   public static <V> V executeInContext(final IMavenProjectFacade facade,
-      final Consumer<MavenExecutionRequest> executionRequestModifier,
+      final MavenExecutionContextModifiers modifications,
       final ICallable<V> callable, final IProgressMonitor monitor) throws CoreException {
 
     IMavenExecutionContext executionContext = createExecutionContext(facade, monitor);
     MavenExecutionRequest executionRequest = executionContext.getExecutionRequest();
+    if (modifications != null && modifications.workspaceReaderReplacer != null) {
+      executionRequest.setWorkspaceReader(modifications.workspaceReaderReplacer
+          .apply(executionRequest.getWorkspaceReader()));
+    }
 
-    return executionContext.execute((context, monitor1) -> {
-      if (executionRequestModifier != null) {
-        executionRequestModifier.accept(executionRequest);
-      }
+    return executionContext.execute(facade.getMavenProject(monitor),
+        (context, monitor1) -> {
+          if (modifications != null && modifications.systemPropertiesReplacer != null) {
+            executionRequest.setSystemProperties(modifications.systemPropertiesReplacer
+                .apply(executionRequest.getSystemProperties()));
+          }
 
-      return MavenPlugin.getMaven().createExecutionContext()
-          .execute(facade.getMavenProject(monitor), callable, monitor);
-    }, monitor);
+          return callable.call(context, monitor1);
+        }, monitor);
   }
 
   /**
@@ -101,32 +101,6 @@ public final class M2EUtil {
     execution.setConfiguration(mojoExecution.getConfiguration());
     return MavenPlugin.getMaven().getMojoParameterValue(project, parameter, asType,
         mojoExecution.getPlugin(), execution, mojoExecution.getGoal(), monitor);
-  }
-
-  public static void packageProject(final IMavenProjectFacade mavenProjectFacade,
-      final IProgressMonitor monitor) throws CoreException {
-    MavenPlugin.getMavenProjectRegistry().execute(mavenProjectFacade, (context, monitor1) -> {
-      IMaven maven = MavenPlugin.getMaven();
-      MavenProject mavenProject = mavenProjectFacade.getMavenProject(monitor);
-
-      maven.createExecutionContext().execute(mavenProject, (context1, monitor2) -> {
-        MavenExecutionPlan executionPlan =
-            maven.calculateExecutionPlan(mavenProject,
-                Arrays.asList(new String[] { "package" }), true, monitor);
-
-        List<MojoExecution> mojoExecutions = executionPlan.getMojoExecutions();
-
-        for (MojoExecution mojoExecution : mojoExecutions) {
-          if (!SKIPPED_LIFECYCLE_PHASES.contains(mojoExecution.getLifecyclePhase())) {
-            maven.execute(mavenProject, mojoExecution, monitor);
-          }
-        }
-        return null;
-      }, monitor);
-
-      return null;
-    }, monitor);
-
   }
 
   private M2EUtil() {
