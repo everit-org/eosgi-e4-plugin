@@ -26,7 +26,6 @@ import org.eclipse.debug.core.DebugException;
 import org.eclipse.debug.core.ILaunch;
 import org.eclipse.debug.core.model.IProcess;
 import org.eclipse.debug.core.model.IStreamsProxy;
-import org.eclipse.swt.widgets.Display;
 import org.everit.osgi.dev.dist.util.attach.EOSGiVMManager;
 
 /**
@@ -147,12 +146,6 @@ public class GracefulShutdownProcessWrapper implements IProcess {
       return;
     }
 
-    Display.getDefault().asyncExec(() -> {
-      try {
-        gracefulTerminate(virtualMachineId);
-      } catch (DebugException e) {
-        throw new RuntimeException(e);
-      }
-    });
+    gracefulTerminate(virtualMachineId);
   }
 }
