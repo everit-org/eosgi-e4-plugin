@@ -15,12 +15,16 @@
  */
 package org.everit.osgi.dev.e4.plugin.m2e;
 
+import java.util.Map;
 import java.util.Properties;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 import org.eclipse.aether.repository.WorkspaceReader;
 
 public class MavenExecutionContextModifiers {
+
+  public Consumer<Map<String, Object>> executionRequestDataModifier;
 
   public Function<Properties, Properties> systemPropertiesReplacer;
 

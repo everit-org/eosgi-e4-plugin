@@ -33,14 +33,20 @@ public class EOSGiProjectPopupMenu extends ExtensionContributionFactory {
   public EOSGiProjectPopupMenu() {
   }
 
-  private void addMenuItemsForEnvironment(final ExecutableEnvironment eosgiProject,
-      final IServiceLocator serviceLocator, final IContributionRoot additions) {
+  private void addMenuItem(final String label, final String commandId,
+      final IContributionRoot additions, final IServiceLocator serviceLocator) {
     CommandContributionItemParameter parameter = new CommandContributionItemParameter(
-        serviceLocator, null, "org.everit.osgi.dev.e4.plugin.command.start",
-        CommandContributionItem.STYLE_PUSH);
-    parameter.label = "Start";
+        serviceLocator, null, commandId, CommandContributionItem.STYLE_PUSH);
+    parameter.label = label;
     parameter.visibleEnabled = true;
     additions.addContributionItem(new CommandContributionItem(parameter), Expression.TRUE);
+  }
+
+  private void addMenuItemsForEnvironment(final ExecutableEnvironment eosgiProject,
+      final IContributionRoot additions, final IServiceLocator serviceLocator) {
+
+    addMenuItem("Dist", "org.everit.osgi.dev.e4.plugin.command.dist", additions, serviceLocator);
+    addMenuItem("Start", "org.everit.osgi.dev.e4.plugin.command.start", additions, serviceLocator);
   }
 
   @Override
@@ -49,8 +55,8 @@ public class EOSGiProjectPopupMenu extends ExtensionContributionFactory {
 
     Object selectionObject = getSingleSelection(serviceLocator);
     if (selectionObject instanceof ExecutableEnvironment) {
-      addMenuItemsForEnvironment((ExecutableEnvironment) selectionObject, serviceLocator,
-          additions);
+      addMenuItemsForEnvironment((ExecutableEnvironment) selectionObject, additions,
+          serviceLocator);
     }
 
   }

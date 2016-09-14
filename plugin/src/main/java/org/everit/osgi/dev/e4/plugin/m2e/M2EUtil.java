@@ -68,9 +68,14 @@ public final class M2EUtil {
 
     return executionContext.execute(facade.getMavenProject(monitor),
         (context, monitor1) -> {
-          if (modifications != null && modifications.systemPropertiesReplacer != null) {
-            executionRequest.setSystemProperties(modifications.systemPropertiesReplacer
-                .apply(executionRequest.getSystemProperties()));
+          if (modifications != null) {
+            if (modifications.systemPropertiesReplacer != null) {
+              executionRequest.setSystemProperties(modifications.systemPropertiesReplacer
+                  .apply(executionRequest.getSystemProperties()));
+            }
+            if (modifications.executionRequestDataModifier != null) {
+              modifications.executionRequestDataModifier.accept(executionRequest.getData());
+            }
           }
 
           return callable.call(context, monitor1);

@@ -131,7 +131,7 @@ public class ChangedProjectTracker implements IResourceChangeListener {
 
     for (IResourceDelta delta : deltaArray) {
       boolean inTargetFolder =
-          pInTargetFolder || targetDirectoryFile.equals(delta.getResource().getFullPath().toFile());
+          pInTargetFolder || targetDirectoryFile.equals(delta.getResource().getLocation().toFile());
 
       if (resourceDeltaMeansResourceChange(delta)
           && isResourceArtifactFileOrSource(delta, attachedFiles, inTargetFolder)) {

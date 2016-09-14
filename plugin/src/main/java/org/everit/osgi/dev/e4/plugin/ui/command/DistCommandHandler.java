@@ -22,14 +22,12 @@ import org.eclipse.core.expressions.IEvaluationContext;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.IJobFunction;
 import org.eclipse.core.runtime.jobs.Job;
-import org.eclipse.debug.core.ILaunchManager;
 import org.everit.osgi.dev.e4.plugin.ExecutableEnvironment;
 
 /**
- * Command handler that launches an OSGi environment.
- *
+ * IHandler implementation for dist creation.
  */
-public class StartCommandHandler extends AbstractHandler {
+public class DistCommandHandler extends AbstractHandler {
 
   @Override
   public Object execute(final ExecutionEvent event) throws ExecutionException {
@@ -49,14 +47,11 @@ public class StartCommandHandler extends AbstractHandler {
     final ExecutableEnvironment executableEnvironment = (ExecutableEnvironment) singleSelection;
 
     Job job = Job.create("Launching OSGi Environment", (IJobFunction) monitor -> {
-      executableEnvironment.getEOSGiProject().launch(executableEnvironment,
-          ILaunchManager.RUN_MODE,
-          monitor);
+      executableEnvironment.getEOSGiProject().dist(executableEnvironment, monitor);
       return Status.OK_STATUS;
     });
     job.schedule();
 
     return null;
   }
-
 }

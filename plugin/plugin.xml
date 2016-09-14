@@ -78,14 +78,6 @@
             allPopups="false"
             class="org.everit.osgi.dev.e4.plugin.ui.navigator.EOSGiProjectPopupMenu"
             locationURI="popup:org.eclipse.ui.popup.any">
-         <dynamic
-               class="org.everit.osgi.dev.e4.plugin.ContributionItem3"
-               id="org.everit.osgi.dev.e4.plugin.dynamic3">
-         </dynamic>
-         <dynamic
-               class="org.everit.osgi.dev.e4.plugin.ui.navigator.DynamicContributionItem"
-               id="org.everit.osgi.dev.e4.plugin.dynamic4">
-         </dynamic>
       </menuContribution>
     </extension>
 
@@ -93,12 +85,12 @@
       id="org.everit.osgi.dev.e4.plugin.ui.command"
       point="org.eclipse.ui.commands">
       <command
-        id="org.everit.osgi.dev.e4.plugin.ui.command.create"
+        id="org.everit.osgi.dev.e4.plugin.command.dist"
         name="distCommand">
       </command>
       <command
             id="org.everit.osgi.dev.e4.plugin.command.start"
-            name="start">
+            name="startCommand">
       </command>
     </extension>
     
@@ -114,22 +106,8 @@
     <extension
       point="org.eclipse.ui.handlers">
       <handler
-        commandId="org.everit.osgi.dev.e4.plugin.ui.command.create"
-        class="org.everit.osgi.dev.e4.plugin.ui.command.CreateDistHandler">
-        <enabledWhen>
-          <with variable="selection">
-              <iterate ifEmpty="false">
-                <instanceof value="org.everit.osgi.dev.e4.plugin.ui.navigator.nodes.EnvironmentNode" />
-                <!--
-                <or>
-                  <test property="org.everit.osgi.dev.e4.plugin.properties.distStatus" value="NONE"/>
-                  <test property="org.everit.osgi.dev.e4.plugin.properties.distStatus" value="STOPPED"/>
-                  <test property="org.everit.osgi.dev.e4.plugin.properties.distStatus" value="RUNNING"/>
-                </or>
-                -->
-              </iterate>
-          </with>
-        </enabledWhen>
+        commandId="org.everit.osgi.dev.e4.plugin.command.dist"
+        class="org.everit.osgi.dev.e4.plugin.ui.command.DistCommandHandler">
       </handler>
       <handler
             class="org.everit.osgi.dev.e4.plugin.ui.command.StartCommandHandler"

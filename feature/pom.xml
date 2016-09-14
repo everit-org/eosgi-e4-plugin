@@ -36,7 +36,7 @@
     <dependency>
       <groupId>org.everit.osgi.extension</groupId>
       <artifactId>org.everit.osgi.extension.sun.attach</artifactId>
-      <version>0.0.0-v20160517</version>
+      <version>${extension-attach-version}</version>
     </dependency>
   </dependencies>
 

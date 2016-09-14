@@ -33,6 +33,7 @@ import org.apache.maven.plugin.MojoExecution;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.eclipse.aether.artifact.Artifact;
 import org.eclipse.aether.graph.DependencyNode;
+import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.SubMonitor;
@@ -89,6 +90,44 @@ public class EOSGiProject {
     // TODO stop launched vms
   }
 
+  public void dist(final ExecutableEnvironment executableEnvironment,
+      final IProgressMonitor monitor) {
+    try {
+      packModifiedDeps(executableEnvironment.getEnvironmentId(),
+          executableEnvironment.getMojoExecution().getExecutionId(), monitor);
+
+      EOSGiEclipsePlugin.getDefault().getProjectPackageUtil().packageProject(mavenProjectFacade,
+          monitor);
+
+      MavenExecutionContextModifiers modifiers = new MavenExecutionContextModifiers();
+      modifiers.systemPropertiesReplacer = (originalProperties) -> {
+        Properties systemProperties = new Properties();
+        systemProperties.putAll(originalProperties);
+        systemProperties.put(DistConstants.PLUGIN_PROPERTY_DIST_ONLY, Boolean.TRUE.toString());
+        return systemProperties;
+      };
+
+      modifiers.executionRequestDataModifier =
+          (data) -> data.put(DistConstants.MAVEN_EXECUTION_REQUEST_DATA_KEY_ATTACH_API_CLASSLOADER,
+              EOSGiVMManager.class.getClassLoader());
+
+      ProjectPackager packageUtil = EOSGiEclipsePlugin.getDefault().getProjectPackageUtil();
+      modifiers.workspaceReaderReplacer = (original) -> packageUtil.createWorkspaceReader(original);
+
+      M2EUtil.executeInContext(mavenProjectFacade, modifiers, (context, monitor1) -> {
+        SubMonitor.convert(monitor1, "Calling \"mvn eosgi:dist\" on project", 0);
+
+        MavenPlugin.getMaven().execute(mavenProjectFacade.getMavenProject(),
+            executableEnvironment.getMojoExecution(), monitor1);
+
+        mavenProjectFacade.getProject().refreshLocal(IProject.DEPTH_INFINITE, monitor1);
+        return null;
+      }, monitor);
+    } catch (CoreException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
   public List<ExecutableEnvironment> getDefaultExecutableEnvironmentList(
       final MojoExecution mojoExecution) {
     List<ExecutableEnvironment> defaultExecutableEnvironments = new ArrayList<>();
@@ -122,35 +161,7 @@ public class EOSGiProject {
   public void launch(final ExecutableEnvironment executableEnvironment, final String mode,
       final IProgressMonitor monitor) {
 
-    try {
-      packModifiedDeps(executableEnvironment.getEnvironmentId(),
-          executableEnvironment.getMojoExecution().getExecutionId(), monitor);
-
-      EOSGiEclipsePlugin.getDefault().getProjectPackageUtil().packageProject(mavenProjectFacade,
-          monitor);
-
-      MavenExecutionContextModifiers modifiers = new MavenExecutionContextModifiers();
-      modifiers.systemPropertiesReplacer = (originalProperties) -> {
-        Properties systemProperties = new Properties();
-        systemProperties.putAll(originalProperties);
-        systemProperties.put(DistConstants.PLUGIN_PROPERTY_DIST_ONLY, Boolean.TRUE.toString());
-        return systemProperties;
-      };
-
-      ProjectPackager packageUtil = EOSGiEclipsePlugin.getDefault().getProjectPackageUtil();
-      modifiers.workspaceReaderReplacer = (original) -> packageUtil.createWorkspaceReader(original);
-
-      M2EUtil.executeInContext(mavenProjectFacade, modifiers, (context, monitor1) -> {
-        SubMonitor.convert(monitor1, "Calling \"mvn eosgi:dist\" on project", 0);
-
-        MavenPlugin.getMaven().execute(mavenProjectFacade.getMavenProject(),
-            executableEnvironment.getMojoExecution(), monitor1);
-
-        return null;
-      }, monitor);
-    } catch (CoreException e) {
-      throw new RuntimeException(e);
-    }
+    dist(executableEnvironment, monitor);
 
     String launchUniqueId = UUID.randomUUID().toString();
 

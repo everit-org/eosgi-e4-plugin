@@ -37,7 +37,8 @@ public class EOSGiProjectManager {
 
   private final Map<IProject, EOSGiProject> eosgiProjects = new HashMap<>();
 
-  private final EOSGiVMManager eosgiVMManager = new EOSGiVMManager();
+  private final EOSGiVMManager eosgiVMManager =
+      new EOSGiVMManager(EOSGiVMManager.class.getClassLoader());
 
   private final AtomicLong eosgiVMManagerLastUpdateTime = new AtomicLong();
 
