@@ -30,6 +30,7 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.m2e.core.MavenPlugin;
 import org.eclipse.m2e.core.embedder.IMaven;
+import org.eclipse.m2e.core.embedder.IMavenExecutionContext;
 import org.eclipse.m2e.core.project.IMavenProjectFacade;
 import org.everit.osgi.dev.e4.plugin.m2e.M2EUtil;
 import org.everit.osgi.dev.e4.plugin.m2e.MavenExecutionContextModifiers;
@@ -46,6 +47,20 @@ public class ProjectPackager {
 
   private final PackagedArtifactContainer packagedArtifactContainer =
       new PackagedArtifactContainer();
+
+  private void checkExecutionResultExceptions(final IMavenExecutionContext context) {
+    List<Throwable> exceptions = context.getSession().getResult().getExceptions();
+    if (exceptions.size() > 0) {
+      Throwable throwable = exceptions.get(0);
+      if (exceptions instanceof RuntimeException) {
+        throw (RuntimeException) throwable;
+      } else if (exceptions instanceof Error) {
+        throw (Error) throwable;
+      } else {
+        throw new RuntimeException(throwable);
+      }
+    }
+  }
 
   public void close() {
     ResourcesPlugin.getWorkspace().removeResourceChangeListener(changedProjectTracker);
@@ -88,6 +103,8 @@ public class ProjectPackager {
       for (MojoExecution mojoExecution : mojoExecutions) {
         if (!SKIPPED_LIFECYCLE_PHASES.contains(mojoExecution.getLifecyclePhase())) {
           maven.execute(mavenProject, mojoExecution, monitor);
+
+          checkExecutionResultExceptions(context);
         }
       }
       eclipseProject.refreshLocal(IProject.DEPTH_INFINITE, monitor1);

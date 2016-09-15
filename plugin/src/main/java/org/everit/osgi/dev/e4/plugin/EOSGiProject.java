@@ -41,6 +41,7 @@ import org.eclipse.debug.core.ILaunch;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.model.IProcess;
 import org.eclipse.m2e.core.MavenPlugin;
+import org.eclipse.m2e.core.embedder.IMavenExecutionContext;
 import org.eclipse.m2e.core.lifecyclemapping.model.IPluginExecutionMetadata;
 import org.eclipse.m2e.core.project.IMavenProjectFacade;
 import org.eclipse.m2e.core.project.IMavenProjectRegistry;
@@ -86,6 +87,20 @@ public class EOSGiProject {
     refresh(mavenProjectFacade, monitor);
   }
 
+  private void checkExecutionResultExceptions(final IMavenExecutionContext context) {
+    List<Throwable> exceptions = context.getSession().getResult().getExceptions();
+    if (exceptions.size() > 0) {
+      Throwable throwable = exceptions.get(0);
+      if (exceptions instanceof RuntimeException) {
+        throw (RuntimeException) throwable;
+      } else if (exceptions instanceof Error) {
+        throw (Error) throwable;
+      } else {
+        throw new RuntimeException(throwable);
+      }
+    }
+  }
+
   public void dispose() {
     // TODO stop launched vms
   }
@@ -121,6 +136,9 @@ public class EOSGiProject {
             executableEnvironment.getMojoExecution(), monitor1);
 
         mavenProjectFacade.getProject().refreshLocal(IProject.DEPTH_INFINITE, monitor1);
+
+        checkExecutionResultExceptions(context);
+
         return null;
       }, monitor);
     } catch (CoreException e) {
