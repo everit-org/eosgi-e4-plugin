@@ -45,8 +45,9 @@ public class EOSGiProjectPopupMenu extends ExtensionContributionFactory {
   private void addMenuItemsForEnvironment(final ExecutableEnvironment eosgiProject,
       final IContributionRoot additions, final IServiceLocator serviceLocator) {
 
-    addMenuItem("Dist", "org.everit.osgi.dev.e4.plugin.command.dist", additions, serviceLocator);
     addMenuItem("Start", "org.everit.osgi.dev.e4.plugin.command.start", additions, serviceLocator);
+    addMenuItem("Debug", "org.everit.osgi.dev.e4.plugin.command.debug", additions, serviceLocator);
+    addMenuItem("Dist", "org.everit.osgi.dev.e4.plugin.command.dist", additions, serviceLocator);
   }
 
   @Override

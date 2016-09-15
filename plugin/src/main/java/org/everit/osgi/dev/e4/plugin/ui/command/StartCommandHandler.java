@@ -18,7 +18,6 @@ package org.everit.osgi.dev.e4.plugin.ui.command;
 import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
-import org.eclipse.core.expressions.IEvaluationContext;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.IJobFunction;
 import org.eclipse.core.runtime.jobs.Job;
@@ -33,25 +32,11 @@ public class StartCommandHandler extends AbstractHandler {
 
   @Override
   public Object execute(final ExecutionEvent event) throws ExecutionException {
-    Object applicationContext = event.getApplicationContext();
-    if (!(applicationContext instanceof IEvaluationContext)) {
-      throw new IllegalArgumentException(
-          "Parameter should be instance of IEvaluationContext: " + applicationContext);
-    }
-    Object singleSelection =
-        CommandUtil.getSingleSelection((IEvaluationContext) applicationContext);
-
-    if (!(singleSelection instanceof ExecutableEnvironment)) {
-      throw new IllegalArgumentException(
-          "Selected item should be instance of EOSGiProject: " + singleSelection);
-    }
-
-    final ExecutableEnvironment executableEnvironment = (ExecutableEnvironment) singleSelection;
+    ExecutableEnvironment executableEnvironment = CommandUtil.resolveExecutableEnvironment(event);
 
     Job job = Job.create("Launching OSGi Environment", (IJobFunction) monitor -> {
       executableEnvironment.getEOSGiProject().launch(executableEnvironment,
-          ILaunchManager.RUN_MODE,
-          monitor);
+          ILaunchManager.RUN_MODE, monitor);
       return Status.OK_STATUS;
     });
     job.schedule();

@@ -17,9 +17,11 @@ package org.everit.osgi.dev.e4.plugin.ui.command;
 
 import java.util.Iterator;
 
+import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.expressions.IEvaluationContext;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.ui.ISources;
+import org.everit.osgi.dev.e4.plugin.ExecutableEnvironment;
 
 /**
  * Util methods to help processing commands and menu items.
@@ -59,6 +61,24 @@ public final class CommandUtil {
     }
 
     return selectionObject;
+  }
+
+  public static ExecutableEnvironment resolveExecutableEnvironment(final ExecutionEvent event) {
+    Object applicationContext = event.getApplicationContext();
+    if (!(applicationContext instanceof IEvaluationContext)) {
+      throw new IllegalArgumentException(
+          "Parameter should be instance of IEvaluationContext: " + applicationContext);
+    }
+    Object singleSelection =
+        CommandUtil.getSingleSelection((IEvaluationContext) applicationContext);
+
+    if (!(singleSelection instanceof ExecutableEnvironment)) {
+      throw new IllegalArgumentException(
+          "Selected item should be instance of EOSGiProject: " + singleSelection);
+    }
+
+    final ExecutableEnvironment executableEnvironment = (ExecutableEnvironment) singleSelection;
+    return executableEnvironment;
   }
 
   private CommandUtil() {

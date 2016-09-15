@@ -36,7 +36,6 @@ import org.eclipse.debug.core.ILaunchManager;
 import org.eclipse.jdt.launching.IJavaLaunchConfigurationConstants;
 import org.eclipse.jdt.launching.IRuntimeClasspathEntry;
 import org.eclipse.jdt.launching.JavaRuntime;
-import org.everit.osgi.dev.dist.util.DistConstants;
 import org.everit.osgi.dev.dist.util.configuration.DistributedEnvironmentConfigurationProvider;
 import org.everit.osgi.dev.dist.util.configuration.LaunchConfigurationDTO;
 import org.everit.osgi.dev.dist.util.configuration.schema.EnvironmentType;
@@ -100,9 +99,6 @@ public class LaunchConfigurationBuilder {
 
     LaunchConfigurationDTO launchConfigDTO =
         configurationProvider.getLaunchConfiguration(environmentConfig);
-
-    launchConfigDTO.vmArguments
-        .add("-D" + DistConstants.SYSPROP_LAUNCH_UNIQUE_ID + "=" + launchUniqueId);
 
     updateCurrentLauncherConfigurationWorkingCopy(launchConfig, project,
         environmentId, workingDirectory, launchConfigDTO);
@@ -219,11 +215,11 @@ public class LaunchConfigurationBuilder {
     launchConfig.setAttribute(IJavaLaunchConfigurationConstants.ATTR_DEFAULT_CLASSPATH, false);
 
     launchConfig.setAttribute(IJavaLaunchConfigurationConstants.ATTR_SOURCE_PATH_PROVIDER,
-        "org.eclipse.m2e.launchconfig.sourcepathProvider");
+        "org.everit.osgi.dev.e4.plugin.core.launcher.sourcepathProvider");
 
     launchConfig.setAttribute(IJavaLaunchConfigurationConstants.ATTR_CLASSPATH, classPathList);
     launchConfig.setAttribute(IJavaLaunchConfigurationConstants.ATTR_VM_ARGUMENTS, vmArgsList);
-    launchConfig.setAttribute(IJavaLaunchConfigurationConstants.ATTR_ALLOW_TERMINATE, false);
+    launchConfig.setAttribute(IJavaLaunchConfigurationConstants.ATTR_ALLOW_TERMINATE, true);
 
     launchConfig.setAttribute(EOSGILaunchConfigurationDelegate.LAUNCHER_ATTR_ENVIRONMENT_ID,
         environmentId);

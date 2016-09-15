@@ -92,6 +92,10 @@
             id="org.everit.osgi.dev.e4.plugin.command.start"
             name="startCommand">
       </command>
+      <command
+            id="org.everit.osgi.dev.e4.plugin.command.debug"
+            name="debugCommand">
+      </command>
     </extension>
     
     <extension
@@ -112,6 +116,10 @@
       <handler
             class="org.everit.osgi.dev.e4.plugin.ui.command.StartCommandHandler"
             commandId="org.everit.osgi.dev.e4.plugin.command.start">
+      </handler>
+      <handler
+            class="org.everit.osgi.dev.e4.plugin.ui.command.DebugCommandHandler"
+            commandId="org.everit.osgi.dev.e4.plugin.command.debug">
       </handler>
     </extension>
 
@@ -142,5 +150,12 @@
            id="org.everit.osgi.dev.e4.plugin.m2e.EOSGiM2EProjectConfigurator"
            name="EOSGi Maven Project Configurator">
      </configurator>
+  </extension>
+  <extension
+        point="org.eclipse.jdt.launching.classpathProviders">
+     <classpathProvider
+           class="org.everit.osgi.dev.e4.plugin.core.launcher.EOSGiSourcePathProvider"
+           id="org.everit.osgi.dev.e4.plugin.core.launcher.sourcepathProvider">
+     </classpathProvider>
   </extension>
 </plugin>
