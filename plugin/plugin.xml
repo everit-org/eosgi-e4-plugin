@@ -96,6 +96,15 @@
             id="org.everit.osgi.dev.e4.plugin.command.debug"
             name="debugCommand">
       </command>
+      <command
+            id="org.everit.osgi.dev.e4.plugin.command.stop"
+            name="stopCommand">
+         <commandParameter
+               id="org.everit.osgi.dev.e4.plugin.command.stopCommand.vmId"
+               name="name"
+               optional="true">
+         </commandParameter>
+      </command>
     </extension>
     
     <extension
@@ -120,6 +129,10 @@
       <handler
             class="org.everit.osgi.dev.e4.plugin.ui.command.DebugCommandHandler"
             commandId="org.everit.osgi.dev.e4.plugin.command.debug">
+      </handler>
+      <handler
+            class="org.everit.osgi.dev.e4.plugin.ui.command.StopCommandHandler"
+            commandId="org.everit.osgi.dev.e4.plugin.command.stop">
       </handler>
     </extension>
 

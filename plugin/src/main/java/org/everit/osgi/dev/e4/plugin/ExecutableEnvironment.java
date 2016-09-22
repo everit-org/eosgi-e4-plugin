@@ -15,6 +15,8 @@
  */
 package org.everit.osgi.dev.e4.plugin;
 
+import java.io.File;
+
 import org.apache.maven.plugin.MojoExecution;
 
 /**
@@ -28,14 +30,17 @@ public class ExecutableEnvironment implements Comparable<ExecutableEnvironment> 
 
   private final MojoExecution mojoExecution;
 
+  private final File rootFolder;
+
   private final long shutdownTimeout;
 
   public ExecutableEnvironment(final String environmentId,
-      final MojoExecution mojoExecution, final EOSGiProject eosgiProject,
+      final MojoExecution mojoExecution, final EOSGiProject eosgiProject, final File rootFolder,
       final long shutdownTimeout) {
     this.environmentId = environmentId;
     this.mojoExecution = mojoExecution;
     this.eosgiProject = eosgiProject;
+    this.rootFolder = rootFolder;
     this.shutdownTimeout = shutdownTimeout;
   }
 
@@ -64,6 +69,10 @@ public class ExecutableEnvironment implements Comparable<ExecutableEnvironment> 
 
   public MojoExecution getMojoExecution() {
     return mojoExecution;
+  }
+
+  public File getRootFolder() {
+    return rootFolder;
   }
 
   public long getShutdownTimeout() {

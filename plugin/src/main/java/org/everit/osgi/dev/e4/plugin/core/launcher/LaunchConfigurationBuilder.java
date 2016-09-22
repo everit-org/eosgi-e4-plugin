@@ -36,12 +36,14 @@ import org.eclipse.debug.core.ILaunchManager;
 import org.eclipse.jdt.launching.IJavaLaunchConfigurationConstants;
 import org.eclipse.jdt.launching.IRuntimeClasspathEntry;
 import org.eclipse.jdt.launching.JavaRuntime;
+import org.everit.osgi.dev.dist.util.DistConstants;
 import org.everit.osgi.dev.dist.util.configuration.DistributedEnvironmentConfigurationProvider;
 import org.everit.osgi.dev.dist.util.configuration.LaunchConfigurationDTO;
 import org.everit.osgi.dev.dist.util.configuration.schema.EnvironmentType;
 import org.everit.osgi.dev.dist.util.configuration.schema.UseByType;
 import org.everit.osgi.dev.e4.plugin.EOSGiEclipsePlugin;
 import org.everit.osgi.dev.e4.plugin.EOSGiLog;
+import org.everit.osgi.dev.e4.plugin.ExecutableEnvironment;
 
 /**
  * Builder class for launch configurations.
@@ -72,15 +74,19 @@ public class LaunchConfigurationBuilder {
    *
    * @return {@link ILaunchConfiguration} instance.
    */
-  public ILaunchConfiguration build(final IProject project, final String environmentId,
-      final File buildDirectory, final String launchUniqueId) {
+  public ILaunchConfiguration build(final IProject project,
+      final ExecutableEnvironment executableEnvironment, final String launchUniqueId) {
     ILaunchConfigurationType type = manager
         .getLaunchConfigurationType(
             "org.everit.osgi.dev.e4.plugin.core.launcher.launchConfigurationType");
 
+    String environmentId = executableEnvironment.getEnvironmentId();
+    File workingDirectory = executableEnvironment.getRootFolder();
+
     ILaunchConfigurationWorkingCopy launchConfig = null;
     try {
-      launchConfig = type.newInstance(null, environmentId + "_" + project.getName());
+      launchConfig = type.newInstance(null,
+          environmentId + "_" + project.getName());
     } catch (CoreException e) {
       eosgiLog.error("Could not create laucher working copy", e);
     }
@@ -88,8 +94,6 @@ public class LaunchConfigurationBuilder {
     if (launchConfig == null) {
       return null;
     }
-
-    File workingDirectory = new File(buildDirectory, environmentId);
 
     DistributedEnvironmentConfigurationProvider configurationProvider =
         new DistributedEnvironmentConfigurationProvider();
@@ -99,6 +103,9 @@ public class LaunchConfigurationBuilder {
 
     LaunchConfigurationDTO launchConfigDTO =
         configurationProvider.getLaunchConfiguration(environmentConfig);
+
+    launchConfigDTO.vmArguments
+        .add("-D" + DistConstants.SYSPROP_LAUNCH_UNIQUE_ID + "=" + launchUniqueId);
 
     updateCurrentLauncherConfigurationWorkingCopy(launchConfig, project,
         environmentId, workingDirectory, launchConfigDTO);

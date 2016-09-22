@@ -147,10 +147,14 @@ public class EOSGiProject {
   }
 
   public List<ExecutableEnvironment> getDefaultExecutableEnvironmentList(
-      final MojoExecution mojoExecution) {
+      final MojoExecution mojoExecution, final IProgressMonitor monitor) {
     List<ExecutableEnvironment> defaultExecutableEnvironments = new ArrayList<>();
-    defaultExecutableEnvironments.add(new ExecutableEnvironment("equinox", mojoExecution, this,
-        DistConstants.DEFAULT_SHUTDOWN_TIMEOUT));
+    String distFolder = resolveDistFolder(mojoExecution, monitor);
+    File environmentRootFolder = new File(distFolder, DistConstants.DEFAULT_ENVIRONMENT_ID);
+
+    defaultExecutableEnvironments
+        .add(new ExecutableEnvironment(DistConstants.DEFAULT_ENVIRONMENT_ID, mojoExecution, this,
+            environmentRootFolder, DistConstants.DEFAULT_SHUTDOWN_TIMEOUT));
     return defaultExecutableEnvironments;
 
   }
@@ -183,12 +187,8 @@ public class EOSGiProject {
 
     String launchUniqueId = UUID.randomUUID().toString();
 
-    File distFolder =
-        new File(resolveDistFolder(executableEnvironment.getMojoExecution(), monitor));
-
     ILaunchConfiguration launchConfiguration = new LaunchConfigurationBuilder().build(
-        mavenProjectFacade.getProject(), executableEnvironment.getEnvironmentId(),
-        distFolder, launchUniqueId);
+        mavenProjectFacade.getProject(), executableEnvironment, launchUniqueId);
 
     try {
       ILaunch launch = launchConfiguration.launch(mode, monitor);
@@ -263,7 +263,7 @@ public class EOSGiProject {
     Set<ExecutableEnvironment> executableEnvironments = new TreeSet<>();
     Set<MojoExecution> executions = resolveEOSGiExecutions(monitor);
     for (MojoExecution mojoExecution : executions) {
-      executableEnvironments.addAll(resolveExecutableEnvironments(mojoExecution));
+      executableEnvironments.addAll(resolveExecutableEnvironments(mojoExecution, monitor));
     }
 
     this.executableEnvironmentContainer =
@@ -303,24 +303,29 @@ public class EOSGiProject {
   }
 
   private Collection<ExecutableEnvironment> resolveExecutableEnvironments(
-      final MojoExecution mojoExecution) {
+      final MojoExecution mojoExecution, final IProgressMonitor monitor) {
     Xpp3Dom configuration = mojoExecution.getConfiguration();
     Xpp3Dom environmentsNode = configuration.getChild("environments");
     if (environmentsNode == null) {
-      return getDefaultExecutableEnvironmentList(mojoExecution);
+      return getDefaultExecutableEnvironmentList(mojoExecution, monitor);
     }
     Set<ExecutableEnvironment> result = new LinkedHashSet<>();
     Xpp3Dom[] environmentsChildNodes = environmentsNode.getChildren();
 
     if (environmentsChildNodes.length == 0) {
-      return getDefaultExecutableEnvironmentList(mojoExecution);
+      return getDefaultExecutableEnvironmentList(mojoExecution, monitor);
     }
+    String distFolder = resolveDistFolder(mojoExecution, monitor);
+    File distFolderFile = new File(distFolder);
 
     for (Xpp3Dom environmentNode : environmentsChildNodes) {
       Xpp3Dom environmentIdNode = environmentNode.getChild("id");
       if (environmentIdNode != null) {
-        result.add(new ExecutableEnvironment(environmentIdNode.getValue(), mojoExecution, this,
-            resolveShutdownTimeout(environmentNode)));
+        String environmentId = environmentIdNode.getValue();
+        File environmentRootFolder = new File(distFolderFile, environmentId);
+        result.add(
+            new ExecutableEnvironment(environmentId, mojoExecution, this, environmentRootFolder,
+                resolveShutdownTimeout(environmentNode)));
       }
 
     }

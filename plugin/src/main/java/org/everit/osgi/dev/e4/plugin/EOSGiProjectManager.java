@@ -71,6 +71,10 @@ public class EOSGiProjectManager {
     return eosgiProject;
   }
 
+  public EOSGiVMManager getEosgiVMManager() {
+    return eosgiVMManager;
+  }
+
   public synchronized void putOrOverride(final IMavenProjectFacade mavenProject,
       final IProgressMonitor monitor) {
     EOSGiProject eosgiProject = eosgiProjects.get(mavenProject.getProject());
