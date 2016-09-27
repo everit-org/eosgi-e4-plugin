@@ -24,6 +24,7 @@ import org.eclipse.core.expressions.IEvaluationContext;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IConfigurationElement;
 import org.eclipse.jface.action.MenuManager;
+import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.ui.handlers.IHandlerService;
 import org.eclipse.ui.menus.CommandContributionItem;
 import org.eclipse.ui.menus.CommandContributionItemParameter;
@@ -40,14 +41,30 @@ public class EOSGiProjectPopupMenu extends ExtensionContributionFactory {
 
   public static final String COMMAND_ID_PREFIX = "org.everit.osgi.dev.e4.plugin.command.";
 
+  private static final ImageDescriptor ICON_DEBUG = createIcon("ldebug_obj.gif");
+
+  private static final ImageDescriptor ICON_DIST = createIcon("synced.gif");
+
+  private static final ImageDescriptor ICON_START = createIcon("lrun_obj.gif");
+
+  private static final ImageDescriptor ICON_STOP = createIcon("terminatedlaunch_obj.gif");
+
+  private static ImageDescriptor createIcon(final String fileName) {
+    ImageDescriptor fileImageDescriptor =
+        ImageDescriptor.createFromFile(EOSGiProjectPopupMenu.class, "/icons/" + fileName);
+
+    return ImageDescriptor.createFromImage(fileImageDescriptor.createImage());
+  }
+
   public EOSGiProjectPopupMenu() {
   }
 
   private void addMenuItem(final String label, final String commandId,
-      final IContributionRoot additions, final IServiceLocator serviceLocator,
+      final IContributionRoot additions, final ImageDescriptor icon,
+      final IServiceLocator serviceLocator,
       final Map<Object, Object> parameters) {
     CommandContributionItem menuItem =
-        createMenuItem(label, commandId, serviceLocator, parameters);
+        createMenuItem(label, commandId, icon, serviceLocator, parameters);
     additions.addContributionItem(menuItem, Expression.TRUE);
   }
 
@@ -62,20 +79,26 @@ public class EOSGiProjectPopupMenu extends ExtensionContributionFactory {
             executableEnvironment.getRootFolder());
 
     if (runtimeInformations.isEmpty()) {
-      addMenuItem("Start", COMMAND_ID_PREFIX + "start", additions, serviceLocator, null);
-      addMenuItem("Debug", COMMAND_ID_PREFIX + "debug", additions, serviceLocator, null);
+      addMenuItem("Start", COMMAND_ID_PREFIX + "start", additions, ICON_START, serviceLocator,
+          null);
+
+      addMenuItem("Debug", COMMAND_ID_PREFIX + "debug", additions, ICON_DEBUG, serviceLocator,
+          null);
+
+      addMenuItem("Dist", COMMAND_ID_PREFIX + "dist", additions, ICON_DIST, serviceLocator, null);
     } else if (runtimeInformations.size() == 1) {
-      addMenuItem("Dist", COMMAND_ID_PREFIX + "dist", additions, serviceLocator, null);
+      addMenuItem("Dist", COMMAND_ID_PREFIX + "dist", additions, ICON_DIST, serviceLocator, null);
 
       String vmId = runtimeInformations.iterator().next().virtualMachineId;
       Map<Object, Object> parameters = new HashMap<>();
       parameters.put(COMMAND_ID_PREFIX + "stopCommand.vmId", vmId);
 
-      addMenuItem("Stop", COMMAND_ID_PREFIX + "stop", additions, serviceLocator,
+      addMenuItem("Stop", COMMAND_ID_PREFIX + "stop", additions, ICON_STOP, serviceLocator,
           parameters);
     } else {
       MenuManager stopMainMenu = new MenuManager();
       stopMainMenu.setMenuText("Stop");
+      stopMainMenu.setImageDescriptor(ICON_STOP);
 
       for (EnvironmentRuntimeInfo runtimeInfo : runtimeInformations) {
         String vmId = runtimeInfo.virtualMachineId;
@@ -83,7 +106,7 @@ public class EOSGiProjectPopupMenu extends ExtensionContributionFactory {
         parameters.put(COMMAND_ID_PREFIX + "stopCommand.vmId", vmId);
 
         CommandContributionItem stopMenuItem =
-            createMenuItem(vmId, COMMAND_ID_PREFIX + "stop", serviceLocator, parameters);
+            createMenuItem(vmId, COMMAND_ID_PREFIX + "stop", null, serviceLocator, parameters);
 
         stopMainMenu.add(stopMenuItem);
 
@@ -106,12 +129,15 @@ public class EOSGiProjectPopupMenu extends ExtensionContributionFactory {
   }
 
   private CommandContributionItem createMenuItem(final String label, final String commandId,
-      final IServiceLocator serviceLocator, final Map<?, ?> parameters) {
+      final ImageDescriptor icon, final IServiceLocator serviceLocator,
+      final Map<?, ?> parameters) {
+
     CommandContributionItemParameter parameter = new CommandContributionItemParameter(
         serviceLocator, null, commandId, CommandContributionItem.STYLE_PUSH);
 
     parameter.label = label;
     parameter.visibleEnabled = true;
+    parameter.icon = icon;
     if (parameters != null) {
       parameter.parameters = parameters;
     }
