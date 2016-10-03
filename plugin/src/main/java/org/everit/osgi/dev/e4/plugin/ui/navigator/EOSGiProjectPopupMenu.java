@@ -43,11 +43,13 @@ public class EOSGiProjectPopupMenu extends ExtensionContributionFactory {
 
   private static final ImageDescriptor ICON_DEBUG = createIcon("ldebug_obj.gif");
 
-  private static final ImageDescriptor ICON_DIST = createIcon("synced.gif");
+  private static final ImageDescriptor ICON_DIST = createIcon("refresh_tab.gif");
 
   private static final ImageDescriptor ICON_START = createIcon("lrun_obj.gif");
 
   private static final ImageDescriptor ICON_STOP = createIcon("terminatedlaunch_obj.gif");
+
+  private static final ImageDescriptor ICON_SYNCBACK = createIcon("undo_edit.png");
 
   private static ImageDescriptor createIcon(final String fileName) {
     ImageDescriptor fileImageDescriptor =
@@ -86,8 +88,10 @@ public class EOSGiProjectPopupMenu extends ExtensionContributionFactory {
           null);
 
       addMenuItem("Dist", COMMAND_ID_PREFIX + "dist", additions, ICON_DIST, serviceLocator, null);
+      addSyncbackMenuItem(executableEnvironment, additions, serviceLocator);
     } else if (runtimeInformations.size() == 1) {
       addMenuItem("Dist", COMMAND_ID_PREFIX + "dist", additions, ICON_DIST, serviceLocator, null);
+      addSyncbackMenuItem(executableEnvironment, additions, serviceLocator);
 
       String vmId = runtimeInformations.iterator().next().virtualMachineId;
       Map<Object, Object> parameters = new HashMap<>();
@@ -96,6 +100,7 @@ public class EOSGiProjectPopupMenu extends ExtensionContributionFactory {
       addMenuItem("Stop", COMMAND_ID_PREFIX + "stop", additions, ICON_STOP, serviceLocator,
           parameters);
     } else {
+      addSyncbackMenuItem(executableEnvironment, additions, serviceLocator);
       MenuManager stopMainMenu = new MenuManager();
       stopMainMenu.setMenuText("Stop");
       stopMainMenu.setImageDescriptor(ICON_STOP);
@@ -113,6 +118,15 @@ public class EOSGiProjectPopupMenu extends ExtensionContributionFactory {
       }
 
       additions.addContributionItem(stopMainMenu, Expression.TRUE);
+    }
+  }
+
+  private void addSyncbackMenuItem(final ExecutableEnvironment executableEnvironment,
+      final IContributionRoot additions, final IServiceLocator serviceLocator) {
+
+    if (executableEnvironment.getRootFolder().exists()) {
+      addMenuItem("SyncBack", COMMAND_ID_PREFIX + "syncback", additions, ICON_SYNCBACK,
+          serviceLocator, null);
     }
   }
 

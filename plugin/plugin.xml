@@ -105,6 +105,10 @@
                optional="true">
          </commandParameter>
       </command>
+      <command
+            id="org.everit.osgi.dev.e4.plugin.command.syncback"
+            name="syncbackCommand">
+      </command>
     </extension>
     
     <extension
@@ -133,6 +137,10 @@
       <handler
             class="org.everit.osgi.dev.e4.plugin.ui.command.StopCommandHandler"
             commandId="org.everit.osgi.dev.e4.plugin.command.stop">
+      </handler>
+      <handler
+            class="org.everit.osgi.dev.e4.plugin.ui.command.SyncbackCommandHandler"
+            commandId="org.everit.osgi.dev.e4.plugin.command.syncback">
       </handler>
     </extension>
 

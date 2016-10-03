@@ -29,7 +29,9 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.UUID;
 
+import org.apache.maven.lifecycle.MavenExecutionPlan;
 import org.apache.maven.plugin.MojoExecution;
+import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.eclipse.aether.artifact.Artifact;
 import org.eclipse.aether.graph.DependencyNode;
@@ -41,6 +43,7 @@ import org.eclipse.debug.core.ILaunch;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.model.IProcess;
 import org.eclipse.m2e.core.MavenPlugin;
+import org.eclipse.m2e.core.embedder.IMaven;
 import org.eclipse.m2e.core.embedder.IMavenExecutionContext;
 import org.eclipse.m2e.core.lifecyclemapping.model.IPluginExecutionMetadata;
 import org.eclipse.m2e.core.project.IMavenProjectFacade;
@@ -118,6 +121,8 @@ public class EOSGiProject {
       modifiers.systemPropertiesReplacer = (originalProperties) -> {
         Properties systemProperties = new Properties();
         systemProperties.putAll(originalProperties);
+        systemProperties.put(DistConstants.PLUGIN_PROPERTY_ENVIRONMENT_ID,
+            executableEnvironment.getEnvironmentId());
         systemProperties.put(DistConstants.PLUGIN_PROPERTY_DIST_ONLY, Boolean.TRUE.toString());
         return systemProperties;
       };
@@ -143,6 +148,22 @@ public class EOSGiProject {
       }, monitor);
     } catch (CoreException e) {
       throw new RuntimeException(e);
+    }
+  }
+
+  private void executeExecutionPlan(final MavenProject mavenProject,
+      final MavenExecutionPlan executionPlan,
+      final IProgressMonitor monitor) {
+
+    List<MojoExecution> mojoExecutions = executionPlan.getMojoExecutions();
+
+    IMaven maven = MavenPlugin.getMaven();
+    for (MojoExecution mojoExecution : mojoExecutions) {
+      try {
+        maven.execute(mavenProject, mojoExecution, monitor);
+      } catch (CoreException e) {
+        throw new RuntimeException(e);
+      }
     }
   }
 
@@ -338,6 +359,52 @@ public class EOSGiProject {
       return DistConstants.DEFAULT_SHUTDOWN_TIMEOUT;
     }
     return Long.parseLong(shutdownTimeoutNode.getValue());
+  }
+
+  public void syncBack(final ExecutableEnvironment executableEnvironment,
+      final IProgressMonitor monitor) {
+
+    MavenExecutionContextModifiers modifiers = new MavenExecutionContextModifiers();
+    modifiers.systemPropertiesReplacer = (originalProperties) -> {
+      Properties systemProperties = new Properties();
+      systemProperties.putAll(originalProperties);
+      systemProperties.put(DistConstants.PLUGIN_PROPERTY_ENVIRONMENT_ID,
+          executableEnvironment.getEnvironmentId());
+      return systemProperties;
+    };
+
+    modifiers.executionRequestDataModifier =
+        (data) -> data.put(DistConstants.MAVEN_EXECUTION_REQUEST_DATA_KEY_ATTACH_API_CLASSLOADER,
+            EOSGiVMManager.class.getClassLoader());
+
+    ProjectPackager packageUtil = EOSGiEclipsePlugin.getDefault().getProjectPackageUtil();
+    modifiers.workspaceReaderReplacer = (original) -> packageUtil.createWorkspaceReader(original);
+
+    try {
+      M2EUtil.executeInContext(mavenProjectFacade, modifiers, (context, monitor1) -> {
+        SubMonitor.convert(monitor1, "Calling \"mvn eosgi:syncback\" on project "
+            + mavenProjectFacade.getProject().getName(), 0);
+
+        String executionId = executableEnvironment.getMojoExecution().getExecutionId();
+        MavenProject mavenProject = mavenProjectFacade.getMavenProject();
+
+        MavenExecutionPlan executionPlan =
+            MavenPlugin.getMaven().calculateExecutionPlan(mavenProject,
+                Arrays.asList("eosgi:sync-back@" + executionId), true, monitor);
+
+        executeExecutionPlan(mavenProject, executionPlan, monitor1);
+
+        // TODO check execution result exceptions in execution plan and call refresh always.
+
+        mavenProjectFacade.getProject().refreshLocal(IProject.DEPTH_INFINITE, monitor1);
+
+        checkExecutionResultExceptions(context);
+
+        return null;
+      }, monitor);
+    } catch (CoreException e) {
+      throw new RuntimeException(e);
+    }
   }
 
 }
