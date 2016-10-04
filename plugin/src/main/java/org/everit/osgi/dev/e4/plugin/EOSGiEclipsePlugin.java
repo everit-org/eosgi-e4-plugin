@@ -69,6 +69,7 @@ public class EOSGiEclipsePlugin extends AbstractUIPlugin {
   public void stop(final BundleContext context) throws Exception {
     EOSGiEclipsePlugin.plugin = null;
     projectPackageUtil.close();
+    eosgiProjectManager.close();
     super.stop(context);
   }
 

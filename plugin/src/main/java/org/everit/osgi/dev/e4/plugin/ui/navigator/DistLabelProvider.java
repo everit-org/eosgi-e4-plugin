@@ -15,12 +15,16 @@
  */
 package org.everit.osgi.dev.e4.plugin.ui.navigator;
 
-import java.net.URL;
-
 import org.eclipse.jface.resource.ImageDescriptor;
+import org.eclipse.jface.viewers.DecorationOverlayIcon;
+import org.eclipse.jface.viewers.IDecoration;
 import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.jface.viewers.LabelProviderChangedEvent;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.ImageData;
+import org.eclipse.swt.graphics.Rectangle;
+import org.eclipse.swt.widgets.Display;
+import org.everit.osgi.dev.dist.util.attach.EOSGiVMManager;
 import org.everit.osgi.dev.e4.plugin.EOSGiEclipsePlugin;
 import org.everit.osgi.dev.e4.plugin.EOSGiProject;
 import org.everit.osgi.dev.e4.plugin.ExecutableEnvironment;
@@ -34,12 +38,30 @@ public class DistLabelProvider extends LabelProvider {
 
   private static final Image IMAGE_EVERIT_LOGO;
 
-  static {
-    URL everitLogoIconURL = DistLabelProvider.class.getResource("/icons/everit.gif");
-    IMAGE_EVERIT_LOGO = ImageDescriptor.createFromURL(everitLogoIconURL).createImage();
+  private static final Image IMAGE_RUNNING_ENVIRONMENT;
 
-    URL environmentImageURL = DistLabelProvider.class.getResource("/icons/console_view.gif");
-    IMAGE_ENVIRONMENT = ImageDescriptor.createFromURL(environmentImageURL).createImage();
+  static {
+    Class<DistLabelProvider> clazz = DistLabelProvider.class;
+
+    IMAGE_EVERIT_LOGO = ImageDescriptor.createFromFile(clazz, "/icons/everit.gif").createImage();
+
+    IMAGE_ENVIRONMENT =
+        ImageDescriptor.createFromFile(clazz, "/icons/console_view.gif").createImage();
+
+    ImageDescriptor navGoImageDescriptor =
+        ImageDescriptor.createFromFile(clazz, "/icons/lrun_obj.gif");
+    Rectangle environmentImageBounds = IMAGE_ENVIRONMENT.getBounds();
+    ImageData scaledNavGoImageData =
+        navGoImageDescriptor.getImageData().scaledTo((int) (environmentImageBounds.width / 1.5),
+            (int) (environmentImageBounds.height / 1.5));
+
+    ImageDescriptor scaledNavGoImageDescriptor =
+        ImageDescriptor.createFromImageData(scaledNavGoImageData);
+
+    IMAGE_RUNNING_ENVIRONMENT =
+        new DecorationOverlayIcon(IMAGE_ENVIRONMENT, scaledNavGoImageDescriptor,
+            IDecoration.BOTTOM_RIGHT).createImage();
+
   }
 
   public DistLabelProvider() {
@@ -52,8 +74,9 @@ public class DistLabelProvider extends LabelProvider {
     super.dispose();
   }
 
-  public void eosgiProjectChanged(final EOSGiProject eosgiProject) {
-    fireLabelProviderChanged(new LabelProviderChangedEvent(this, eosgiProject));
+  public void executableEnvironmentChanged(final ExecutableEnvironment executableEnvironment) {
+    Display.getDefault().asyncExec(
+        () -> fireLabelProviderChanged(new LabelProviderChangedEvent(this, executableEnvironment)));
   }
 
   @Override
@@ -61,6 +84,14 @@ public class DistLabelProvider extends LabelProvider {
     if (element instanceof EOSGiProject) {
       return IMAGE_EVERIT_LOGO;
     } else if (element instanceof ExecutableEnvironment) {
+      ExecutableEnvironment executableEnvironment = (ExecutableEnvironment) element;
+      EOSGiVMManager eosgiVMManager =
+          EOSGiEclipsePlugin.getDefault().getEOSGiManager().getEosgiVMManager();
+
+      if (!eosgiVMManager.getRuntimeInformations(executableEnvironment.getEnvironmentId(),
+          executableEnvironment.getRootFolder()).isEmpty()) {
+        return IMAGE_RUNNING_ENVIRONMENT;
+      }
       return IMAGE_ENVIRONMENT;
     } else {
       return super.getImage(element);

@@ -17,7 +17,9 @@ package org.everit.osgi.dev.e4.plugin;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.eclipse.core.resources.IProject;
@@ -35,14 +37,45 @@ public class EOSGiProjectManager {
 
   private static final long EOSGI_VM_MANAGER_UPDATE_PERIOD = 1000;
 
+  AtomicBoolean closed = new AtomicBoolean(false);
+
   private final Map<IProject, EOSGiProject> eosgiProjects = new HashMap<>();
 
-  private final EOSGiVMManager eosgiVMManager =
-      new EOSGiVMManager(EOSGiVMManager.class.getClassLoader());
+  private final EOSGiVMManager eosgiVMManager;
 
   private final AtomicLong eosgiVMManagerLastUpdateTime = new AtomicLong();
 
   private final Map<DistLabelProvider, Boolean> labelProviders = new ConcurrentHashMap<>();
+
+  private final Runnable vmStateChangeHandler;
+
+  public EOSGiProjectManager() {
+    eosgiVMManager = new EOSGiVMManager(EOSGiVMManager.class.getClassLoader());
+    vmStateChangeHandler = () -> {
+      for (DistLabelProvider labelProvider : labelProviders.keySet()) {
+        for (EOSGiProject eosgiProject : eosgiProjects.values()) {
+          Set<ExecutableEnvironment> executableEnvironments =
+              eosgiProject.getExecutableEnvironmentContainer().getExecutableEnvironments();
+
+          for (ExecutableEnvironment executableEnvironment : executableEnvironments) {
+            labelProvider.executableEnvironmentChanged(executableEnvironment);
+          }
+        }
+      }
+    };
+    eosgiVMManager.addStateChangeListener(vmStateChangeHandler);
+
+    new Thread(() -> {
+      while (!closed.get()) {
+        try {
+          eosgiVMManager.refresh();
+          Thread.sleep(1000);
+        } catch (InterruptedException e) {
+          Thread.currentThread().interrupt();
+        }
+      }
+    }).start();
+  }
 
   public void addLabelProvider(final DistLabelProvider labelProvider) {
     labelProviders.put(labelProvider, Boolean.TRUE);
@@ -54,6 +87,11 @@ public class EOSGiProjectManager {
     if (currentTimeMillis - lastUpdateTime > EOSGI_VM_MANAGER_UPDATE_PERIOD) {
       eosgiVMManager.refresh();
     }
+  }
+
+  public void close() {
+    closed.set(true);
+    eosgiVMManager.removeStateChangeListener(vmStateChangeHandler);
   }
 
   public synchronized EOSGiProject get(final IProject project, final IProgressMonitor monitor) {
