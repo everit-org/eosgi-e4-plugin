@@ -48,12 +48,12 @@ public class DistLabelProvider extends LabelProvider {
     IMAGE_ENVIRONMENT =
         ImageDescriptor.createFromFile(clazz, "/icons/console_view.gif").createImage();
 
-    ImageDescriptor navGoImageDescriptor =
-        ImageDescriptor.createFromFile(clazz, "/icons/lrun_obj.gif");
+    ImageDescriptor lrunImageDescriptor =
+        ImageDescriptor.createFromFile(clazz, "/icons/lrun_obj_shifted.gif");
     Rectangle environmentImageBounds = IMAGE_ENVIRONMENT.getBounds();
     ImageData scaledNavGoImageData =
-        navGoImageDescriptor.getImageData().scaledTo((int) (environmentImageBounds.width / 1.5),
-            (int) (environmentImageBounds.height / 1.5));
+        lrunImageDescriptor.getImageData().scaledTo((int) (environmentImageBounds.width / 1.4),
+            (int) (environmentImageBounds.height / 1.4));
 
     ImageDescriptor scaledNavGoImageDescriptor =
         ImageDescriptor.createFromImageData(scaledNavGoImageData);
