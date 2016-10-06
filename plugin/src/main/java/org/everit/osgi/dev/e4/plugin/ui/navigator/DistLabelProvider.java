@@ -16,13 +16,9 @@
 package org.everit.osgi.dev.e4.plugin.ui.navigator;
 
 import org.eclipse.jface.resource.ImageDescriptor;
-import org.eclipse.jface.viewers.DecorationOverlayIcon;
-import org.eclipse.jface.viewers.IDecoration;
 import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.jface.viewers.LabelProviderChangedEvent;
 import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.graphics.ImageData;
-import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.Display;
 import org.everit.osgi.dev.dist.util.attach.EOSGiVMManager;
 import org.everit.osgi.dev.e4.plugin.EOSGiEclipsePlugin;
@@ -48,20 +44,8 @@ public class DistLabelProvider extends LabelProvider {
     IMAGE_ENVIRONMENT =
         ImageDescriptor.createFromFile(clazz, "/icons/console_view.gif").createImage();
 
-    ImageDescriptor lrunImageDescriptor =
-        ImageDescriptor.createFromFile(clazz, "/icons/lrun_obj_shifted.gif");
-    Rectangle environmentImageBounds = IMAGE_ENVIRONMENT.getBounds();
-    ImageData scaledNavGoImageData =
-        lrunImageDescriptor.getImageData().scaledTo((int) (environmentImageBounds.width / 1.4),
-            (int) (environmentImageBounds.height / 1.4));
-
-    ImageDescriptor scaledNavGoImageDescriptor =
-        ImageDescriptor.createFromImageData(scaledNavGoImageData);
-
     IMAGE_RUNNING_ENVIRONMENT =
-        new DecorationOverlayIcon(IMAGE_ENVIRONMENT, scaledNavGoImageDescriptor,
-            IDecoration.BOTTOM_RIGHT).createImage();
-
+        ImageDescriptor.createFromFile(clazz, "/icons/running_environment.gif").createImage();
   }
 
   public DistLabelProvider() {
