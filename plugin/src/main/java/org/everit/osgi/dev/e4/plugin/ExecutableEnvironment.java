@@ -24,6 +24,8 @@ import org.apache.maven.plugin.MojoExecution;
  */
 public class ExecutableEnvironment implements Comparable<ExecutableEnvironment> {
 
+  private final boolean defaultExecution;
+
   private final String environmentId;
 
   private final EOSGiProject eosgiProject;
@@ -35,10 +37,12 @@ public class ExecutableEnvironment implements Comparable<ExecutableEnvironment> 
   private final long shutdownTimeout;
 
   public ExecutableEnvironment(final String environmentId,
-      final MojoExecution mojoExecution, final EOSGiProject eosgiProject, final File rootFolder,
+      final MojoExecution mojoExecution, final boolean defaultExecution,
+      final EOSGiProject eosgiProject, final File rootFolder,
       final long shutdownTimeout) {
     this.environmentId = environmentId;
     this.mojoExecution = mojoExecution;
+    this.defaultExecution = defaultExecution;
     this.eosgiProject = eosgiProject;
     this.rootFolder = rootFolder;
     this.shutdownTimeout = shutdownTimeout;
@@ -46,11 +50,22 @@ public class ExecutableEnvironment implements Comparable<ExecutableEnvironment> 
 
   @Override
   public int compareTo(final ExecutableEnvironment o) {
-    int result = environmentId.compareTo(o.environmentId);
+    if (o == this) {
+      return 0;
+    }
+
+    int result = Boolean.compare(o.isDefaultExecution(), defaultExecution);
+
     if (result != 0) {
       return result;
     }
+
     result = mojoExecution.getExecutionId().compareTo(o.mojoExecution.getExecutionId());
+    if (result != 0) {
+      return result;
+    }
+
+    result = environmentId.compareTo(o.environmentId);
     if (result != 0) {
       return result;
     }
@@ -77,5 +92,9 @@ public class ExecutableEnvironment implements Comparable<ExecutableEnvironment> 
 
   public long getShutdownTimeout() {
     return shutdownTimeout;
+  }
+
+  public boolean isDefaultExecution() {
+    return defaultExecution;
   }
 }

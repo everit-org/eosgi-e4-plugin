@@ -88,8 +88,11 @@ public class DistLabelProvider extends LabelProvider {
       return "OSGi Environments";
     } else if (element instanceof ExecutableEnvironment) {
       ExecutableEnvironment eosgiEnvironment = (ExecutableEnvironment) element;
-      return eosgiEnvironment.getEnvironmentId() + " ("
-          + eosgiEnvironment.getMojoExecution().getExecutionId() + ")";
+      String label = eosgiEnvironment.getEnvironmentId();
+      if (!eosgiEnvironment.isDefaultExecution()) {
+        label += '@' + eosgiEnvironment.getMojoExecution().getExecutionId();
+      }
+      return label;
     } else {
       return super.getText(element);
     }

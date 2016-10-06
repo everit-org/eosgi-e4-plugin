@@ -30,6 +30,7 @@ import java.util.TreeSet;
 import java.util.UUID;
 
 import org.apache.maven.lifecycle.MavenExecutionPlan;
+import org.apache.maven.model.Plugin;
 import org.apache.maven.plugin.MojoExecution;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
@@ -168,14 +169,15 @@ public class EOSGiProject {
   }
 
   public List<ExecutableEnvironment> getDefaultExecutableEnvironmentList(
-      final MojoExecution mojoExecution, final IProgressMonitor monitor) {
+      final MojoExecution mojoExecution, final boolean defaultExecution,
+      final IProgressMonitor monitor) {
     List<ExecutableEnvironment> defaultExecutableEnvironments = new ArrayList<>();
     String distFolder = resolveDistFolder(mojoExecution, monitor);
     File environmentRootFolder = new File(distFolder, DistConstants.DEFAULT_ENVIRONMENT_ID);
 
     defaultExecutableEnvironments
-        .add(new ExecutableEnvironment(DistConstants.DEFAULT_ENVIRONMENT_ID, mojoExecution, this,
-            environmentRootFolder, DistConstants.DEFAULT_SHUTDOWN_TIMEOUT));
+        .add(new ExecutableEnvironment(DistConstants.DEFAULT_ENVIRONMENT_ID, mojoExecution,
+            defaultExecution, this, environmentRootFolder, DistConstants.DEFAULT_SHUTDOWN_TIMEOUT));
     return defaultExecutableEnvironments;
 
   }
@@ -188,17 +190,37 @@ public class EOSGiProject {
     return mavenProjectFacade;
   }
 
+  private boolean hasEOSGiMavenPlugin(final MavenProject mavenProject) {
+    List<Plugin> plugins = mavenProject.getBuild().getPlugins();
+
+    for (Plugin plugin : plugins) {
+      if (EOSGI_GROUP_ID.equals(plugin.getGroupId())
+          && EOSGI_ARTIFACT_ID.equals(plugin.getArtifactId())
+          && isEOSGiMojoVersionSupported(plugin.getVersion())) {
+
+        return true;
+      }
+    }
+
+    return false;
+  }
+
   private boolean isEOSGiExecution(final MojoExecutionKey mojoExecutionKey) {
 
     if (EOSGI_GROUP_ID.equals(mojoExecutionKey.getGroupId())
         && EOSGI_ARTIFACT_ID.equals(mojoExecutionKey.getArtifactId())
         && Arrays.binarySearch(EOSGI_SORTED_ACCEPTED_GOAL_ARRAY, mojoExecutionKey.getGoal()) >= 0) {
 
-      String versionString = mojoExecutionKey.getVersion().replace('-', '.');
-      Version version = new Version(versionString);
-      return EOSGI_VERSION_RANGE.includes(version);
+      String mojoVersion = mojoExecutionKey.getVersion();
+      return isEOSGiMojoVersionSupported(mojoVersion);
     }
     return false;
+  }
+
+  private boolean isEOSGiMojoVersionSupported(final String mojoVersion) {
+    String semanticVersion = mojoVersion.replace('-', '.');
+    Version version = new Version(semanticVersion);
+    return EOSGI_VERSION_RANGE.includes(version);
   }
 
   public void launch(final ExecutableEnvironment executableEnvironment, final String mode,
@@ -282,9 +304,21 @@ public class EOSGiProject {
 
     this.mavenProjectFacade = mavenProjectFacade;
     Set<ExecutableEnvironment> executableEnvironments = new TreeSet<>();
+
+    MojoExecution defaultMojoExecution = resolvePlainPluginConfigMojoExecution(monitor);
+    Xpp3Dom defaultMojoExecutionConfiguration = null;
+    if (defaultMojoExecution != null) {
+      defaultMojoExecutionConfiguration = defaultMojoExecution.getConfiguration();
+      executableEnvironments
+          .addAll(resolveExecutableEnvironments(defaultMojoExecution, true, monitor));
+    }
+
     Set<MojoExecution> executions = resolveEOSGiExecutions(monitor);
     for (MojoExecution mojoExecution : executions) {
-      executableEnvironments.addAll(resolveExecutableEnvironments(mojoExecution, monitor));
+      if (defaultMojoExecutionConfiguration == null
+          || !defaultMojoExecutionConfiguration.equals(mojoExecution.getConfiguration())) {
+        executableEnvironments.addAll(resolveExecutableEnvironments(mojoExecution, false, monitor));
+      }
     }
 
     this.executableEnvironmentContainer =
@@ -308,12 +342,22 @@ public class EOSGiProject {
     Set<MojoExecutionKey> executionKeys = mojoExecutionMapping.keySet();
 
     Set<MojoExecution> eosgiExecutions = new LinkedHashSet<>();
+    IMaven maven = MavenPlugin.getMaven();
+
+    MavenProject mavenProject;
+    try {
+      mavenProject = mavenProjectFacade.getMavenProject(monitor);
+    } catch (CoreException e) {
+      throw new RuntimeException(e);
+    }
+
     for (MojoExecutionKey mojoExecutionKey : executionKeys) {
       if (isEOSGiExecution(mojoExecutionKey)) {
         try {
-          MojoExecution mojoExecution =
-              mavenProjectFacade.getMojoExecution(mojoExecutionKey, monitor);
+          MavenExecutionPlan executionPlan = maven.calculateExecutionPlan(mavenProject,
+              Arrays.asList("eosgi:dist@" + mojoExecutionKey.getExecutionId()), true, monitor);
 
+          MojoExecution mojoExecution = executionPlan.getMojoExecutions().get(0);
           eosgiExecutions.add(mojoExecution);
         } catch (CoreException e) {
           throw new RuntimeException(e);
@@ -324,17 +368,18 @@ public class EOSGiProject {
   }
 
   private Collection<ExecutableEnvironment> resolveExecutableEnvironments(
-      final MojoExecution mojoExecution, final IProgressMonitor monitor) {
+      final MojoExecution mojoExecution, final boolean defaultExecution,
+      final IProgressMonitor monitor) {
     Xpp3Dom configuration = mojoExecution.getConfiguration();
     Xpp3Dom environmentsNode = configuration.getChild("environments");
     if (environmentsNode == null) {
-      return getDefaultExecutableEnvironmentList(mojoExecution, monitor);
+      return getDefaultExecutableEnvironmentList(mojoExecution, defaultExecution, monitor);
     }
     Set<ExecutableEnvironment> result = new LinkedHashSet<>();
     Xpp3Dom[] environmentsChildNodes = environmentsNode.getChildren();
 
     if (environmentsChildNodes.length == 0) {
-      return getDefaultExecutableEnvironmentList(mojoExecution, monitor);
+      return getDefaultExecutableEnvironmentList(mojoExecution, defaultExecution, monitor);
     }
     String distFolder = resolveDistFolder(mojoExecution, monitor);
     File distFolderFile = new File(distFolder);
@@ -345,12 +390,34 @@ public class EOSGiProject {
         String environmentId = environmentIdNode.getValue();
         File environmentRootFolder = new File(distFolderFile, environmentId);
         result.add(
-            new ExecutableEnvironment(environmentId, mojoExecution, this, environmentRootFolder,
-                resolveShutdownTimeout(environmentNode)));
+            new ExecutableEnvironment(environmentId, mojoExecution, defaultExecution, this,
+                environmentRootFolder, resolveShutdownTimeout(environmentNode)));
       }
 
     }
     return result;
+  }
+
+  private MojoExecution resolvePlainPluginConfigMojoExecution(final IProgressMonitor monitor) {
+    try {
+      MavenProject mavenProject = this.mavenProjectFacade.getMavenProject(monitor);
+      if (!hasEOSGiMavenPlugin(mavenProject)) {
+        return null;
+      }
+
+      IMaven maven = MavenPlugin.getMaven();
+      MavenExecutionPlan executionPlan =
+          maven.calculateExecutionPlan(mavenProject, Arrays.asList(new String[] { "eosgi:dist" }),
+              true, monitor);
+
+      List<MojoExecution> mojoExecutions = executionPlan.getMojoExecutions();
+      if (mojoExecutions.isEmpty()) {
+        return null;
+      }
+      return mojoExecutions.iterator().next();
+    } catch (CoreException e) {
+      throw new RuntimeException(e);
+    }
   }
 
   private long resolveShutdownTimeout(final Xpp3Dom environmentNode) {
@@ -388,9 +455,14 @@ public class EOSGiProject {
         String executionId = executableEnvironment.getMojoExecution().getExecutionId();
         MavenProject mavenProject = mavenProjectFacade.getMavenProject();
 
+        String goal = "eosgi:sync-back";
+        if (executionId != null) {
+          goal += '@' + executionId;
+        }
+
         MavenExecutionPlan executionPlan =
-            MavenPlugin.getMaven().calculateExecutionPlan(mavenProject,
-                Arrays.asList("eosgi:sync-back@" + executionId), true, monitor);
+            MavenPlugin.getMaven().calculateExecutionPlan(mavenProject, Arrays.asList(goal), true,
+                monitor);
 
         executeExecutionPlan(mavenProject, executionPlan, monitor1);
 
