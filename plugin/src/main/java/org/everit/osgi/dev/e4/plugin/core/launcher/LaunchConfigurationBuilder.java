@@ -82,6 +82,7 @@ public class LaunchConfigurationBuilder {
 
     String environmentId = executableEnvironment.getEnvironmentId();
     File workingDirectory = executableEnvironment.getRootFolder();
+    File configFile = new File(workingDirectory, DistConstants.FILE_NAME_EOSGI_DIST_CONFIG);
 
     ILaunchConfigurationWorkingCopy launchConfig = null;
     try {
@@ -99,7 +100,7 @@ public class LaunchConfigurationBuilder {
         new DistributedEnvironmentConfigurationProvider();
 
     EnvironmentType environmentConfig = configurationProvider
-        .getOverriddenDistributedEnvironmentConfig(workingDirectory, UseByType.IDE);
+        .getOverriddenDistributedEnvironmentConfig(configFile, UseByType.IDE);
 
     LaunchConfigurationDTO launchConfigDTO =
         configurationProvider.getLaunchConfiguration(environmentConfig);
