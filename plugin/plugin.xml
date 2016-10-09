@@ -109,6 +109,10 @@
             id="org.everit.osgi.dev.e4.plugin.command.syncback"
             name="syncbackCommand">
       </command>
+      <command
+            id="org.everit.osgi.dev.e4.plugin.command.clean"
+            name="cleanCommand">
+      </command>
     </extension>
     
     <extension
@@ -141,6 +145,10 @@
       <handler
             class="org.everit.osgi.dev.e4.plugin.ui.command.SyncbackCommandHandler"
             commandId="org.everit.osgi.dev.e4.plugin.command.syncback">
+      </handler>
+      <handler
+            class="org.everit.osgi.dev.e4.plugin.ui.command.CleanCommandHandler"
+            commandId="org.everit.osgi.dev.e4.plugin.command.clean">
       </handler>
     </extension>
 

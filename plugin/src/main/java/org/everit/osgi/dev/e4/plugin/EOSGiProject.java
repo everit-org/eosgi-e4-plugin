@@ -16,6 +16,8 @@
 package org.everit.osgi.dev.e4.plugin;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -29,6 +31,7 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.UUID;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.maven.lifecycle.MavenExecutionPlan;
 import org.apache.maven.model.Plugin;
 import org.apache.maven.plugin.MojoExecution;
@@ -102,6 +105,16 @@ public class EOSGiProject {
       } else {
         throw new RuntimeException(throwable);
       }
+    }
+  }
+
+  public void clean(final ExecutableEnvironment executableEnvironment,
+      final IProgressMonitor monitor) {
+
+    try {
+      FileUtils.deleteDirectory(executableEnvironment.getRootFolder());
+    } catch (IOException e) {
+      throw new UncheckedIOException(e);
     }
   }
 

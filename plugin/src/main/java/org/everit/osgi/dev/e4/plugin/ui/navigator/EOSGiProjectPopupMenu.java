@@ -41,6 +41,8 @@ public class EOSGiProjectPopupMenu extends ExtensionContributionFactory {
 
   public static final String COMMAND_ID_PREFIX = "org.everit.osgi.dev.e4.plugin.command.";
 
+  private static final ImageDescriptor ICON_CLEAN = createIcon("trash.png");
+
   private static final ImageDescriptor ICON_DEBUG = createIcon("ldebug_obj.gif");
 
   private static final ImageDescriptor ICON_DIST = createIcon("refresh_tab.gif");
@@ -126,6 +128,9 @@ public class EOSGiProjectPopupMenu extends ExtensionContributionFactory {
 
     if (executableEnvironment.getRootFolder().exists()) {
       addMenuItem("SyncBack", COMMAND_ID_PREFIX + "syncback", additions, ICON_SYNCBACK,
+          serviceLocator, null);
+
+      addMenuItem("Clean", COMMAND_ID_PREFIX + "clean", additions, ICON_CLEAN,
           serviceLocator, null);
     }
   }
