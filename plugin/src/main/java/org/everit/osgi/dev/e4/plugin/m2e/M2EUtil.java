@@ -16,9 +16,11 @@
 package org.everit.osgi.dev.e4.plugin.m2e;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import org.apache.maven.execution.MavenExecutionRequest;
+import org.apache.maven.model.Plugin;
 import org.apache.maven.model.PluginExecution;
 import org.apache.maven.plugin.MojoExecution;
 import org.apache.maven.project.MavenProject;
@@ -29,11 +31,19 @@ import org.eclipse.m2e.core.embedder.ICallable;
 import org.eclipse.m2e.core.embedder.IMavenExecutionContext;
 import org.eclipse.m2e.core.internal.MavenPluginActivator;
 import org.eclipse.m2e.core.project.IMavenProjectFacade;
+import org.osgi.framework.Version;
+import org.osgi.framework.VersionRange;
 
 /**
  * Util functions to help the usage of M2E.
  */
 public final class M2EUtil {
+
+  public static final String EOSGI_ARTIFACT_ID = "eosgi-maven-plugin";
+
+  public static final String EOSGI_GROUP_ID = "org.everit.osgi.dev";
+
+  public static final VersionRange EOSGI_VERSION_RANGE = new VersionRange("[4.0.0,5.0)");
 
   private static final Set<String> SKIPPED_LIFECYCLE_PHASES;
 
@@ -106,6 +116,27 @@ public final class M2EUtil {
     execution.setConfiguration(mojoExecution.getConfiguration());
     return MavenPlugin.getMaven().getMojoParameterValue(project, parameter, asType,
         mojoExecution.getPlugin(), execution, mojoExecution.getGoal(), monitor);
+  }
+
+  public static boolean hasEOSGiMavenPlugin(final MavenProject mavenProject) {
+    List<Plugin> plugins = mavenProject.getBuild().getPlugins();
+
+    for (Plugin plugin : plugins) {
+      if (EOSGI_GROUP_ID.equals(plugin.getGroupId())
+          && EOSGI_ARTIFACT_ID.equals(plugin.getArtifactId())
+          && isEOSGiMojoVersionSupported(plugin.getVersion())) {
+
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  public static boolean isEOSGiMojoVersionSupported(final String mojoVersion) {
+    String semanticVersion = mojoVersion.replace('-', '.');
+    Version version = new Version(semanticVersion);
+    return EOSGI_VERSION_RANGE.includes(version);
   }
 
   private M2EUtil() {

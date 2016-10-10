@@ -15,11 +15,7 @@
  */
 package org.everit.osgi.dev.e4.plugin.m2e;
 
-import java.util.Iterator;
-import java.util.List;
-
 import org.apache.commons.lang3.ArrayUtils;
-import org.apache.maven.plugin.MojoExecution;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IProjectDescription;
 import org.eclipse.core.runtime.CoreException;
@@ -29,8 +25,6 @@ import org.eclipse.m2e.core.project.IMavenProjectFacade;
 import org.eclipse.m2e.core.project.MavenProjectChangedEvent;
 import org.everit.osgi.dev.e4.plugin.EOSGiEclipsePlugin;
 import org.everit.osgi.dev.e4.plugin.EOSGiNature;
-import org.everit.osgi.dev.e4.plugin.EOSGiProject;
-import org.osgi.framework.Version;
 
 /**
  * Adds or removes EOSGi Nature and refreshes EOSGi information.
@@ -50,26 +44,6 @@ public class EOSGiMavenProjectChangeListener implements IMavenProjectChangedList
     }
   }
 
-  private boolean isThereEOSGiExecution(final IMavenProjectFacade mavenProject,
-      final IProgressMonitor monitor) {
-    try {
-      List<MojoExecution> mojoExecutions = mavenProject.getMojoExecutions(
-          EOSGiProject.EOSGI_GROUP_ID, EOSGiProject.EOSGI_ARTIFACT_ID,
-          monitor, EOSGiProject.EOSGI_SORTED_ACCEPTED_GOAL_ARRAY);
-
-      boolean result = false;
-      Iterator<MojoExecution> iterator = mojoExecutions.iterator();
-      while (!result && iterator.hasNext()) {
-        MojoExecution mojoExecution = iterator.next();
-        result = EOSGiProject.EOSGI_VERSION_RANGE
-            .includes(new Version(mojoExecution.getVersion().replace('-', '.')));
-      }
-      return result;
-    } catch (CoreException e) {
-      throw new RuntimeException(e);
-    }
-  }
-
   @Override
   public void mavenProjectChanged(final MavenProjectChangedEvent[] events,
       final IProgressMonitor monitor) {
@@ -77,7 +51,7 @@ public class EOSGiMavenProjectChangeListener implements IMavenProjectChangedList
       IMavenProjectFacade mavenProject = event.getMavenProject();
 
       try {
-        boolean eosgiProject = isThereEOSGiExecution(mavenProject, monitor);
+        boolean eosgiProject = M2EUtil.hasEOSGiMavenPlugin(mavenProject.getMavenProject(monitor));
         IProject project = mavenProject.getProject();
         boolean hasNature = project.hasNature(EOSGiNature.NATURE_ID);
 

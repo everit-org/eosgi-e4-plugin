@@ -103,7 +103,7 @@ public class GracefulShutdownProcessWrapper implements IProcess {
     Job job = Job.create("Terminating JVM gracefully", (monitor) -> {
       SubMonitor.convert(monitor);
       try {
-        eosgiVMManager.shutDownVirtualMachine(virtualMachineId, null);
+        eosgiVMManager.shutDownVirtualMachine(virtualMachineId, 0, null);
       } catch (RuntimeException e) {
         try {
           wrapped.terminate();

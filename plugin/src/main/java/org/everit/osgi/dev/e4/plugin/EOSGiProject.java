@@ -33,7 +33,6 @@ import java.util.UUID;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.maven.lifecycle.MavenExecutionPlan;
-import org.apache.maven.model.Plugin;
 import org.apache.maven.plugin.MojoExecution;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
@@ -62,8 +61,6 @@ import org.everit.osgi.dev.e4.plugin.m2e.packaging.ProjectPackager;
 import org.everit.osgi.dev.e4.plugin.util.DAGFlattener;
 import org.everit.osgi.dev.e4.plugin.util.DependencyNodeChildResolver;
 import org.everit.osgi.dev.e4.plugin.util.DependencyNodeComparator;
-import org.osgi.framework.Version;
-import org.osgi.framework.VersionRange;
 
 /**
  * {@link EOSGiProject} base implementation.
@@ -73,14 +70,8 @@ public class EOSGiProject {
   private static final DAGFlattener<DependencyNode> DEPENDENCY_TREE_FLATTENER =
       new DAGFlattener<>(new DependencyNodeComparator(), new DependencyNodeChildResolver());
 
-  public static final String EOSGI_ARTIFACT_ID = "eosgi-maven-plugin";
-
-  public static final String EOSGI_GROUP_ID = "org.everit.osgi.dev";
-
   public static final String[] EOSGI_SORTED_ACCEPTED_GOAL_ARRAY =
       new String[] { "dist", "integration-test" };
-
-  public static final VersionRange EOSGI_VERSION_RANGE = new VersionRange("[4.0.0,5.0)");
 
   private final EOSGiVMManager eosgiVMManager;
 
@@ -203,37 +194,16 @@ public class EOSGiProject {
     return mavenProjectFacade;
   }
 
-  private boolean hasEOSGiMavenPlugin(final MavenProject mavenProject) {
-    List<Plugin> plugins = mavenProject.getBuild().getPlugins();
-
-    for (Plugin plugin : plugins) {
-      if (EOSGI_GROUP_ID.equals(plugin.getGroupId())
-          && EOSGI_ARTIFACT_ID.equals(plugin.getArtifactId())
-          && isEOSGiMojoVersionSupported(plugin.getVersion())) {
-
-        return true;
-      }
-    }
-
-    return false;
-  }
-
   private boolean isEOSGiExecution(final MojoExecutionKey mojoExecutionKey) {
 
-    if (EOSGI_GROUP_ID.equals(mojoExecutionKey.getGroupId())
-        && EOSGI_ARTIFACT_ID.equals(mojoExecutionKey.getArtifactId())
+    if (M2EUtil.EOSGI_GROUP_ID.equals(mojoExecutionKey.getGroupId())
+        && M2EUtil.EOSGI_ARTIFACT_ID.equals(mojoExecutionKey.getArtifactId())
         && Arrays.binarySearch(EOSGI_SORTED_ACCEPTED_GOAL_ARRAY, mojoExecutionKey.getGoal()) >= 0) {
 
       String mojoVersion = mojoExecutionKey.getVersion();
-      return isEOSGiMojoVersionSupported(mojoVersion);
+      return M2EUtil.isEOSGiMojoVersionSupported(mojoVersion);
     }
     return false;
-  }
-
-  private boolean isEOSGiMojoVersionSupported(final String mojoVersion) {
-    String semanticVersion = mojoVersion.replace('-', '.');
-    Version version = new Version(semanticVersion);
-    return EOSGI_VERSION_RANGE.includes(version);
   }
 
   public void launch(final ExecutableEnvironment executableEnvironment, final String mode,
@@ -414,7 +384,7 @@ public class EOSGiProject {
   private MojoExecution resolvePlainPluginConfigMojoExecution(final IProgressMonitor monitor) {
     try {
       MavenProject mavenProject = this.mavenProjectFacade.getMavenProject(monitor);
-      if (!hasEOSGiMavenPlugin(mavenProject)) {
+      if (!M2EUtil.hasEOSGiMavenPlugin(mavenProject)) {
         return null;
       }
 
