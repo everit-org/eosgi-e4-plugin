@@ -91,6 +91,11 @@ public class EOSGiProjectPopupMenu extends ExtensionContributionFactory {
 
       addMenuItem("Dist", COMMAND_ID_PREFIX + "dist", additions, ICON_DIST, serviceLocator, null);
       addSyncbackMenuItem(executableEnvironment, additions, serviceLocator);
+
+      if (executableEnvironment.getRootFolder().exists()) {
+        addMenuItem("Clean", COMMAND_ID_PREFIX + "clean", additions, ICON_CLEAN,
+            serviceLocator, null);
+      }
     } else if (runtimeInformations.size() == 1) {
       addMenuItem("Dist", COMMAND_ID_PREFIX + "dist", additions, ICON_DIST, serviceLocator, null);
       addSyncbackMenuItem(executableEnvironment, additions, serviceLocator);
@@ -128,9 +133,6 @@ public class EOSGiProjectPopupMenu extends ExtensionContributionFactory {
 
     if (executableEnvironment.getRootFolder().exists()) {
       addMenuItem("SyncBack", COMMAND_ID_PREFIX + "syncback", additions, ICON_SYNCBACK,
-          serviceLocator, null);
-
-      addMenuItem("Clean", COMMAND_ID_PREFIX + "clean", additions, ICON_CLEAN,
           serviceLocator, null);
     }
   }
