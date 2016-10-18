@@ -6,20 +6,19 @@ This is an Eclipse plugin for [eosgi-maven-plugin](https://github.com/everit-org
 
 More information coming soon...
 
+This plugin is under development yet, so... you known... maybe don't work correctly :)
+
 ### Requirements
 
 Soon...
 
-### Usage
+### Install
 ```
 $ git clone https://github.com/zsdoma/eosgi-e4-plugin.git
 $ cd eosgi-e4-plugin
 $ mvn clean install
-$ cp plugin/target/org.everit.e4.eosgi.plugin-0.0.2.jar \
+$ cp plugin/target/org.everit.osgi.dev.e4.plugin-<VERSION>.jar \
 <your-eclipse-path>/dropins
 ```
 
-This plugin is under development yet, so... you know... maybe not work correctly :)
-    
-
-
+### Usage

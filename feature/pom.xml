@@ -24,9 +24,8 @@
     <version>1.0.0-SNAPSHOT</version>
   </parent>
 
-<!--   <groupId>org.everit.e4</groupId> -->
-  <artifactId>org.everit.osgi.dev.e4.plugin</artifactId>
-  <packaging>eclipse-plugin</packaging>
+  <artifactId>org.everit.osgi.dev.e4.feature</artifactId>
+  <packaging>eclipse-feature</packaging>
 
   <dependencies>
     <dependency>
@@ -41,13 +40,6 @@
     </dependency>
   </dependencies>
 
-  <licenses>
-    <license>
-      <name>Apache License, Version 2.0</name>
-      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
-    </license>
-  </licenses>
-
   <build>
     <plugins>
       <plugin>
@@ -60,4 +52,5 @@
       </plugin>
     </plugins>
   </build>
+
 </project>
