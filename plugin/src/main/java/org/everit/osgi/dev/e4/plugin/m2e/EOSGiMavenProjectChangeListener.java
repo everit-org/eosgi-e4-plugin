@@ -50,23 +50,25 @@ public class EOSGiMavenProjectChangeListener implements IMavenProjectChangedList
     for (MavenProjectChangedEvent event : events) {
       IMavenProjectFacade mavenProject = event.getMavenProject();
 
-      try {
-        boolean eosgiProject = M2EUtil.hasEOSGiMavenPlugin(mavenProject.getMavenProject(monitor));
-        IProject project = mavenProject.getProject();
-        boolean hasNature = project.hasNature(EOSGiNature.NATURE_ID);
+      if (mavenProject != null) {
+        try {
+          boolean eosgiProject = M2EUtil.hasEOSGiMavenPlugin(mavenProject.getMavenProject(monitor));
+          IProject project = mavenProject.getProject();
+          boolean hasNature = project.hasNature(EOSGiNature.NATURE_ID);
 
-        if (eosgiProject && !hasNature) {
-          addEosgiNature(monitor, project);
-        } else if (!eosgiProject && hasNature) {
-          removeProjectNature(project, monitor);
-          EOSGiEclipsePlugin.getDefault().getEOSGiManager().remove(project);
-        }
+          if (eosgiProject && !hasNature) {
+            addEosgiNature(monitor, project);
+          } else if (!eosgiProject && hasNature) {
+            removeProjectNature(project, monitor);
+            EOSGiEclipsePlugin.getDefault().getEOSGiManager().remove(project);
+          }
 
-        if (eosgiProject) {
-          EOSGiEclipsePlugin.getDefault().getEOSGiManager().putOrOverride(mavenProject, monitor);
+          if (eosgiProject) {
+            EOSGiEclipsePlugin.getDefault().getEOSGiManager().putOrOverride(mavenProject, monitor);
+          }
+        } catch (CoreException e) {
+          throw new RuntimeException(e);
         }
-      } catch (CoreException e) {
-        throw new RuntimeException(e);
       }
     }
 
