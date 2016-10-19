@@ -61,6 +61,7 @@ import org.everit.osgi.dev.e4.plugin.m2e.packaging.ProjectPackager;
 import org.everit.osgi.dev.e4.plugin.util.DAGFlattener;
 import org.everit.osgi.dev.e4.plugin.util.DependencyNodeChildResolver;
 import org.everit.osgi.dev.e4.plugin.util.DependencyNodeComparator;
+import org.osgi.framework.Bundle;
 
 /**
  * {@link EOSGiProject} base implementation.
@@ -119,7 +120,8 @@ public class EOSGiProject {
       packModifiedDeps(executableEnvironment.getEnvironmentId(),
           executableEnvironment.getMojoExecution().getExecutionId(), monitor);
 
-      EOSGiEclipsePlugin.getDefault().getProjectPackageUtil().packageProject(mavenProjectFacade,
+      EOSGiEclipsePlugin eosgiEclipsePlugin = EOSGiEclipsePlugin.getDefault();
+      eosgiEclipsePlugin.getProjectPackageUtil().packageProject(mavenProjectFacade,
           monitor);
 
       MavenExecutionContextModifiers modifiers = new MavenExecutionContextModifiers();
@@ -136,7 +138,16 @@ public class EOSGiProject {
           (data) -> data.put(DistConstants.MAVEN_EXECUTION_REQUEST_DATA_KEY_ATTACH_API_CLASSLOADER,
               EOSGiVMManager.class.getClassLoader());
 
-      ProjectPackager packageUtil = EOSGiEclipsePlugin.getDefault().getProjectPackageUtil();
+      Bundle bundle = eosgiEclipsePlugin.getBundle();
+
+      modifiers.systemPropertiesReplacer = (properties) -> {
+        Properties newProps = new Properties(properties);
+        newProps.setProperty("eosgi.analytics.referer",
+            bundle.getSymbolicName() + "_" + bundle.getVersion());
+        return newProps;
+      };
+
+      ProjectPackager packageUtil = eosgiEclipsePlugin.getProjectPackageUtil();
       modifiers.workspaceReaderReplacer = (original) -> packageUtil.createWorkspaceReader(original);
 
       M2EUtil.executeInContext(mavenProjectFacade, modifiers, (context, monitor1) -> {

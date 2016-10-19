@@ -19,7 +19,7 @@
 <feature
       id="org.everit.osgi.dev.e4.feature"
       label="EOSGi Eclipse Plugin"
-      version="1.0.0.qualifier"
+      version="4.0.0"
       provider-name="Everit Kft."
       os="linux,macosx,win32"
       ws="cocoa,gtk,win32"
