@@ -36,6 +36,10 @@ public class DistContentProvider extends TreeNodeContentProvider {
     if (parentElement instanceof IProject) {
       AtomicReference<EOSGiProject> eosgiProjectReference = new AtomicReference<>();
       IProject project = (IProject) parentElement;
+      if (!project.isOpen()) {
+        return new Object[0];
+      }
+
       String taskName = "Getting EOSGi information of project: " + project.getName();
       Job job =
           Job.create(taskName, (monitor) -> {
