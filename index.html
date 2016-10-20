@@ -1,0 +1,31 @@
+<html>
+<body>
+<h1>Everit OSGi Eclipse Plugin</h1>
+
+<p style="color: red;">Please note that a complete user guide will come later</p>
+
+<h2>Introduction</h2>
+
+<p>EOSGi Eclipse plugin displays OSGi environments specified with <a href="http://www.everit.org/eosgi-maven-plugin/">eosgi-maven-plugin</a> in the Project Explorer view of Eclipse and lets the user managing the environment by using a context menu. The user can:</p>
+
+<ul>
+  <li>Start the OSGi environments specified in the pom file of the project</li>
+  <li>Debug the OSGi environments</li>
+  <li>Live upgrade of the OSGi environments</li>
+  <li>View the console of the OSGi environment within Eclipse</li>
+  <li>Stop the environments gracefully (even if the environment is stopped from console or debug view)</li>
+  <li>Call the <a href="http://www.everit.org/eosgi-maven-plugin/sync-back-mojo.html">sync-back</a> goal of the maven plugin on an environment</li>
+</ul>
+
+<p>If an OSGi environment is managed with the Eclipse plugin, dependencies are resolved from the workspace with the following algorithm: If a dependency is imported as a maven project into the workspace, the plugin executes <i>mvn package</i> on that dependency and installs the result JAR file to the OSGi container.</p>
+
+<p>When an OSGi environment is started in debug mode by the plugin, the sources are resolved by the dependency manager of maven. If a dependency is available on the workspace as a project, the source is picked up from there.</p>
+
+<h2>Download and install</h2>
+
+<ul>
+  <li><strong>Update site:</strong> <a href="http://everit.org/eosgi-e4-plugin/p2/latest">http://everit.org/eosgi-e4-plugin/p2/latest</a></li>
+  <li><strong>Source code:</strong> <a href="https://github.com/everit-org/eosgi-e4-plugin">https://github.com/everit-org/eosgi-e4-plugin</a></li>
+</ul>
+</body>
+</html>
