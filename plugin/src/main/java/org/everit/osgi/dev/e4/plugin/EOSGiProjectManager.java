@@ -70,7 +70,7 @@ public class EOSGiProjectManager {
       while (!closed.get()) {
         try {
           eosgiVMManager.refresh();
-          Thread.sleep(1000);
+          Thread.sleep(EOSGI_VM_MANAGER_UPDATE_PERIOD);
         } catch (InterruptedException e) {
           Thread.currentThread().interrupt();
         }
