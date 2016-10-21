@@ -15,6 +15,7 @@
  */
 package org.everit.osgi.dev.e4.plugin.m2e;
 
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -71,6 +72,7 @@ public final class M2EUtil {
 
     IMavenExecutionContext executionContext = createExecutionContext(facade, monitor);
     MavenExecutionRequest executionRequest = executionContext.getExecutionRequest();
+    executionRequest.setStartTime(new Date());
     if (modifications != null && modifications.workspaceReaderReplacer != null) {
       executionRequest.setWorkspaceReader(modifications.workspaceReaderReplacer
           .apply(executionRequest.getWorkspaceReader()));
