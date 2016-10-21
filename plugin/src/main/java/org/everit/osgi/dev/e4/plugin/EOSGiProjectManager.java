@@ -50,7 +50,8 @@ public class EOSGiProjectManager {
   private final Runnable vmStateChangeHandler;
 
   public EOSGiProjectManager() {
-    eosgiVMManager = new EOSGiVMManager(EOSGiVMManager.class.getClassLoader());
+    eosgiVMManager = new EOSGiVMManager(EOSGiVMManager.class.getClassLoader(),
+        (message) -> EOSGiEclipsePlugin.getDefault().getEOSGiLog().warning(message));
     vmStateChangeHandler = () -> {
       for (DistLabelProvider labelProvider : labelProviders.keySet()) {
         for (EOSGiProject eosgiProject : eosgiProjects.values()) {
