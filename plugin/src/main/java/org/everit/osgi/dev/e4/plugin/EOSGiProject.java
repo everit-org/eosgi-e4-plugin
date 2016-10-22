@@ -88,7 +88,7 @@ public class EOSGiProject {
 
   private void checkExecutionResultExceptions(final IMavenExecutionContext context) {
     List<Throwable> exceptions = context.getSession().getResult().getExceptions();
-    if (exceptions.size() > 0) {
+    if (!exceptions.isEmpty()) {
       Throwable throwable = exceptions.get(0);
       if (exceptions instanceof RuntimeException) {
         throw (RuntimeException) throwable;
@@ -118,7 +118,7 @@ public class EOSGiProject {
       final IProgressMonitor monitor) {
     try {
       packModifiedDeps(executableEnvironment.getEnvironmentId(),
-          executableEnvironment.getMojoExecution().getExecutionId(), monitor);
+          executableEnvironment.getExecutionId(), monitor);
 
       EOSGiEclipsePlugin eosgiEclipsePlugin = EOSGiEclipsePlugin.getDefault();
       eosgiEclipsePlugin.getProjectPackageUtil().packageProject(mavenProjectFacade,
@@ -130,7 +130,6 @@ public class EOSGiProject {
         systemProperties.putAll(originalProperties);
         systemProperties.put(DistConstants.PLUGIN_PROPERTY_ENVIRONMENT_ID,
             executableEnvironment.getEnvironmentId());
-        systemProperties.put(DistConstants.PLUGIN_PROPERTY_DIST_ONLY, Boolean.TRUE.toString());
         return systemProperties;
       };
 
@@ -153,10 +152,16 @@ public class EOSGiProject {
       M2EUtil.executeInContext(mavenProjectFacade, modifiers, (context, monitor1) -> {
         SubMonitor.convert(monitor1, "Calling \"mvn eosgi:dist\" on project", 0);
 
-        MavenPlugin.getMaven().execute(mavenProjectFacade.getMavenProject(),
-            executableEnvironment.getMojoExecution(), monitor1);
+        String executionId = executableEnvironment.getExecutionId();
+        String goal = "eosgi:dist" + "@" + executionId;
 
-        mavenProjectFacade.getProject().refreshLocal(IProject.DEPTH_INFINITE, monitor1);
+        MavenProject mavenProject = mavenProjectFacade.getMavenProject(monitor1);
+
+        MavenExecutionPlan executionPlan =
+            MavenPlugin.getMaven().calculateExecutionPlan(mavenProject, Arrays.asList(goal), true,
+                monitor);
+
+        executeExecutionPlan(mavenProject, executionPlan, monitor1);
 
         checkExecutionResultExceptions(context);
 
@@ -177,6 +182,7 @@ public class EOSGiProject {
     for (MojoExecution mojoExecution : mojoExecutions) {
       try {
         maven.execute(mavenProject, mojoExecution, monitor);
+        mavenProjectFacade.getProject().refreshLocal(IProject.DEPTH_INFINITE, monitor);
       } catch (CoreException e) {
         throw new RuntimeException(e);
       }
@@ -191,8 +197,9 @@ public class EOSGiProject {
     File environmentRootFolder = new File(distFolder, DistConstants.DEFAULT_ENVIRONMENT_ID);
 
     defaultExecutableEnvironments
-        .add(new ExecutableEnvironment(DistConstants.DEFAULT_ENVIRONMENT_ID, mojoExecution,
-            defaultExecution, this, environmentRootFolder, DistConstants.DEFAULT_SHUTDOWN_TIMEOUT));
+        .add(new ExecutableEnvironment(DistConstants.DEFAULT_ENVIRONMENT_ID,
+            mojoExecution.getExecutionId(), defaultExecution, this, environmentRootFolder,
+            DistConstants.DEFAULT_SHUTDOWN_TIMEOUT));
     return defaultExecutableEnvironments;
 
   }
@@ -384,8 +391,9 @@ public class EOSGiProject {
         String environmentId = environmentIdNode.getValue();
         File environmentRootFolder = new File(distFolderFile, environmentId);
         result.add(
-            new ExecutableEnvironment(environmentId, mojoExecution, defaultExecution, this,
-                environmentRootFolder, resolveShutdownTimeout(environmentNode)));
+            new ExecutableEnvironment(environmentId, mojoExecution.getExecutionId(),
+                defaultExecution, this, environmentRootFolder,
+                resolveShutdownTimeout(environmentNode)));
       }
 
     }
@@ -446,13 +454,10 @@ public class EOSGiProject {
         SubMonitor.convert(monitor1, "Calling \"mvn eosgi:syncback\" on project "
             + mavenProjectFacade.getProject().getName(), 0);
 
-        String executionId = executableEnvironment.getMojoExecution().getExecutionId();
-        MavenProject mavenProject = mavenProjectFacade.getMavenProject();
+        String executionId = executableEnvironment.getExecutionId();
+        String goal = "eosgi:sync-back" + "@" + executionId;
 
-        String goal = "eosgi:sync-back";
-        if (executionId != null) {
-          goal += '@' + executionId;
-        }
+        MavenProject mavenProject = mavenProjectFacade.getMavenProject(monitor1);
 
         MavenExecutionPlan executionPlan =
             MavenPlugin.getMaven().calculateExecutionPlan(mavenProject, Arrays.asList(goal), true,

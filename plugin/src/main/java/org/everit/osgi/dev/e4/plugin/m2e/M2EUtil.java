@@ -17,9 +17,11 @@ package org.everit.osgi.dev.e4.plugin.m2e;
 
 import java.util.Date;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.apache.maven.artifact.Artifact;
 import org.apache.maven.execution.MavenExecutionRequest;
 import org.apache.maven.model.Plugin;
 import org.apache.maven.model.PluginExecution;
@@ -31,6 +33,7 @@ import org.eclipse.m2e.core.MavenPlugin;
 import org.eclipse.m2e.core.embedder.ICallable;
 import org.eclipse.m2e.core.embedder.IMavenExecutionContext;
 import org.eclipse.m2e.core.internal.MavenPluginActivator;
+import org.eclipse.m2e.core.internal.embedder.MavenProjectMutableState;
 import org.eclipse.m2e.core.project.IMavenProjectFacade;
 import org.osgi.framework.Version;
 import org.osgi.framework.VersionRange;
@@ -92,6 +95,32 @@ public final class M2EUtil {
 
           return callable.call(context, monitor1);
         }, monitor);
+  }
+
+  /**
+   * Runs an action within the scope of mutable state of a project. This is useful for example if
+   * multiple mojo goals should be executed in the way that they share the same project state.
+   * 
+   * @param project
+   *          The project that should have the mutable state.
+   * @param action
+   *          The action that should be executed.
+   */
+  @SuppressWarnings("restriction")
+  public static void executeWithMutableProjectState(final MavenProject project,
+      final ICoreRunnable action, final IProgressMonitor monitor) throws CoreException {
+
+    LinkedHashSet<Artifact> artifacts = new LinkedHashSet<>(project.getArtifacts());
+    MavenProjectMutableState snapshot = MavenProjectMutableState.takeSnapshot(project);
+
+    try {
+      action.run(monitor);
+    } finally {
+      project.setArtifactFilter(null);
+      project.setResolvedArtifacts(null);
+      project.setArtifacts(artifacts);
+      snapshot.restore(project);
+    }
   }
 
   /**

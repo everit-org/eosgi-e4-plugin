@@ -90,7 +90,7 @@ public class DistLabelProvider extends LabelProvider {
       ExecutableEnvironment eosgiEnvironment = (ExecutableEnvironment) element;
       String label = eosgiEnvironment.getEnvironmentId();
       if (!eosgiEnvironment.isDefaultExecution()) {
-        label += '@' + eosgiEnvironment.getMojoExecution().getExecutionId();
+        label += '@' + eosgiEnvironment.getExecutionId();
       }
       return label;
     } else {

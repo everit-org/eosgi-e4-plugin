@@ -94,19 +94,23 @@ public class ProjectPackager {
     M2EUtil.executeInContext(mavenProjectFacade, modifiers, (context, monitor1) -> {
       IMaven maven = MavenPlugin.getMaven();
       MavenProject mavenProject = mavenProjectFacade.getMavenProject(monitor);
+
       MavenExecutionPlan executionPlan =
           maven.calculateExecutionPlan(mavenProject,
               Arrays.asList(new String[] { "package" }), true, monitor);
 
       List<MojoExecution> mojoExecutions = executionPlan.getMojoExecutions();
 
-      for (MojoExecution mojoExecution : mojoExecutions) {
-        if (!SKIPPED_LIFECYCLE_PHASES.contains(mojoExecution.getLifecyclePhase())) {
-          maven.execute(mavenProject, mojoExecution, monitor);
+      M2EUtil.executeWithMutableProjectState(mavenProject, (monitor2) -> {
+        for (MojoExecution mojoExecution : mojoExecutions) {
+          if (!SKIPPED_LIFECYCLE_PHASES.contains(mojoExecution.getLifecyclePhase())) {
+            maven.execute(mavenProject, mojoExecution, monitor);
 
-          checkExecutionResultExceptions(context);
+            checkExecutionResultExceptions(context);
+          }
         }
-      }
+      }, monitor);
+
       eclipseProject.refreshLocal(IProject.DEPTH_INFINITE, monitor1);
       packagedArtifactContainer.putArtifactsOfMavenProject(mavenProject, eclipseProject);
       return null;
