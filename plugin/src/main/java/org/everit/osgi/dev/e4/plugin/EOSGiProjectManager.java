@@ -67,12 +67,17 @@ public class EOSGiProjectManager {
     eosgiVMManager.addStateChangeListener(vmStateChangeHandler);
 
     new Thread(() -> {
-      while (!closed.get()) {
+      boolean interrupted = false;
+      while (!interrupted && !closed.get()) {
         try {
           eosgiVMManager.refresh();
           Thread.sleep(EOSGI_VM_MANAGER_UPDATE_PERIOD);
         } catch (InterruptedException e) {
+          interrupted = true;
           Thread.currentThread().interrupt();
+        } catch (RuntimeException e) {
+          EOSGiEclipsePlugin.getDefault().getEOSGiLog()
+              .error("Error during querying the state of running JVMs", e);
         }
       }
     }).start();

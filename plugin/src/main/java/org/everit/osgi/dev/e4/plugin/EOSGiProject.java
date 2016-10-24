@@ -451,7 +451,7 @@ public class EOSGiProject {
 
     try {
       M2EUtil.executeInContext(mavenProjectFacade, modifiers, (context, monitor1) -> {
-        SubMonitor.convert(monitor1, "Calling \"mvn eosgi:syncback\" on project "
+        SubMonitor.convert(monitor1, "Calling \"mvn eosgi:sync-back\" on project "
             + mavenProjectFacade.getProject().getName(), 0);
 
         String executionId = executableEnvironment.getExecutionId();
