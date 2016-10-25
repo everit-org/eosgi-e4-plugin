@@ -285,12 +285,11 @@ public class EOSGiProject {
   }
 
   public void packModifiedDeps(final String environmentId, final String executionId,
-      final IProgressMonitor monitor)
-      throws CoreException {
+      final IProgressMonitor monitor) throws CoreException {
     Objects.requireNonNull(environmentId, "environmentName must be not null!");
 
     DependencyNode rootNode =
-        MavenPlugin.getMavenModelManager().readDependencyTree(null,
+        MavenPlugin.getMavenModelManager().readDependencyTree(mavenProjectFacade,
             mavenProjectFacade.getMavenProject(monitor), null, monitor);
 
     List<DependencyNode> flattenedDependencyTree = DEPENDENCY_TREE_FLATTENER.flatten(rootNode);
