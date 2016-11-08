@@ -156,6 +156,7 @@ public class EOSGiProject {
         String goal = "eosgi:dist" + "@" + executionId;
 
         MavenProject mavenProject = mavenProjectFacade.getMavenProject(monitor1);
+        packageUtil.setArtifactsOnMavenProject(mavenProject, mavenProjectFacade.getProject());
 
         MavenExecutionPlan executionPlan =
             MavenPlugin.getMaven().calculateExecutionPlan(mavenProject, Arrays.asList(goal), true,
@@ -227,7 +228,9 @@ public class EOSGiProject {
   public void launch(final ExecutableEnvironment executableEnvironment, final String mode,
       final IProgressMonitor monitor) {
 
-    dist(executableEnvironment, monitor);
+    SubMonitor subMonitor = SubMonitor.convert(monitor, "Analyzing dependency tree", 0);
+
+    dist(executableEnvironment, subMonitor);
 
     String launchUniqueId = UUID.randomUUID().toString();
 
@@ -235,7 +238,7 @@ public class EOSGiProject {
         mavenProjectFacade.getProject(), executableEnvironment, launchUniqueId);
 
     try {
-      ILaunch launch = launchConfiguration.launch(mode, monitor);
+      ILaunch launch = launchConfiguration.launch(mode, subMonitor);
       IProcess[] processes = launch.getProcesses();
       if (processes.length == 0) {
         return;

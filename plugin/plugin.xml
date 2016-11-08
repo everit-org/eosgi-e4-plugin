@@ -159,7 +159,7 @@
          id="org.everit.osgi.dev.e4.plugin.core.launcher.launchConfigurationType"
          modes="run,debug"
          name="%name.eosgiLaunchConfiguration"
-         public="true"
+         public="false"
          sourcePathComputerId="org.eclipse.jdt.launching.sourceLookup.javaSourcePathComputer"/>
   </extension>
   

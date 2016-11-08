@@ -16,12 +16,14 @@
 package org.everit.osgi.dev.e4.plugin.m2e.packaging;
 
 import java.io.File;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
 import org.apache.maven.model.BuildBase;
 import org.apache.maven.project.MavenProject;
+import org.eclipse.aether.artifact.Artifact;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceChangeEvent;
@@ -71,14 +73,14 @@ public class ChangedProjectTracker implements IResourceChangeListener {
         || (kind != 0 && (kind & IResourceDelta.CHANGED) == 0);
   }
 
-  private final Function<IProject, Set<File>> projectArtifactFileProvider;
+  private final Function<IProject, ProjectArtifacts> projectArtifactsProvider;
 
   private final Consumer<IProject> projectChangeHandler;
 
   public ChangedProjectTracker(final Consumer<IProject> projectChangeHandler,
-      final Function<IProject, Set<File>> projectArtifactFileProvider) {
+      final Function<IProject, ProjectArtifacts> projectArtifactsProvider) {
     this.projectChangeHandler = projectChangeHandler;
-    this.projectArtifactFileProvider = projectArtifactFileProvider;
+    this.projectArtifactsProvider = projectArtifactsProvider;
   }
 
   private boolean processChangeEventOnMavenProject(final IResourceDelta delta,
@@ -88,10 +90,13 @@ public class ChangedProjectTracker implements IResourceChangeListener {
           .getBuild().getDirectory();
       File targetDirectoryFile = new File(targetDirectory);
 
-      Set<File> attachedFiles = projectArtifactFileProvider.apply(mavenProjectFacade.getProject());
+      ProjectArtifacts projectArtifacts =
+          projectArtifactsProvider.apply(mavenProjectFacade.getProject());
+
+      Set<File> artifactFileSet = toArtifactFileSet(projectArtifacts);
 
       return processMavenProjectChangeDeltaRecurce(delta.getAffectedChildren(), targetDirectoryFile,
-          attachedFiles, false);
+          artifactFileSet, false);
     } catch (CoreException e) {
       throw new RuntimeException(e);
     }
@@ -126,7 +131,7 @@ public class ChangedProjectTracker implements IResourceChangeListener {
   }
 
   private boolean processMavenProjectChangeDeltaRecurce(final IResourceDelta[] deltaArray,
-      final File targetDirectoryFile, final Set<File> attachedFiles,
+      final File targetDirectoryFile, final Set<File> artifactFiles,
       final boolean pInTargetFolder) {
 
     for (IResourceDelta delta : deltaArray) {
@@ -134,12 +139,12 @@ public class ChangedProjectTracker implements IResourceChangeListener {
           pInTargetFolder || targetDirectoryFile.equals(delta.getResource().getLocation().toFile());
 
       if (resourceDeltaMeansResourceChange(delta)
-          && isResourceArtifactFileOrSource(delta, attachedFiles, inTargetFolder)) {
+          && isResourceArtifactFileOrSource(delta, artifactFiles, inTargetFolder)) {
         return true;
       }
 
       if (processMavenProjectChangeDeltaRecurce(delta.getAffectedChildren(), targetDirectoryFile,
-          attachedFiles, inTargetFolder)) {
+          artifactFiles, inTargetFolder)) {
         return true;
       }
     }
@@ -147,7 +152,7 @@ public class ChangedProjectTracker implements IResourceChangeListener {
   }
 
   private boolean projectArtifactsEvaluated(final IProject resource) {
-    return projectArtifactFileProvider.apply(resource) != null;
+    return projectArtifactsProvider.apply(resource) != null;
   }
 
   @Override
@@ -168,6 +173,16 @@ public class ChangedProjectTracker implements IResourceChangeListener {
       default:
         break;
     }
+  }
+
+  private Set<File> toArtifactFileSet(final ProjectArtifacts projectArtifacts) {
+    Set<File> result = new HashSet<>();
+    result.add(projectArtifacts.artifact.getFile());
+
+    for (Artifact artifact : projectArtifacts.attachedArtifacts) {
+      result.add(artifact.getFile());
+    }
+    return result;
   }
 
 }

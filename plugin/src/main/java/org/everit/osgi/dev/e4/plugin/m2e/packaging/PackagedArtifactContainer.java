@@ -17,18 +17,17 @@ package org.everit.osgi.dev.e4.plugin.m2e.packaging;
 
 import java.io.File;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import javax.annotation.Generated;
 
-import org.apache.maven.project.MavenProject;
 import org.eclipse.aether.artifact.Artifact;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.m2e.core.embedder.ArtifactKey;
+import org.eclipse.m2e.core.project.IMavenProjectFacade;
 
 public class PackagedArtifactContainer {
 
@@ -89,12 +88,12 @@ public class PackagedArtifactContainer {
     return groupId + ':' + artifactId + ':' + version;
   }
 
-  private final Map<IProject, Set<File>> artifactFilesByProject = new HashMap<>();
-
   private final Map<IProject, String> artifactKeyByEclipseProject = new HashMap<>();
 
   private final Map<String, Map<ClassifierAndExtension, File>> gavAndFileByClassifierAndExtensionMap =
       new HashMap<>();
+
+  private final Map<IProject, ProjectArtifacts> projectArtifactsByEclipseProject = new HashMap<>();
 
   private final ReadWriteLock readWriteLock = new ReentrantReadWriteLock();
 
@@ -121,19 +120,18 @@ public class PackagedArtifactContainer {
     }
   }
 
-  public Set<File> getProjectArtifactFiles(final IProject eclipseProject) {
+  public ProjectArtifacts getProjectArtifacts(final IProject eclipseProject) {
     Lock readLock = readWriteLock.readLock();
     readLock.lock();
     try {
-      return artifactFilesByProject.get(eclipseProject);
+      return projectArtifactsByEclipseProject.get(eclipseProject);
     } finally {
       readLock.unlock();
     }
   }
 
-  private void putArtifact(final org.apache.maven.artifact.Artifact artifact,
-      final Map<ClassifierAndExtension, File> fileByClassifierAndExtensionMap,
-      final Set<File> artifactFiles) {
+  private void putArtifact(final Artifact artifact,
+      final Map<ClassifierAndExtension, File> fileByClassifierAndExtensionMap) {
 
     File artifactFile = artifact.getFile();
 
@@ -141,40 +139,41 @@ public class PackagedArtifactContainer {
       return;
     }
 
-    artifactFiles.add(artifactFile);
-
     String classifier = artifact.getClassifier();
-    String extension = artifact.getArtifactHandler().getExtension();
+    String extension = artifact.getExtension();
 
     ClassifierAndExtension classifierAndExtension =
         new ClassifierAndExtension(classifier, extension);
     fileByClassifierAndExtensionMap.put(classifierAndExtension, artifactFile);
-
   }
 
-  public void putArtifactsOfMavenProject(final MavenProject mavenProject,
-      final IProject eclipseProject) {
+  public void putArtifactsOfMavenProject(final IMavenProjectFacade mavenProjectFacade,
+      final ProjectArtifacts projectArtifacts) {
 
     Lock writeLock = readWriteLock.writeLock();
     writeLock.lock();
     try {
+      ArtifactKey artifactKeyObj = mavenProjectFacade.getArtifactKey();
 
       String artifactKey =
-          createArtifactKey(mavenProject.getGroupId(), mavenProject.getArtifactId(),
-              mavenProject.getVersion());
+          createArtifactKey(artifactKeyObj.getGroupId(), artifactKeyObj.getArtifactId(),
+              artifactKeyObj.getVersion());
+
+      IProject eclipseProject = mavenProjectFacade.getProject();
 
       artifactKeyByEclipseProject.put(eclipseProject, artifactKey);
 
       Map<ClassifierAndExtension, File> fileByClassifierAndExtensionMap = new HashMap<>();
-      Set<File> artifactFiles = new HashSet<>();
 
-      putArtifact(mavenProject.getArtifact(), fileByClassifierAndExtensionMap, artifactFiles);
-
-      for (org.apache.maven.artifact.Artifact artifact : mavenProject.getAttachedArtifacts()) {
-        putArtifact(artifact, fileByClassifierAndExtensionMap, artifactFiles);
+      if (projectArtifacts.artifact != null) {
+        putArtifact(projectArtifacts.artifact, fileByClassifierAndExtensionMap);
       }
-      artifactFilesByProject.put(eclipseProject, artifactFiles);
+
+      for (Artifact artifact : projectArtifacts.attachedArtifacts) {
+        putArtifact(artifact, fileByClassifierAndExtensionMap);
+      }
       gavAndFileByClassifierAndExtensionMap.put(artifactKey, fileByClassifierAndExtensionMap);
+      projectArtifactsByEclipseProject.put(eclipseProject, projectArtifacts);
     } finally {
       writeLock.unlock();
     }
@@ -188,7 +187,7 @@ public class PackagedArtifactContainer {
       if (artifactKey != null) {
         gavAndFileByClassifierAndExtensionMap.remove(artifactKey);
       }
-      artifactFilesByProject.remove(eclipseProject);
+      projectArtifactsByEclipseProject.remove(eclipseProject);
     } finally {
       writeLock.unlock();
     }
