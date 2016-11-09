@@ -109,7 +109,7 @@ public class ProjectPackager {
 
     File baseDir = mavenProject.getBasedir();
 
-    long oldestLastModified = Long.MAX_VALUE;
+    long oldestLastModified = descriptionFile.lastModified();
 
     org.eclipse.aether.artifact.Artifact projectArtifact =
         createAetherArtifactFromDescriptionArtifact(descriptionProperties, "artifact.", baseDir);
