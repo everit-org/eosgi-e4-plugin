@@ -28,6 +28,7 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.m2e.core.MavenPlugin;
 import org.eclipse.m2e.core.project.IMavenProjectFacade;
 import org.everit.osgi.dev.dist.util.attach.EOSGiVMManager;
+import org.everit.osgi.dev.dist.util.attach.EOSGiVMManagerParameter;
 import org.everit.osgi.dev.e4.plugin.ui.navigator.DistLabelProvider;
 
 /**
@@ -37,7 +38,7 @@ public class EOSGiProjectManager {
 
   private static final long EOSGI_VM_MANAGER_UPDATE_PERIOD = 1000;
 
-  AtomicBoolean closed = new AtomicBoolean(false);
+  private final AtomicBoolean closed = new AtomicBoolean(false);
 
   private final Map<IProject, EOSGiProject> eosgiProjects = new HashMap<>();
 
@@ -50,8 +51,19 @@ public class EOSGiProjectManager {
   private final Runnable vmStateChangeHandler;
 
   public EOSGiProjectManager() {
-    eosgiVMManager = new EOSGiVMManager(EOSGiVMManager.class.getClassLoader(),
-        (message) -> EOSGiEclipsePlugin.getDefault().getEOSGiLog().warning(message));
+    EOSGiVMManagerParameter vmManagerParam = new EOSGiVMManagerParameter();
+    vmManagerParam.classLoader = EOSGiVMManager.class.getClassLoader();
+    vmManagerParam.attachNotSupportedExceptionDuringRefreshEventHandler = (eventData) -> {
+      EOSGiEclipsePlugin.getDefault().getEOSGiLog()
+          .warning("Attaching VM with id '" + eventData.virtualMachineId + "' is not supported: "
+              + eventData.cause.getMessage());
+    };
+    vmManagerParam.deadlockEventHandler = (eventData) -> {
+      EOSGiEclipsePlugin.getDefault().getEOSGiLog().warning("Deadlock in Attach API during getting"
+          + " information about JVM: " + eventData.virtualMachineId);
+    };
+
+    eosgiVMManager = new EOSGiVMManager(vmManagerParam);
     vmStateChangeHandler = () -> {
       for (DistLabelProvider labelProvider : labelProviders.keySet()) {
         for (EOSGiProject eosgiProject : eosgiProjects.values()) {
