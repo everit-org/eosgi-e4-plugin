@@ -15,11 +15,12 @@
  */
 package org.everit.osgi.dev.e4.plugin.util;
 
-import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.Map;
 import java.util.Set;
-import java.util.TreeSet;
 import java.util.function.Function;
 
 import org.apache.commons.collections.list.TreeList;
@@ -27,35 +28,58 @@ import org.apache.commons.collections.list.TreeList;
 /**
  * Helper class to flatten a DAG to an ordered list. Every element that is over another one in the
  * DAG will be in front of the other in the result list.
+ * 
+ * @param <K>
+ *          The key of the nodes.
+ * @param <T>
+ *          The type of the nodes.
  */
-public final class DAGFlattener<T> {
+public final class DAGFlattener<K, T> {
+
+  public static final class KeyWithNodes<K, N> {
+    public final K key;
+
+    public final Set<N> nodes = new HashSet<>();
+
+    public KeyWithNodes(final K key) {
+      this.key = key;
+    }
+
+  }
 
   private final Function<T, List<T>> childResolver;
 
-  private final Comparator<T> comparator;
+  private final Function<T, K> keyGenerator;
 
-  public DAGFlattener(final Comparator<T> comparator,
+  public DAGFlattener(final Function<T, K> keyGenerator,
       final Function<T, List<T>> childResolver) {
-    this.comparator = comparator;
+    this.keyGenerator = keyGenerator;
     this.childResolver = childResolver;
   }
 
-  public List<T> flatten(final T root) {
-    Set<T> visited = new TreeSet<>(comparator);
+  public List<KeyWithNodes<K, T>> flatten(final T root) {
+    Map<K, KeyWithNodes<K, T>> visited = new HashMap<>();
 
     @SuppressWarnings("unchecked")
-    List<T> result = new TreeList();
+    List<KeyWithNodes<K, T>> result = new TreeList();
 
-    ListIterator<T> resultIterator = result.listIterator();
-    flattenRecurse(root, resultIterator, visited);
+    ListIterator<KeyWithNodes<K, T>> resultIterator = result.listIterator();
+    flattenRecurse(keyGenerator.apply(root), root, resultIterator, visited);
     return result;
   }
 
-  private void flattenRecurse(final T node, final ListIterator<T> resultIterator,
-      final Set<T> visited) {
+  private void flattenRecurse(final K nodeKey, final T node,
+      final ListIterator<KeyWithNodes<K, T>> resultIterator,
+      final Map<K, KeyWithNodes<K, T>> visited) {
 
-    resultIterator.add(node);
-    visited.add(node);
+    KeyWithNodes<K, T> keyWithNodes = visited.get(nodeKey);
+    if (keyWithNodes == null) {
+      keyWithNodes = new KeyWithNodes<>(nodeKey);
+      visited.put(nodeKey, keyWithNodes);
+    }
+
+    keyWithNodes.nodes.add(node);
+    resultIterator.add(keyWithNodes);
 
     List<T> children = childResolver.apply(node);
     if (children.isEmpty()) {
@@ -65,17 +89,19 @@ public final class DAGFlattener<T> {
     ListIterator<T> iterator = children.listIterator(children.size());
     while (iterator.hasPrevious()) {
       T childNode = iterator.previous();
-      if (!visited.contains(childNode)) {
-        flattenRecurse(childNode, resultIterator, visited);
-        iterateBackToBeAfterNode(resultIterator, node);
+      K childNodeKey = keyGenerator.apply(childNode);
+      if (!visited.containsKey(childNodeKey)) {
+        flattenRecurse(childNodeKey, childNode, resultIterator, visited);
+        iterateBackToBeAfterNode(resultIterator, nodeKey);
       }
     }
   }
 
-  private void iterateBackToBeAfterNode(final ListIterator<T> resultIterator, final T node) {
-    T currentNode = resultIterator.previous();
-    while (comparator.compare(node, currentNode) != 0) {
-      currentNode = resultIterator.previous();
+  private void iterateBackToBeAfterNode(final ListIterator<KeyWithNodes<K, T>> resultIterator,
+      final K nodeKey) {
+    KeyWithNodes<K, T> currentKeyWithNodes = resultIterator.previous();
+    while (currentKeyWithNodes != null && !currentKeyWithNodes.key.equals(nodeKey)) {
+      currentKeyWithNodes = resultIterator.previous();
     }
     resultIterator.next();
   }

@@ -16,7 +16,7 @@
     limitations under the License.
 
 -->
-<?eclipse version="3.4"?>
+<?eclipse version="3.8"?>
 <plugin>
     <!-- extend project explorer -->
     <extension

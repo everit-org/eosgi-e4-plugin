@@ -230,6 +230,20 @@ public class ProjectPackager {
     return new EOSGiWorkspaceReader(original, packagedArtifactContainer);
   }
 
+  public boolean isProjectPackagedAndUpToDate(final IMavenProjectFacade mavenProjectFacade,
+      final IProgressMonitor monitor) throws CoreException {
+
+    IProject eclipseProject = mavenProjectFacade.getProject();
+
+    if (packagedArtifactContainer.getProjectArtifacts(eclipseProject) != null) {
+      return true;
+    }
+
+    checkPackagingResultFile(mavenProjectFacade, monitor);
+
+    return packagedArtifactContainer.getProjectArtifacts(eclipseProject) != null;
+  }
+
   private boolean nonTargetFileExistThatIsChangedLater(final File basedir,
       final File buildDirectoryFile,
       final long oldestLastModified) {
@@ -267,18 +281,6 @@ public class ProjectPackager {
   public void packageProject(final IMavenProjectFacade mavenProjectFacade,
       final IProgressMonitor monitor) throws CoreException {
 
-    IProject eclipseProject = mavenProjectFacade.getProject();
-
-    if (packagedArtifactContainer.getProjectArtifacts(eclipseProject) != null) {
-      return;
-    }
-
-    checkPackagingResultFile(mavenProjectFacade, monitor);
-
-    if (packagedArtifactContainer.getProjectArtifacts(eclipseProject) != null) {
-      return;
-    }
-
     MavenExecutionContextModifiers modifiers = new MavenExecutionContextModifiers();
     modifiers.workspaceReaderReplacer = (original) -> createWorkspaceReader(original);
 
@@ -305,7 +307,7 @@ public class ProjectPackager {
 
       saveOrReplaceAttachedFilesDescription(mavenProject);
 
-      eclipseProject.refreshLocal(IProject.DEPTH_INFINITE, monitor1);
+      mavenProjectFacade.getProject().refreshLocal(IProject.DEPTH_INFINITE, monitor1);
 
       packagedArtifactContainer.putArtifactsOfMavenProject(mavenProjectFacade,
           new ProjectArtifacts(toAetherArtifact(mavenProject.getArtifact()),

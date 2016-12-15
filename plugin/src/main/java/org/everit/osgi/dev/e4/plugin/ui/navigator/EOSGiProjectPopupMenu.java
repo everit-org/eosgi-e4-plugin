@@ -65,10 +65,10 @@ public class EOSGiProjectPopupMenu extends ExtensionContributionFactory {
 
   private void addMenuItem(final String label, final String commandId,
       final IContributionRoot additions, final ImageDescriptor icon,
-      final IServiceLocator serviceLocator,
-      final Map<Object, Object> parameters) {
+      final IServiceLocator serviceLocator, final Map<Object, Object> parameters,
+      final boolean enabled) {
     CommandContributionItem menuItem =
-        createMenuItem(label, commandId, icon, serviceLocator, parameters);
+        createMenuItem(label, commandId, icon, serviceLocator, parameters, enabled);
     additions.addContributionItem(menuItem, Expression.TRUE);
   }
 
@@ -83,21 +83,24 @@ public class EOSGiProjectPopupMenu extends ExtensionContributionFactory {
             executableEnvironment.getRootFolder());
 
     if (runtimeInformations.isEmpty()) {
+      boolean launchInProgress = executableEnvironment.getEOSGiProject().isLaunchInProgress();
       addMenuItem("Start", COMMAND_ID_PREFIX + "start", additions, ICON_START, serviceLocator,
-          null);
+          null, !launchInProgress);
 
       addMenuItem("Debug", COMMAND_ID_PREFIX + "debug", additions, ICON_DEBUG, serviceLocator,
-          null);
+          null, !launchInProgress);
 
-      addMenuItem("Dist", COMMAND_ID_PREFIX + "dist", additions, ICON_DIST, serviceLocator, null);
+      addMenuItem("Dist", COMMAND_ID_PREFIX + "dist", additions, ICON_DIST, serviceLocator, null,
+          !launchInProgress);
       addSyncbackMenuItem(executableEnvironment, additions, serviceLocator);
 
       if (executableEnvironment.getRootFolder().exists()) {
         addMenuItem("Clean", COMMAND_ID_PREFIX + "clean", additions, ICON_CLEAN,
-            serviceLocator, null);
+            serviceLocator, null, !launchInProgress);
       }
     } else if (runtimeInformations.size() == 1) {
-      addMenuItem("Dist", COMMAND_ID_PREFIX + "dist", additions, ICON_DIST, serviceLocator, null);
+      addMenuItem("Dist", COMMAND_ID_PREFIX + "dist", additions, ICON_DIST, serviceLocator, null,
+          true);
       addSyncbackMenuItem(executableEnvironment, additions, serviceLocator);
 
       String vmId = runtimeInformations.iterator().next().virtualMachineId;
@@ -105,7 +108,7 @@ public class EOSGiProjectPopupMenu extends ExtensionContributionFactory {
       parameters.put(COMMAND_ID_PREFIX + "stopCommand.vmId", vmId);
 
       addMenuItem("Stop", COMMAND_ID_PREFIX + "stop", additions, ICON_STOP, serviceLocator,
-          parameters);
+          parameters, true);
     } else {
       addSyncbackMenuItem(executableEnvironment, additions, serviceLocator);
       MenuManager stopMainMenu = new MenuManager();
@@ -118,7 +121,8 @@ public class EOSGiProjectPopupMenu extends ExtensionContributionFactory {
         parameters.put(COMMAND_ID_PREFIX + "stopCommand.vmId", vmId);
 
         CommandContributionItem stopMenuItem =
-            createMenuItem(vmId, COMMAND_ID_PREFIX + "stop", null, serviceLocator, parameters);
+            createMenuItem(vmId, COMMAND_ID_PREFIX + "stop", null, serviceLocator, parameters,
+                true);
 
         stopMainMenu.add(stopMenuItem);
 
@@ -133,7 +137,7 @@ public class EOSGiProjectPopupMenu extends ExtensionContributionFactory {
 
     if (executableEnvironment.getRootFolder().exists()) {
       addMenuItem("SyncBack", COMMAND_ID_PREFIX + "syncback", additions, ICON_SYNCBACK,
-          serviceLocator, null);
+          serviceLocator, null, true);
     }
   }
 
@@ -151,7 +155,7 @@ public class EOSGiProjectPopupMenu extends ExtensionContributionFactory {
 
   private CommandContributionItem createMenuItem(final String label, final String commandId,
       final ImageDescriptor icon, final IServiceLocator serviceLocator,
-      final Map<?, ?> parameters) {
+      final Map<?, ?> parameters, final boolean enabled) {
 
     CommandContributionItemParameter parameter = new CommandContributionItemParameter(
         serviceLocator, null, commandId, CommandContributionItem.STYLE_PUSH);
@@ -162,7 +166,11 @@ public class EOSGiProjectPopupMenu extends ExtensionContributionFactory {
     if (parameters != null) {
       parameter.parameters = parameters;
     }
-    return new CommandContributionItem(parameter);
+    if (enabled) {
+      return new CommandContributionItem(parameter);
+    } else {
+      return new DisabledCommandContributionItem(parameter);
+    }
   }
 
   private Object getSingleSelection(final IServiceLocator serviceLocator) {
