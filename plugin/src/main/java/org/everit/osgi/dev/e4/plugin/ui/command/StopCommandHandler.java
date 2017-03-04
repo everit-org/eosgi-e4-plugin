@@ -26,6 +26,9 @@ import org.everit.osgi.dev.e4.plugin.EOSGiEclipsePlugin;
 import org.everit.osgi.dev.e4.plugin.ExecutableEnvironment;
 import org.everit.osgi.dev.e4.plugin.ui.navigator.EOSGiProjectPopupMenu;
 
+/**
+ * Stops a running EOSGi JVM.
+ */
 public class StopCommandHandler extends AbstractHandler {
 
   @Override

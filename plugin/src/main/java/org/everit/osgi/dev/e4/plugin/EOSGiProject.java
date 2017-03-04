@@ -74,6 +74,9 @@ import org.osgi.framework.Bundle;
  */
 public class EOSGiProject {
 
+  /**
+   * Identifier DTO for maven artifacts with equals and hashcode implementation.
+   */
   private static class GAV {
 
     String artifactId;
@@ -82,7 +85,13 @@ public class EOSGiProject {
 
     String version;
 
-    public GAV(final DependencyNode dependencyNode) {
+    /**
+     * Constructor.
+     *
+     * @param dependencyNode
+     *          The dependency node that is used to generate the identifier of the Maven module.
+     */
+    GAV(final DependencyNode dependencyNode) {
       Artifact artifact = dependencyNode.getArtifact();
       if (artifact != null) {
         this.groupId = artifact.getGroupId();
@@ -143,6 +152,8 @@ public class EOSGiProject {
   public static final String[] EOSGI_SORTED_ACCEPTED_GOAL_ARRAY =
       new String[] { "dist", "integration-test" };
 
+  private static final int WORK_TICK_SIZE = 10;
+
   private final EOSGiVMManager eosgiVMManager;
 
   private ExecutableEnvironmentContainer executableEnvironmentContainer;
@@ -161,16 +172,18 @@ public class EOSGiProject {
       final SubMonitor monitor) {
     try {
 
+      EOSGiEclipsePlugin.getDefault().getEOSGiManager().getTestResultTracker()
+          .updateDistTimestampOfEnvironment(executableEnvironment);
+
       SubMonitor distMonitor = monitor.split(1);
-      distMonitor.setWorkRemaining(10);
+      distMonitor.setWorkRemaining(WORK_TICK_SIZE);
 
       SubMonitor dependencyTreeAnalyzerMonitor = distMonitor.split(1);
       dependencyTreeAnalyzerMonitor.setTaskName("Analyzing dependency tree");
       dependencyTreeAnalyzerMonitor.setWorkRemaining(1);
 
       List<IMavenProjectFacade> dependenciesToPackage =
-          resolveNonUpToDateDependencies(executableEnvironment.getEnvironmentId(),
-              executableEnvironment.getExecutionId(), distMonitor);
+          resolveNonUpToDateDependencies(executableEnvironment.getEnvironmentId(), distMonitor);
 
       EOSGiEclipsePlugin eosgiEclipsePlugin = EOSGiEclipsePlugin.getDefault();
       ProjectPackager projectPackageUtil = eosgiEclipsePlugin.getProjectPackageUtil();
@@ -184,7 +197,8 @@ public class EOSGiProject {
         packagingNum++;
       }
 
-      SubMonitor packagingAllMonitor = distMonitor.split(8);
+      final int packageAnalyzeRatio = 8;
+      SubMonitor packagingAllMonitor = distMonitor.split(packageAnalyzeRatio);
       packagingAllMonitor.setWorkRemaining(packagingNum);
 
       packDependencies(dependenciesToPackage, packagingAllMonitor);
@@ -258,9 +272,10 @@ public class EOSGiProject {
       final SubMonitor monitor) {
 
     SubMonitor launchWithDistMonitor = monitor.split(1);
-    launchWithDistMonitor.setWorkRemaining(10);
+    launchWithDistMonitor.setWorkRemaining(WORK_TICK_SIZE);
 
-    SubMonitor distMonitor = launchWithDistMonitor.split(9);
+    final int launchTickAmount = 9;
+    SubMonitor distMonitor = launchWithDistMonitor.split(launchTickAmount);
     distMonitor.setWorkRemaining(1);
 
     atomicDist(executableEnvironment, distMonitor);
@@ -304,6 +319,14 @@ public class EOSGiProject {
     }
   }
 
+  /**
+   * Deleting the folder of an executable environment.
+   *
+   * @param executableEnvironment
+   *          The executable environment.
+   * @param monitor
+   *          Progress monitor.
+   */
   public void clean(final ExecutableEnvironment executableEnvironment,
       final IProgressMonitor monitor) {
 
@@ -318,6 +341,15 @@ public class EOSGiProject {
     // TODO stop launched vms
   }
 
+  /**
+   * Packages all modified dependencies that are on the workspace including the current project and
+   * calls the dist goal of the maven plugin..
+   *
+   * @param executableEnvironment
+   *          The executable environment.
+   * @param monitor
+   *          Progress monitor.
+   */
   public void dist(final ExecutableEnvironment executableEnvironment,
       final IProgressMonitor monitor) {
 
@@ -354,11 +386,20 @@ public class EOSGiProject {
     List<ExecutableEnvironment> defaultExecutableEnvironments = new ArrayList<>();
     String distFolder = resolveDistFolder(mojoExecution, monitor);
     File environmentRootFolder = new File(distFolder, DistConstants.DEFAULT_ENVIRONMENT_ID);
+    String testResultFolder = resolveTestResultFolder(mojoExecution, monitor);
+    File environmentTestResultFolder;
+
+    try {
+      environmentTestResultFolder =
+          new File(testResultFolder, DistConstants.DEFAULT_ENVIRONMENT_ID).getCanonicalFile();
+    } catch (IOException e) {
+      throw new UncheckedIOException(e);
+    }
 
     defaultExecutableEnvironments
         .add(new ExecutableEnvironment(DistConstants.DEFAULT_ENVIRONMENT_ID,
             mojoExecution.getExecutionId(), defaultExecution, this, environmentRootFolder,
-            DistConstants.DEFAULT_SHUTDOWN_TIMEOUT));
+            environmentTestResultFolder, DistConstants.DEFAULT_SHUTDOWN_TIMEOUT));
     return defaultExecutableEnvironments;
 
   }
@@ -423,12 +464,12 @@ public class EOSGiProject {
     }
   }
 
-  public synchronized void refresh(final IMavenProjectFacade mavenProjectFacade,
+  public synchronized void refresh(final IMavenProjectFacade newMavenProjectFacade,
       final IProgressMonitor monitor) {
 
     monitor.subTask("Resolving OSGi environments");
 
-    this.mavenProjectFacade = mavenProjectFacade;
+    this.mavenProjectFacade = newMavenProjectFacade;
     Set<ExecutableEnvironment> executableEnvironments = new TreeSet<>();
 
     MojoExecution defaultMojoExecution = resolvePlainPluginConfigMojoExecution(monitor);
@@ -481,7 +522,8 @@ public class EOSGiProject {
       if (isEOSGiExecution(mojoExecutionKey)) {
         try {
           MavenExecutionPlan executionPlan = maven.calculateExecutionPlan(mavenProject,
-              Arrays.asList("eosgi:dist@" + mojoExecutionKey.getExecutionId()), true, monitor);
+              Arrays.asList("eosgi:integration-test@" + mojoExecutionKey.getExecutionId()), true,
+              monitor);
 
           MojoExecution mojoExecution = executionPlan.getMojoExecutions().get(0);
           eosgiExecutions.add(mojoExecution);
@@ -509,15 +551,18 @@ public class EOSGiProject {
     }
     String distFolder = resolveDistFolder(mojoExecution, monitor);
     File distFolderFile = new File(distFolder);
+    String testResultFolder = resolveTestResultFolder(mojoExecution, monitor);
+    File testResultFolderFile = new File(testResultFolder);
 
     for (Xpp3Dom environmentNode : environmentsChildNodes) {
       Xpp3Dom environmentIdNode = environmentNode.getChild("id");
       if (environmentIdNode != null) {
         String environmentId = environmentIdNode.getValue();
         File environmentRootFolder = new File(distFolderFile, environmentId);
+        File environmentTestResultFolder = new File(testResultFolderFile, environmentId);
         result.add(
             new ExecutableEnvironment(environmentId, mojoExecution.getExecutionId(),
-                defaultExecution, this, environmentRootFolder,
+                defaultExecution, this, environmentRootFolder, environmentTestResultFolder,
                 resolveShutdownTimeout(environmentNode)));
       }
 
@@ -561,7 +606,7 @@ public class EOSGiProject {
   }
 
   private List<IMavenProjectFacade> resolveNonUpToDateDependencies(final String environmentId,
-      final String executionId, final IProgressMonitor monitor) throws CoreException {
+      final IProgressMonitor monitor) throws CoreException {
     Objects.requireNonNull(environmentId, "environmentName must be not null!");
 
     DependencyNode rootNode =
@@ -583,7 +628,8 @@ public class EOSGiProject {
 
       IMaven maven = MavenPlugin.getMaven();
       MavenExecutionPlan executionPlan =
-          maven.calculateExecutionPlan(mavenProject, Arrays.asList(new String[] { "eosgi:dist" }),
+          maven.calculateExecutionPlan(mavenProject,
+              Arrays.asList(new String[] { "eosgi:integration-test" }),
               true, monitor);
 
       List<MojoExecution> mojoExecutions = executionPlan.getMojoExecutions();
@@ -602,6 +648,16 @@ public class EOSGiProject {
       return DistConstants.DEFAULT_SHUTDOWN_TIMEOUT;
     }
     return Long.parseLong(shutdownTimeoutNode.getValue());
+  }
+
+  private String resolveTestResultFolder(final MojoExecution mojoExecution,
+      final IProgressMonitor monitor) {
+    try {
+      return M2EUtil.getParameterValue(mavenProjectFacade.getMavenProject(monitor),
+          "integrationTestTargetFolder", String.class, mojoExecution, monitor);
+    } catch (CoreException e) {
+      throw new RuntimeException(e);
+    }
   }
 
   public void syncBack(final ExecutableEnvironment executableEnvironment,

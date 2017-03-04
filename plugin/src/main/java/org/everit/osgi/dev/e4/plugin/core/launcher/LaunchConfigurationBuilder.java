@@ -54,16 +54,6 @@ public class LaunchConfigurationBuilder {
 
   private final ILaunchManager manager = DebugPlugin.getDefault().getLaunchManager();
 
-  /**
-   * Constructor.
-   *
-   * @param projectName
-   *          name of the project.
-   * @param environmentId
-   *          id of the environment
-   * @param buildDirectory
-   *          build directory of the project.
-   */
   public LaunchConfigurationBuilder() {
     ILog log = EOSGiEclipsePlugin.getDefault().getLog();
     eosgiLog = new EOSGiLog(log);
@@ -107,6 +97,22 @@ public class LaunchConfigurationBuilder {
 
     launchConfigDTO.vmArguments
         .add("-D" + DistConstants.SYSPROP_LAUNCH_UNIQUE_ID + "=" + launchUniqueId);
+    launchConfigDTO.vmArguments.add("-D" + EOSGiEclipsePlugin.SYSPROP_ECLIPSE_INSTANCE + '='
+        + EOSGiEclipsePlugin.ECLIPSE_INSTANCE);
+    launchConfigDTO.vmArguments.add("-D" + EOSGiEclipsePlugin.SYSPROP_TEST_RESULT_FOLDER + '='
+        + executableEnvironment.getTestResultFolder().getAbsolutePath());
+    launchConfigDTO.vmArguments.add("-D" + EOSGiEclipsePlugin.SYSPROP_ECLIPSE_PROJECT_NAME + '='
+        + executableEnvironment.getEOSGiProject().getMavenProjectFacade().getProject().getName());
+    launchConfigDTO.vmArguments.add("-D" + EOSGiEclipsePlugin.SYSPROP_START_TIMESTAMP + '='
+        + System.currentTimeMillis());
+    launchConfigDTO.vmArguments
+        .add("-D" + EOSGiEclipsePlugin.SYSPROP_START_TIMESTAMP + '=' + System.currentTimeMillis());
+
+    // TODO add testrunner constants
+    launchConfigDTO.vmArguments.add("-Deosgi.developmentMode=true");
+    launchConfigDTO.vmArguments
+        .add("-Deosgi.testResultFolder="
+            + executableEnvironment.getTestResultFolder().getAbsolutePath());
 
     updateCurrentLauncherConfigurationWorkingCopy(launchConfig, project,
         environmentId, workingDirectory, launchConfigDTO);

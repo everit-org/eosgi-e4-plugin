@@ -15,6 +15,8 @@
  */
 package org.everit.osgi.dev.e4.plugin;
 
+import java.util.UUID;
+
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.everit.osgi.dev.e4.plugin.m2e.packaging.ProjectPackager;
@@ -25,9 +27,19 @@ import org.osgi.framework.BundleContext;
  */
 public class EOSGiEclipsePlugin extends AbstractUIPlugin {
 
+  public static final String ECLIPSE_INSTANCE = UUID.randomUUID().toString();
+
   private static EOSGiEclipsePlugin plugin;
 
   public static final String PLUGIN_ID = "org.everit.osgi.dev.e4.plugin";
+
+  public static final String SYSPROP_ECLIPSE_INSTANCE = "eosgi.eclipseInstance";
+
+  public static final String SYSPROP_ECLIPSE_PROJECT_NAME = "eosgi.projectName";
+
+  public static final String SYSPROP_START_TIMESTAMP = "eosgi.startTimestamp";
+
+  public static final String SYSPROP_TEST_RESULT_FOLDER = "eosgi.testResultFolder";
 
   public static EOSGiEclipsePlugin getDefault() {
     return plugin;
@@ -69,8 +81,11 @@ public class EOSGiEclipsePlugin extends AbstractUIPlugin {
   public void stop(final BundleContext context) throws Exception {
     EOSGiEclipsePlugin.plugin = null;
     projectPackageUtil.close();
-    eosgiProjectManager.close();
-    super.stop(context);
+    try {
+      eosgiProjectManager.close();
+    } finally {
+      super.stop(context);
+    }
   }
 
 }

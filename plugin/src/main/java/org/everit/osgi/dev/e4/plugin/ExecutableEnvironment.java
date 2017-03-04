@@ -34,15 +34,18 @@ public class ExecutableEnvironment implements Comparable<ExecutableEnvironment> 
 
   private final long shutdownTimeout;
 
+  private final File testResultFolder;
+
   public ExecutableEnvironment(final String environmentId,
       final String executionId, final boolean defaultExecution,
-      final EOSGiProject eosgiProject, final File rootFolder,
+      final EOSGiProject eosgiProject, final File rootFolder, final File testResultFolder,
       final long shutdownTimeout) {
     this.environmentId = environmentId;
     this.executionId = executionId;
     this.defaultExecution = defaultExecution;
     this.eosgiProject = eosgiProject;
     this.rootFolder = rootFolder;
+    this.testResultFolder = testResultFolder;
     this.shutdownTimeout = shutdownTimeout;
   }
 
@@ -90,6 +93,10 @@ public class ExecutableEnvironment implements Comparable<ExecutableEnvironment> 
 
   public long getShutdownTimeout() {
     return shutdownTimeout;
+  }
+
+  public File getTestResultFolder() {
+    return testResultFolder;
   }
 
   public boolean isDefaultExecution() {

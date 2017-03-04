@@ -23,6 +23,9 @@ import org.eclipse.core.runtime.jobs.IJobFunction;
 import org.eclipse.core.runtime.jobs.Job;
 import org.everit.osgi.dev.e4.plugin.ExecutableEnvironment;
 
+/**
+ * Synchronizes the syncback folder back to the source folders.
+ */
 public class SyncbackCommandHandler extends AbstractHandler {
 
   @Override

@@ -29,6 +29,7 @@ import org.eclipse.m2e.core.MavenPlugin;
 import org.eclipse.m2e.core.project.IMavenProjectFacade;
 import org.everit.osgi.dev.dist.util.attach.EOSGiVMManager;
 import org.everit.osgi.dev.dist.util.attach.EOSGiVMManagerParameter;
+import org.everit.osgi.dev.e4.plugin.testresult.TestResultTracker;
 import org.everit.osgi.dev.e4.plugin.ui.navigator.DistLabelProvider;
 
 /**
@@ -48,9 +49,12 @@ public class EOSGiProjectManager {
 
   private final Map<DistLabelProvider, Boolean> labelProviders = new ConcurrentHashMap<>();
 
+  private final TestResultTracker testResultTracker;
+
   private final Runnable vmStateChangeHandler;
 
   public EOSGiProjectManager() {
+
     EOSGiVMManagerParameter vmManagerParam = new EOSGiVMManagerParameter();
     vmManagerParam.classLoader = EOSGiVMManager.class.getClassLoader();
     vmManagerParam.attachNotSupportedExceptionDuringRefreshEventHandler = (eventData) -> {
@@ -77,6 +81,8 @@ public class EOSGiProjectManager {
       }
     };
     eosgiVMManager.addStateChangeListener(vmStateChangeHandler);
+
+    this.testResultTracker = new TestResultTracker(eosgiVMManager);
 
     new Thread(() -> {
       boolean interrupted = false;
@@ -110,6 +116,7 @@ public class EOSGiProjectManager {
   public void close() {
     closed.set(true);
     eosgiVMManager.removeStateChangeListener(vmStateChangeHandler);
+    testResultTracker.close();
   }
 
   public synchronized EOSGiProject get(final IProject project, final IProgressMonitor monitor) {
@@ -129,6 +136,10 @@ public class EOSGiProjectManager {
 
   public EOSGiVMManager getEosgiVMManager() {
     return eosgiVMManager;
+  }
+
+  public TestResultTracker getTestResultTracker() {
+    return testResultTracker;
   }
 
   public synchronized void putOrOverride(final IMavenProjectFacade mavenProject,

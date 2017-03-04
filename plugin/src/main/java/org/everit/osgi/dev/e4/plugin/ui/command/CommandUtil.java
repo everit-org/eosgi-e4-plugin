@@ -63,6 +63,13 @@ public final class CommandUtil {
     return selectionObject;
   }
 
+  /**
+   * Resolves the EOSGi executable environment by a context menu click event.
+   *
+   * @param event
+   *          The event that happens if the user selects a context menu.
+   * @return The EOSGi executable environment.
+   */
   public static ExecutableEnvironment resolveExecutableEnvironment(final ExecutionEvent event) {
     Object applicationContext = event.getApplicationContext();
     if (!(applicationContext instanceof IEvaluationContext)) {

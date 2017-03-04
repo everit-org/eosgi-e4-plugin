@@ -23,6 +23,9 @@ import org.eclipse.core.runtime.jobs.IJobFunction;
 import org.eclipse.core.runtime.jobs.Job;
 import org.everit.osgi.dev.e4.plugin.ExecutableEnvironment;
 
+/**
+ * Handler for the clean context menu item.
+ */
 public class CleanCommandHandler extends AbstractHandler {
 
   @Override

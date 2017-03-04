@@ -34,12 +34,6 @@ public class ExecutableEnvironmentContainer {
         Collections.unmodifiableSet(new TreeSet<>(executableEnvironments));
   }
 
-  public ExecutableEnvironment getByEnvironmentIdAndExecutionId(final String environmentId,
-      final String executionId) {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
   public Set<ExecutableEnvironment> getExecutableEnvironments() {
     return executableEnvironments;
   }
