@@ -19,14 +19,16 @@
 <feature
       id="org.everit.osgi.dev.e4.feature"
       label="EOSGi Eclipse Plugin"
-      version="4.1.0"
+      version="4.1.1"
       provider-name="Everit Kft."
       os="linux,macosx,win32"
       ws="cocoa,gtk,win32"
       arch="x86,x86_64">
 
-   <description>
-      TEST Description.
+   <description url="http://everit.org/eosgi-e4-plugin">
+      EOSGi Eclipse plugin displays OSGi environments specified with
+eosgi-maven-plugin in the Project Explorer view of Eclipse and
+lets the user managing the environment by using a context menu.
    </description>
 
    <license url="http://www.apache.org/licenses/LICENSE-2.0">

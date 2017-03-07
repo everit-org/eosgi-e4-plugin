@@ -220,27 +220,22 @@ public class EOSGiProject {
       distGoalMonitor.setWorkRemaining(1);
       distGoalMonitor.setTaskName("Calling eosgi:dist on project: " + gav);
 
+      Bundle bundle = eosgiEclipsePlugin.getBundle();
+
       MavenExecutionContextModifiers modifiers = new MavenExecutionContextModifiers();
       modifiers.systemPropertiesReplacer = (originalProperties) -> {
         Properties systemProperties = new Properties();
         systemProperties.putAll(originalProperties);
         systemProperties.put(DistConstants.PLUGIN_PROPERTY_ENVIRONMENT_ID,
             executableEnvironment.getEnvironmentId());
+        systemProperties.setProperty("eosgi.analytics.referer",
+            bundle.getSymbolicName() + "_" + bundle.getVersion());
         return systemProperties;
       };
 
       modifiers.executionRequestDataModifier =
           (data) -> data.put(DistConstants.MAVEN_EXECUTION_REQUEST_DATA_KEY_ATTACH_API_CLASSLOADER,
               EOSGiVMManager.class.getClassLoader());
-
-      Bundle bundle = eosgiEclipsePlugin.getBundle();
-
-      modifiers.systemPropertiesReplacer = (properties) -> {
-        Properties newProps = new Properties(properties);
-        newProps.setProperty("eosgi.analytics.referer",
-            bundle.getSymbolicName() + "_" + bundle.getVersion());
-        return newProps;
-      };
 
       ProjectPackager packageUtil = projectPackageUtil;
       modifiers.workspaceReaderReplacer = (original) -> packageUtil.createWorkspaceReader(original);
@@ -387,14 +382,9 @@ public class EOSGiProject {
     String distFolder = resolveDistFolder(mojoExecution, monitor);
     File environmentRootFolder = new File(distFolder, DistConstants.DEFAULT_ENVIRONMENT_ID);
     String testResultFolder = resolveTestResultFolder(mojoExecution, monitor);
-    File environmentTestResultFolder;
 
-    try {
-      environmentTestResultFolder =
-          new File(testResultFolder, DistConstants.DEFAULT_ENVIRONMENT_ID).getCanonicalFile();
-    } catch (IOException e) {
-      throw new UncheckedIOException(e);
-    }
+    File environmentTestResultFolder =
+        resolveEnvironmentTestResultFolder(testResultFolder, DistConstants.DEFAULT_ENVIRONMENT_ID);
 
     defaultExecutableEnvironments
         .add(new ExecutableEnvironment(DistConstants.DEFAULT_ENVIRONMENT_ID,
@@ -459,7 +449,8 @@ public class EOSGiProject {
       try {
         projectPackageUtil.packageProject(mavenProjectFacade, new NullProgressMonitor());
       } catch (CoreException e) {
-        throw new RuntimeException(e);
+        throw new RuntimeException(
+            "Error during packaging dependency: " + mavenProjectFacade.toString(), e);
       }
     }
   }
@@ -500,6 +491,21 @@ public class EOSGiProject {
     } catch (CoreException e) {
       throw new RuntimeException(e);
     }
+  }
+
+  private File resolveEnvironmentTestResultFolder(final String testResultFolder,
+      final String environmentId) {
+    File environmentIntegrationTestFolderFolder = new File(testResultFolder, environmentId);
+
+    File environmentTestResultFolder;
+
+    try {
+      environmentTestResultFolder =
+          new File(environmentIntegrationTestFolderFolder, "test-result").getCanonicalFile();
+    } catch (IOException e) {
+      throw new UncheckedIOException(e);
+    }
+    return environmentTestResultFolder;
   }
 
   private Set<MojoExecution> resolveEOSGiExecutions(final IProgressMonitor monitor) {
@@ -552,14 +558,15 @@ public class EOSGiProject {
     String distFolder = resolveDistFolder(mojoExecution, monitor);
     File distFolderFile = new File(distFolder);
     String testResultFolder = resolveTestResultFolder(mojoExecution, monitor);
-    File testResultFolderFile = new File(testResultFolder);
 
     for (Xpp3Dom environmentNode : environmentsChildNodes) {
       Xpp3Dom environmentIdNode = environmentNode.getChild("id");
       if (environmentIdNode != null) {
         String environmentId = environmentIdNode.getValue();
         File environmentRootFolder = new File(distFolderFile, environmentId);
-        File environmentTestResultFolder = new File(testResultFolderFile, environmentId);
+        File environmentTestResultFolder =
+            resolveEnvironmentTestResultFolder(testResultFolder, environmentId);
+
         result.add(
             new ExecutableEnvironment(environmentId, mojoExecution.getExecutionId(),
                 defaultExecution, this, environmentRootFolder, environmentTestResultFolder,
@@ -607,7 +614,7 @@ public class EOSGiProject {
 
   private List<IMavenProjectFacade> resolveNonUpToDateDependencies(final String environmentId,
       final IProgressMonitor monitor) throws CoreException {
-    Objects.requireNonNull(environmentId, "environmentName must be not null!");
+    Objects.requireNonNull(environmentId, "environmentId must be not null!");
 
     DependencyNode rootNode =
         MavenPlugin.getMavenModelManager().readDependencyTree(mavenProjectFacade,
@@ -615,6 +622,8 @@ public class EOSGiProject {
 
     List<KeyWithNodes<GAV, DependencyNode>> flattenedDependencyTree =
         DEPENDENCY_TREE_FLATTENER.flatten(rootNode);
+
+    // FIXME add dependencies specified at environment level
 
     return resolveNonUpToDateDependencies(flattenedDependencyTree, monitor);
   }
