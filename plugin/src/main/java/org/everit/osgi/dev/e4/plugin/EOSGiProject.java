@@ -21,25 +21,24 @@ import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Properties;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import javax.annotation.Generated;
-
 import org.apache.commons.io.FileUtils;
 import org.apache.maven.lifecycle.MavenExecutionPlan;
 import org.apache.maven.plugin.MojoExecution;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
-import org.eclipse.aether.artifact.Artifact;
 import org.eclipse.aether.graph.DependencyNode;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.ResourcesPlugin;
@@ -73,77 +72,6 @@ import org.osgi.framework.Bundle;
  * {@link EOSGiProject} base implementation.
  */
 public class EOSGiProject {
-
-  /**
-   * Identifier DTO for maven artifacts with equals and hashcode implementation.
-   */
-  private static class GAV {
-
-    String artifactId;
-
-    String groupId;
-
-    String version;
-
-    /**
-     * Constructor.
-     *
-     * @param dependencyNode
-     *          The dependency node that is used to generate the identifier of the Maven module.
-     */
-    GAV(final DependencyNode dependencyNode) {
-      Artifact artifact = dependencyNode.getArtifact();
-      if (artifact != null) {
-        this.groupId = artifact.getGroupId();
-        this.artifactId = artifact.getArtifactId();
-        this.version = artifact.getBaseVersion();
-      } else {
-        this.groupId = null;
-        this.artifactId = null;
-        this.version = null;
-      }
-    }
-
-    @Override
-    @Generated("eclipse")
-    public boolean equals(final Object obj) {
-      if (this == obj)
-        return true;
-      if (obj == null)
-        return false;
-      if (getClass() != obj.getClass())
-        return false;
-      GAV other = (GAV) obj;
-      if (artifactId == null) {
-        if (other.artifactId != null)
-          return false;
-      } else if (!artifactId.equals(other.artifactId))
-        return false;
-      if (groupId == null) {
-        if (other.groupId != null)
-          return false;
-      } else if (!groupId.equals(other.groupId))
-        return false;
-      if (version == null) {
-        if (other.version != null)
-          return false;
-      } else if (!version.equals(other.version))
-        return false;
-      return true;
-    }
-
-    @Override
-    @Generated("eclipse")
-    public int hashCode() {
-      final int prime = 31;
-      int result = 1;
-      result = prime * result + ((artifactId == null) ? 0 : artifactId.hashCode());
-      result = prime * result + ((groupId == null) ? 0 : groupId.hashCode());
-      result = prime * result + ((version == null) ? 0 : version.hashCode());
-      return result;
-    }
-
-  }
 
   private static final DAGFlattener<GAV, DependencyNode> DEPENDENCY_TREE_FLATTENER =
       new DAGFlattener<>((dependencyNode) -> new GAV(dependencyNode),
@@ -332,6 +260,15 @@ public class EOSGiProject {
     }
   }
 
+  private Optional<GAV> convertCoordinatesToGAV(final String coordinates) {
+    if (coordinates == null) {
+      return Optional.empty();
+    }
+
+    // TODO Auto-generated method stub
+    return null;
+  }
+
   public void dispose() {
     // TODO stop launched vms
   }
@@ -387,9 +324,14 @@ public class EOSGiProject {
         resolveEnvironmentTestResultFolder(testResultFolder, DistConstants.DEFAULT_ENVIRONMENT_ID);
 
     defaultExecutableEnvironments
-        .add(new ExecutableEnvironment(DistConstants.DEFAULT_ENVIRONMENT_ID,
-            mojoExecution.getExecutionId(), defaultExecution, this, environmentRootFolder,
-            environmentTestResultFolder, DistConstants.DEFAULT_SHUTDOWN_TIMEOUT));
+        .add(new ExecutableEnvironment.Builder()
+            .withEnvironmentId(DistConstants.DEFAULT_ENVIRONMENT_ID)
+            .withExecutionId(mojoExecution.getExecutionId()).withDefaultExecution(defaultExecution)
+            .withEosgiProject(this)
+            .withRootFolder(environmentRootFolder).withTestResultFolder(environmentTestResultFolder)
+            .withShutdownTimeout(DistConstants.DEFAULT_SHUTDOWN_TIMEOUT)
+            .build());
+
     return defaultExecutableEnvironments;
 
   }
@@ -483,6 +425,29 @@ public class EOSGiProject {
         new ExecutableEnvironmentContainer(executableEnvironments);
   }
 
+  private Collection<GAV> resolveAdditionalGAVs(final Xpp3Dom environmentNode) {
+    Xpp3Dom artifactsNode = environmentNode.getChild("artifacts");
+    if (artifactsNode == null) {
+      return Collections.emptyList();
+    }
+
+    Xpp3Dom[] artifactsNodeChildren = artifactsNode.getChildren();
+    if (artifactsNodeChildren.length == 0) {
+      return Collections.emptyList();
+    }
+
+    Set<GAV> result = new LinkedHashSet<>();
+    for (Xpp3Dom artifactsNodeChild : artifactsNodeChildren) {
+      Xpp3Dom coordinatesNode = artifactsNodeChild.getChild("coordinates");
+
+      if (coordinatesNode != null) {
+        String coordinates = coordinatesNode.getValue();
+        convertCoordinatesToGAV(coordinates).ifPresent(gav -> result.add(gav));
+      }
+    }
+    return result;
+  }
+
   private String resolveDistFolder(final MojoExecution mojoExecution,
       final IProgressMonitor monitor) {
     try {
@@ -567,10 +532,17 @@ public class EOSGiProject {
         File environmentTestResultFolder =
             resolveEnvironmentTestResultFolder(testResultFolder, environmentId);
 
-        result.add(
-            new ExecutableEnvironment(environmentId, mojoExecution.getExecutionId(),
-                defaultExecution, this, environmentRootFolder, environmentTestResultFolder,
-                resolveShutdownTimeout(environmentNode)));
+        ExecutableEnvironment executableEnvironment =
+            new ExecutableEnvironment.Builder().withEnvironmentId(environmentId)
+                .withExecutionId(mojoExecution.getExecutionId())
+                .withDefaultExecution(defaultExecution).withEosgiProject(this)
+                .withRootFolder(environmentRootFolder)
+                .withTestResultFolder(environmentTestResultFolder)
+                .withShutdownTimeout(resolveShutdownTimeout(environmentNode))
+                .withAdditionalArtifactGAVs(resolveAdditionalGAVs(environmentNode))
+                .build();
+
+        result.add(executableEnvironment);
       }
 
     }
