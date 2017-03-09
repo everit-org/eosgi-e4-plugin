@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.ListIterator;
@@ -96,6 +97,42 @@ public class EOSGiProject {
     refresh(mavenProjectFacade, monitor);
   }
 
+  private void addNonUpToDateDependenciesSpecifiedAtEnvironmentLevel(
+      final Collection<IMavenProjectFacade> dependenciesToPackage,
+      final ExecutableEnvironment executableEnvironment, final SubMonitor monitor)
+      throws CoreException {
+
+    Collection<GAV> additionalGAVs = executableEnvironment.getAdditionalArtifactGAVs();
+
+    if (additionalGAVs.isEmpty()) {
+      return;
+    }
+
+    Set<GAV> alreadyAddedGAV = new HashSet<>();
+    for (IMavenProjectFacade mavenProjectFacade : dependenciesToPackage) {
+      ArtifactKey artifactKey = mavenProjectFacade.getArtifactKey();
+      alreadyAddedGAV.add(
+          new GAV(artifactKey.getGroupId(), artifactKey.getArtifactId(), artifactKey.getVersion()));
+    }
+
+    IMavenProjectRegistry mavenProjectRegistry = MavenPlugin.getMavenProjectRegistry();
+    ProjectPackager projectPackageUtil = EOSGiEclipsePlugin.getDefault().getProjectPackageUtil();
+
+    for (GAV gav : additionalGAVs) {
+      if (!alreadyAddedGAV.contains(gav)) {
+        IMavenProjectFacade mavenProject =
+            mavenProjectRegistry.getMavenProject(gav.groupId, gav.artifactId, gav.version);
+
+        if (mavenProject != null
+            && !projectPackageUtil.isProjectPackagedAndUpToDate(mavenProject, monitor)) {
+
+          dependenciesToPackage.add(mavenProject);
+        }
+        alreadyAddedGAV.add(gav);
+      }
+    }
+  }
+
   private void atomicDist(final ExecutableEnvironment executableEnvironment,
       final SubMonitor monitor) {
     try {
@@ -110,8 +147,11 @@ public class EOSGiProject {
       dependencyTreeAnalyzerMonitor.setTaskName("Analyzing dependency tree");
       dependencyTreeAnalyzerMonitor.setWorkRemaining(1);
 
-      List<IMavenProjectFacade> dependenciesToPackage =
+      Collection<IMavenProjectFacade> dependenciesToPackage =
           resolveNonUpToDateDependencies(executableEnvironment.getEnvironmentId(), distMonitor);
+
+      addNonUpToDateDependenciesSpecifiedAtEnvironmentLevel(dependenciesToPackage,
+          executableEnvironment, monitor);
 
       EOSGiEclipsePlugin eosgiEclipsePlugin = EOSGiEclipsePlugin.getDefault();
       ProjectPackager projectPackageUtil = eosgiEclipsePlugin.getProjectPackageUtil();
@@ -148,50 +188,13 @@ public class EOSGiProject {
       distGoalMonitor.setWorkRemaining(1);
       distGoalMonitor.setTaskName("Calling eosgi:dist on project: " + gav);
 
-      Bundle bundle = eosgiEclipsePlugin.getBundle();
-
-      MavenExecutionContextModifiers modifiers = new MavenExecutionContextModifiers();
-      modifiers.systemPropertiesReplacer = (originalProperties) -> {
-        Properties systemProperties = new Properties();
-        systemProperties.putAll(originalProperties);
-        systemProperties.put(DistConstants.PLUGIN_PROPERTY_ENVIRONMENT_ID,
-            executableEnvironment.getEnvironmentId());
-        systemProperties.setProperty("eosgi.analytics.referer",
-            bundle.getSymbolicName() + "_" + bundle.getVersion());
-        return systemProperties;
-      };
-
-      modifiers.executionRequestDataModifier =
-          (data) -> data.put(DistConstants.MAVEN_EXECUTION_REQUEST_DATA_KEY_ATTACH_API_CLASSLOADER,
-              EOSGiVMManager.class.getClassLoader());
-
-      ProjectPackager packageUtil = projectPackageUtil;
-      modifiers.workspaceReaderReplacer = (original) -> packageUtil.createWorkspaceReader(original);
-
-      M2EUtil.executeInContext(mavenProjectFacade, modifiers, (context, monitor1) -> {
-
-        String executionId = executableEnvironment.getExecutionId();
-        String goal = "eosgi:dist" + "@" + executionId;
-
-        MavenProject mavenProject = mavenProjectFacade.getMavenProject(monitor1);
-        packageUtil.setArtifactsOnMavenProject(mavenProject, mavenProjectFacade.getProject());
-
-        MavenExecutionPlan executionPlan =
-            MavenPlugin.getMaven().calculateExecutionPlan(mavenProject, Arrays.asList(goal), true,
-                distGoalMonitor);
-
-        executeExecutionPlan(mavenProject, executionPlan, monitor1);
-
-        checkExecutionResultExceptions(context);
-
-        return null;
-      }, new NullProgressMonitor());
+      executeDistWithMaven(executableEnvironment, distGoalMonitor);
     } catch (CoreException e) {
       throw new RuntimeException(e);
     }
   }
 
-  public void atomicLaunch(final ExecutableEnvironment executableEnvironment, final String mode,
+  private void atomicLaunch(final ExecutableEnvironment executableEnvironment, final String mode,
       final SubMonitor monitor) {
 
     SubMonitor launchWithDistMonitor = monitor.split(1);
@@ -265,8 +268,13 @@ public class EOSGiProject {
       return Optional.empty();
     }
 
-    // TODO Auto-generated method stub
-    return null;
+    String[] coordinateParts = coordinates.split(":");
+    final int gavPartCount = 3;
+    if (coordinateParts.length < gavPartCount) {
+      return Optional.empty();
+    }
+
+    return Optional.of(new GAV(coordinateParts[0], coordinateParts[1], coordinateParts[2]));
   }
 
   public void dispose() {
@@ -295,6 +303,49 @@ public class EOSGiProject {
     }
   }
 
+  private void executeDistWithMaven(final ExecutableEnvironment executableEnvironment,
+      final SubMonitor distGoalMonitor) throws CoreException {
+    EOSGiEclipsePlugin eosgiEclipsePlugin = EOSGiEclipsePlugin.getDefault();
+    Bundle bundle = eosgiEclipsePlugin.getBundle();
+
+    MavenExecutionContextModifiers modifiers = new MavenExecutionContextModifiers();
+    modifiers.systemPropertiesReplacer = (originalProperties) -> {
+      Properties systemProperties = new Properties();
+      systemProperties.putAll(originalProperties);
+      systemProperties.put(DistConstants.PLUGIN_PROPERTY_ENVIRONMENT_ID,
+          executableEnvironment.getEnvironmentId());
+      systemProperties.setProperty("eosgi.analytics.referer",
+          bundle.getSymbolicName() + "_" + bundle.getVersion());
+      return systemProperties;
+    };
+
+    modifiers.executionRequestDataModifier =
+        (data) -> data.put(DistConstants.MAVEN_EXECUTION_REQUEST_DATA_KEY_ATTACH_API_CLASSLOADER,
+            EOSGiVMManager.class.getClassLoader());
+
+    ProjectPackager packageUtil = eosgiEclipsePlugin.getProjectPackageUtil();
+    modifiers.workspaceReaderReplacer = (original) -> packageUtil.createWorkspaceReader(original);
+
+    M2EUtil.executeInContext(mavenProjectFacade, modifiers, (context, monitor1) -> {
+
+      String executionId = executableEnvironment.getExecutionId();
+      String goal = "eosgi:dist" + '@' + executionId;
+
+      MavenProject mavenProject = mavenProjectFacade.getMavenProject(monitor1);
+      packageUtil.setArtifactsOnMavenProject(mavenProject, mavenProjectFacade.getProject());
+
+      MavenExecutionPlan executionPlan =
+          MavenPlugin.getMaven().calculateExecutionPlan(mavenProject, Arrays.asList(goal), true,
+              distGoalMonitor);
+
+      executeExecutionPlan(mavenProject, executionPlan, monitor1);
+
+      checkExecutionResultExceptions(context);
+
+      return null;
+    }, new NullProgressMonitor());
+  }
+
   private void executeExecutionPlan(final MavenProject mavenProject,
       final MavenExecutionPlan executionPlan,
       final IProgressMonitor monitor) {
@@ -312,7 +363,7 @@ public class EOSGiProject {
     }
   }
 
-  public List<ExecutableEnvironment> getDefaultExecutableEnvironmentList(
+  private List<ExecutableEnvironment> getDefaultExecutableEnvironmentList(
       final MojoExecution mojoExecution, final boolean defaultExecution,
       final IProgressMonitor monitor) {
     List<ExecutableEnvironment> defaultExecutableEnvironments = new ArrayList<>();
@@ -376,7 +427,7 @@ public class EOSGiProject {
     }
   }
 
-  private void packDependencies(final List<IMavenProjectFacade> dependencies,
+  private void packDependencies(final Collection<IMavenProjectFacade> dependencies,
       final SubMonitor monitor) {
 
     ProjectPackager projectPackageUtil = EOSGiEclipsePlugin.getDefault().getProjectPackageUtil();
@@ -594,8 +645,6 @@ public class EOSGiProject {
 
     List<KeyWithNodes<GAV, DependencyNode>> flattenedDependencyTree =
         DEPENDENCY_TREE_FLATTENER.flatten(rootNode);
-
-    // FIXME add dependencies specified at environment level
 
     return resolveNonUpToDateDependencies(flattenedDependencyTree, monitor);
   }
