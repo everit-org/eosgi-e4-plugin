@@ -156,9 +156,10 @@
   <extension point="org.eclipse.debug.core.launchConfigurationTypes">
    <launchConfigurationType
          delegate="org.everit.osgi.dev.e4.plugin.core.launcher.EOSGILaunchConfigurationDelegate"
+         delegateName="Everit OSGi Launcher"
          id="org.everit.osgi.dev.e4.plugin.core.launcher.launchConfigurationType"
-         modes="run,debug"
-         name="%name.eosgiLaunchConfiguration"
+         modes="run"
+         name="Everit OSGi Launcher"
          public="false"
          sourcePathComputerId="org.eclipse.jdt.launching.sourceLookup.javaSourcePathComputer"/>
   </extension>
@@ -186,5 +187,19 @@
            class="org.everit.osgi.dev.e4.plugin.core.launcher.EOSGiSourcePathProvider"
            id="org.everit.osgi.dev.e4.plugin.core.launcher.sourcepathProvider">
      </classpathProvider>
+  </extension>
+  <extension
+        point="org.eclipse.debug.core.launchDelegates">
+     <launchDelegate
+           delegate="org.everit.osgi.dev.e4.plugin.core.launcher.EOSGILaunchConfigurationDelegate"
+           id="org.everit.osgi.dev.e4.plugin.launchDelegate"
+           modes="debug"
+           name="Everit OSGi Debugger"
+           type="org.everit.osgi.dev.e4.plugin.core.launcher.launchConfigurationType">
+        <modeCombination
+              modes="debug"
+              perspective="org.eclipse.debug.ui.DebugPerspective">
+        </modeCombination>
+     </launchDelegate>
   </extension>
 </plugin>
