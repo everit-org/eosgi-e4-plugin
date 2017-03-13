@@ -15,10 +15,15 @@
  */
 package org.everit.osgi.dev.e4.plugin.ui.command;
 
+import javax.management.InstanceNotFoundException;
+
 import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
-import org.eclipse.core.runtime.jobs.Job;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
+import org.everit.osgi.dev.e4.plugin.EOSGiEclipsePlugin;
 import org.everit.osgi.dev.e4.plugin.ExecutableEnvironment;
 
 /**
@@ -28,14 +33,37 @@ public class DistCommandHandler extends AbstractHandler {
 
   @Override
   public Object execute(final ExecutionEvent event) throws ExecutionException {
-    ExecutableEnvironment executableEnvironment = CommandUtil.resolveExecutableEnvironment(event);
-
-    Job job = Job.create("Distributing changes to OSGi Environment",
-        monitor -> executableEnvironment.getEOSGiProject().dist(executableEnvironment, monitor));
-
-    job.schedule();
+    CommandUtil.executeInJobWithErrorHandling(event,
+        "Distributing changes to OSGi Environment",
+        (executableEnvironment, monitor) -> {
+          try {
+            executableEnvironment.getEOSGiProject().dist(executableEnvironment, monitor);
+          } catch (CoreException e) {
+            throw replaceCoreExceptionIfItComesFromInstanceNotFound(executableEnvironment, e);
+          }
+        });
 
     return null;
+  }
+
+  private CoreException replaceCoreExceptionIfItComesFromInstanceNotFound(
+      final ExecutableEnvironment executableEnvironment, final CoreException e) {
+    IStatus status = e.getStatus();
+    Throwable cause = status.getException();
+    while (cause != null) {
+      if (cause instanceof InstanceNotFoundException) {
+        return new CoreException(
+            new Status(IStatus.ERROR, EOSGiEclipsePlugin.PLUGIN_ID,
+                "Cannot distrubute changes to environment '"
+                    + executableEnvironment.getExecutionId() + "' of project '"
+                    + executableEnvironment.getEOSGiProject().getMavenProjectFacade().getProject()
+                        .getName()
+                    + "': " + cause.getMessage(),
+                cause));
+      }
+      cause = cause.getCause();
+    }
+    return e;
   }
 
 }

@@ -20,9 +20,13 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IProjectDescription;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.jface.dialogs.ErrorDialog;
 import org.eclipse.m2e.core.project.IMavenProjectChangedListener;
 import org.eclipse.m2e.core.project.IMavenProjectFacade;
 import org.eclipse.m2e.core.project.MavenProjectChangedEvent;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Shell;
 import org.everit.osgi.dev.e4.plugin.EOSGiEclipsePlugin;
 import org.everit.osgi.dev.e4.plugin.EOSGiNature;
 
@@ -67,7 +71,15 @@ public class EOSGiMavenProjectChangeListener implements IMavenProjectChangedList
             EOSGiEclipsePlugin.getDefault().getEOSGiManager().putOrOverride(mavenProject, monitor);
           }
         } catch (CoreException e) {
-          throw new RuntimeException(e);
+          IStatus status = e.getStatus();
+          EOSGiEclipsePlugin.getDefault().getLog().log(status);
+          Display.getDefault().asyncExec(() -> {
+            Shell shell = new Shell();
+            ErrorDialog.openError(shell, "Error",
+                "Could not refresh project by EOSGi Eclipse plugin: "
+                    + mavenProject.getProject().getName(),
+                status);
+          });
         }
       }
     }

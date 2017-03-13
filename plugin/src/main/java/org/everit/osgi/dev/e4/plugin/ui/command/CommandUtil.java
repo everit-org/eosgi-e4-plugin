@@ -19,8 +19,14 @@ import java.util.Iterator;
 
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.expressions.IEvaluationContext;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.jobs.Job;
+import org.eclipse.jface.dialogs.ErrorDialog;
 import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.ISources;
+import org.everit.osgi.dev.e4.plugin.EOSGiEclipsePlugin;
 import org.everit.osgi.dev.e4.plugin.ExecutableEnvironment;
 
 /**
@@ -28,6 +34,43 @@ import org.everit.osgi.dev.e4.plugin.ExecutableEnvironment;
  *
  */
 public final class CommandUtil {
+
+  /**
+   * Executes an action on an {@link ExecutableEnvironment} within a job and handling
+   * {@link CoreException}s by showing an {@link ErrorDialog}.
+   *
+   * @param event
+   *          The command executionEvent that caused this action.
+   * @param jobTitle
+   *          The title of the job.
+   * @param action
+   *          The action that should be executed within the job.
+   */
+  public static void executeInJobWithErrorHandling(final ExecutionEvent event,
+      final String jobTitle, final ExecutableEnvironmentAction action) {
+
+    ExecutableEnvironment executableEnvironment = CommandUtil.resolveExecutableEnvironment(event);
+
+    Job job = Job.create(jobTitle, (monitor) -> {
+      try {
+        action.run(executableEnvironment, monitor);
+      } catch (CoreException e) {
+        EOSGiEclipsePlugin.getDefault().getLog().log(e.getStatus());
+        Display.getDefault().asyncExec(() -> {
+          Shell shell = new Shell();
+          ErrorDialog.openError(shell, "Error",
+              "Error during executing job '" + jobTitle + "' on environment '"
+                  + executableEnvironment.getEnvironmentId() + "' of project '"
+                  + executableEnvironment.getEOSGiProject().getMavenProjectFacade().getProject()
+                      .getName()
+                  + "'. See Error Log for more details!",
+              e.getStatus());
+        });
+      }
+    });
+    job.schedule();
+
+  }
 
   /**
    * Gets the single selection from an evaluation context. E.g.: The selected item in case of a

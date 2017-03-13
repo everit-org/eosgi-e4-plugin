@@ -119,17 +119,13 @@ public class EOSGiProjectManager {
     testResultTracker.close();
   }
 
-  public synchronized EOSGiProject get(final IProject project, final IProgressMonitor monitor) {
+  public synchronized EOSGiProject get(final IProject project, final IProgressMonitor monitor)
+      throws CoreException {
+
     EOSGiProject eosgiProject = eosgiProjects.get(project);
-    if (eosgiProject == null) {
-      try {
-        if (project.getNature(EOSGiNature.NATURE_ID) != null) {
-          putOrOverride(MavenPlugin.getMavenProjectRegistry().getProject(project), monitor);
-          eosgiProject = eosgiProjects.get(project);
-        }
-      } catch (CoreException e) {
-        throw new RuntimeException(e);
-      }
+    if (eosgiProject == null && project.getNature(EOSGiNature.NATURE_ID) != null) {
+      putOrOverride(MavenPlugin.getMavenProjectRegistry().getProject(project), monitor);
+      eosgiProject = eosgiProjects.get(project);
     }
     return eosgiProject;
   }
@@ -143,7 +139,7 @@ public class EOSGiProjectManager {
   }
 
   public synchronized void putOrOverride(final IMavenProjectFacade mavenProject,
-      final IProgressMonitor monitor) {
+      final IProgressMonitor monitor) throws CoreException {
     EOSGiProject eosgiProject = eosgiProjects.get(mavenProject.getProject());
     if (eosgiProject != null) {
       checkEOSGiVMManagerUpToDate();
@@ -163,7 +159,7 @@ public class EOSGiProjectManager {
   }
 
   private EOSGiProject resolveProject(final IMavenProjectFacade mavenProject,
-      final IProgressMonitor monitor) {
+      final IProgressMonitor monitor) throws CoreException {
 
     checkEOSGiVMManagerUpToDate();
     EOSGiProject eosgiProject =

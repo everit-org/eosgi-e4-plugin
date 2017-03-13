@@ -18,10 +18,15 @@ package org.everit.osgi.dev.e4.plugin.ui.navigator;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.SubMonitor;
 import org.eclipse.core.runtime.jobs.Job;
+import org.eclipse.jface.dialogs.ErrorDialog;
 import org.eclipse.jface.viewers.TreeNodeContentProvider;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Shell;
 import org.everit.osgi.dev.e4.plugin.EOSGiEclipsePlugin;
 import org.everit.osgi.dev.e4.plugin.EOSGiProject;
 import org.everit.osgi.dev.e4.plugin.ExecutableEnvironmentContainer;
@@ -41,14 +46,28 @@ public class DistContentProvider extends TreeNodeContentProvider {
       }
 
       String taskName = "Getting EOSGi information of project: " + project.getName();
+
       Job job =
           Job.create(taskName, (monitor) -> {
             SubMonitor subMonitor = SubMonitor.convert(monitor, taskName, 1);
-            EOSGiProject eosgiProject =
-                EOSGiEclipsePlugin.getDefault().getEOSGiManager().get(project, subMonitor);
 
-            eosgiProjectReference.set(eosgiProject);
-            return Status.OK_STATUS;
+            try {
+              EOSGiProject eosgiProject =
+                  EOSGiEclipsePlugin.getDefault().getEOSGiManager().get(project, subMonitor);
+              eosgiProjectReference.set(eosgiProject);
+              return Status.OK_STATUS;
+            } catch (CoreException e) {
+              IStatus status = e.getStatus();
+              Display.getDefault().asyncExec(() -> {
+                Shell shell = new Shell();
+                ErrorDialog.openError(shell, "Error",
+                    "Error during refreshing content in Project Explorer for project: "
+                        + project.getName(),
+                    status);
+              });
+              return status;
+            }
+
           });
       job.schedule();
       try {

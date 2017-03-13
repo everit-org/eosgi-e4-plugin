@@ -18,9 +18,7 @@ package org.everit.osgi.dev.e4.plugin.ui.command;
 import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
-import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.debug.core.ILaunchManager;
-import org.everit.osgi.dev.e4.plugin.ExecutableEnvironment;
 
 /**
  * Command handler that launches an OSGi environment.
@@ -30,12 +28,9 @@ public class StartCommandHandler extends AbstractHandler {
 
   @Override
   public Object execute(final ExecutionEvent event) throws ExecutionException {
-    ExecutableEnvironment executableEnvironment = CommandUtil.resolveExecutableEnvironment(event);
-
-    Job job = Job.create("Launching OSGi Environment",
-        monitor -> executableEnvironment.getEOSGiProject().launch(executableEnvironment,
-            ILaunchManager.RUN_MODE, monitor));
-    job.schedule();
+    CommandUtil.executeInJobWithErrorHandling(event, "Launching OSGi Enviroment",
+        (executableEnvironment, monitor) -> executableEnvironment.getEOSGiProject().launch(
+            executableEnvironment, ILaunchManager.RUN_MODE, monitor));
 
     return null;
   }

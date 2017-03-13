@@ -13,16 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.everit.osgi.dev.e4.plugin.m2e;
+package org.everit.osgi.dev.e4.plugin.ui.command;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.everit.osgi.dev.e4.plugin.ExecutableEnvironment;
 
 /**
- * Helper functional interface that is the same as the one introduced in Eclipse Neon. It is here to
- * be able to keep backward compatibility with Eclipse Mars.
+ * Functional interface to run commands in jobs with error handling.
  */
-public interface ICoreRunnable {
+public interface ExecutableEnvironmentAction {
 
-  void run(IProgressMonitor monitor) throws CoreException;
+  void run(ExecutableEnvironment executableEnvironment, IProgressMonitor monitor)
+      throws CoreException;
 }

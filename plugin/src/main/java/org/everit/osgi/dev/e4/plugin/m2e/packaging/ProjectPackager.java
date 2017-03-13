@@ -44,7 +44,6 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.m2e.core.MavenPlugin;
 import org.eclipse.m2e.core.embedder.IMaven;
-import org.eclipse.m2e.core.embedder.IMavenExecutionContext;
 import org.eclipse.m2e.core.project.IMavenProjectFacade;
 import org.everit.osgi.dev.e4.plugin.m2e.M2EUtil;
 import org.everit.osgi.dev.e4.plugin.m2e.MavenExecutionContextModifiers;
@@ -80,20 +79,6 @@ public class ProjectPackager {
       appendedToProps = false;
     }
     return appendedToProps;
-  }
-
-  private void checkExecutionResultExceptions(final IMavenExecutionContext context) {
-    List<Throwable> exceptions = context.getSession().getResult().getExceptions();
-    if (exceptions.size() > 0) {
-      Throwable throwable = exceptions.get(0);
-      if (exceptions instanceof RuntimeException) {
-        throw (RuntimeException) throwable;
-      } else if (exceptions instanceof Error) {
-        throw (Error) throwable;
-      } else {
-        throw new RuntimeException(throwable);
-      }
-    }
   }
 
   private void checkPackagingResultFile(final IMavenProjectFacade mavenProjectFacade,
@@ -300,7 +285,8 @@ public class ProjectPackager {
           if (!SKIPPED_LIFECYCLE_PHASES.contains(mojoExecution.getLifecyclePhase())) {
             maven.execute(mavenProject, mojoExecution, monitor);
 
-            checkExecutionResultExceptions(context);
+            M2EUtil.checkExecutionResultExceptions(context,
+                "Error during packaging project: " + mavenProjectFacade.getProject().getName());
           }
         }
       }, monitor);
