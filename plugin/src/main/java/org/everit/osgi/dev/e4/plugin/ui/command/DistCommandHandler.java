@@ -55,7 +55,7 @@ public class DistCommandHandler extends AbstractHandler {
         return new CoreException(
             new Status(IStatus.ERROR, EOSGiEclipsePlugin.PLUGIN_ID,
                 "Cannot distrubute changes to environment '"
-                    + executableEnvironment.getExecutionId() + "' of project '"
+                    + executableEnvironment.getEnvironmentId() + "' of project '"
                     + executableEnvironment.getEOSGiProject().getMavenProjectFacade().getProject()
                         .getName()
                     + "': " + cause.getMessage(),
