@@ -44,7 +44,6 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.m2e.core.MavenPlugin;
 import org.eclipse.m2e.core.embedder.IMaven;
-import org.eclipse.m2e.core.embedder.IMavenExecutionContext;
 import org.eclipse.m2e.core.project.IMavenProjectFacade;
 import org.everit.osgi.dev.e4.plugin.m2e.M2EUtil;
 import org.everit.osgi.dev.e4.plugin.m2e.MavenExecutionContextModifiers;
@@ -80,20 +79,6 @@ public class ProjectPackager {
       appendedToProps = false;
     }
     return appendedToProps;
-  }
-
-  private void checkExecutionResultExceptions(final IMavenExecutionContext context) {
-    List<Throwable> exceptions = context.getSession().getResult().getExceptions();
-    if (exceptions.size() > 0) {
-      Throwable throwable = exceptions.get(0);
-      if (exceptions instanceof RuntimeException) {
-        throw (RuntimeException) throwable;
-      } else if (exceptions instanceof Error) {
-        throw (Error) throwable;
-      } else {
-        throw new RuntimeException(throwable);
-      }
-    }
   }
 
   private void checkPackagingResultFile(final IMavenProjectFacade mavenProjectFacade,
@@ -157,13 +142,13 @@ public class ProjectPackager {
         oldestLastModified)) {
       descriptionFile.delete();
     } else {
-      packagedArtifactContainer.putArtifactsOfMavenProject(mavenProjectFacade,
+      this.packagedArtifactContainer.putArtifactsOfMavenProject(mavenProjectFacade,
           new ProjectArtifacts(projectArtifact, attachedArtifacts));
     }
   }
 
   public void close() {
-    ResourcesPlugin.getWorkspace().removeResourceChangeListener(changedProjectTracker);
+    ResourcesPlugin.getWorkspace().removeResourceChangeListener(this.changedProjectTracker);
 
   }
 
@@ -227,7 +212,7 @@ public class ProjectPackager {
   }
 
   public WorkspaceReader createWorkspaceReader(final WorkspaceReader original) {
-    return new EOSGiWorkspaceReader(original, packagedArtifactContainer);
+    return new EOSGiWorkspaceReader(original, this.packagedArtifactContainer);
   }
 
   public boolean isProjectPackagedAndUpToDate(final IMavenProjectFacade mavenProjectFacade,
@@ -235,13 +220,13 @@ public class ProjectPackager {
 
     IProject eclipseProject = mavenProjectFacade.getProject();
 
-    if (packagedArtifactContainer.getProjectArtifacts(eclipseProject) != null) {
+    if (this.packagedArtifactContainer.getProjectArtifacts(eclipseProject) != null) {
       return true;
     }
 
     checkPackagingResultFile(mavenProjectFacade, monitor);
 
-    return packagedArtifactContainer.getProjectArtifacts(eclipseProject) != null;
+    return this.packagedArtifactContainer.getProjectArtifacts(eclipseProject) != null;
   }
 
   private boolean nonTargetFileExistThatIsChangedLater(final File basedir,
@@ -269,13 +254,13 @@ public class ProjectPackager {
   }
 
   public void open() {
-    changedProjectTracker = new ChangedProjectTracker(
+    this.changedProjectTracker = new ChangedProjectTracker(
         (eclipseProject) -> {
-          packagedArtifactContainer.removeArtifactFiles(eclipseProject);
+          this.packagedArtifactContainer.removeArtifactFiles(eclipseProject);
         },
-        (eclipseProject) -> packagedArtifactContainer.getProjectArtifacts(eclipseProject));
+        (eclipseProject) -> this.packagedArtifactContainer.getProjectArtifacts(eclipseProject));
 
-    ResourcesPlugin.getWorkspace().addResourceChangeListener(changedProjectTracker);
+    ResourcesPlugin.getWorkspace().addResourceChangeListener(this.changedProjectTracker);
   }
 
   public void packageProject(final IMavenProjectFacade mavenProjectFacade,
@@ -300,7 +285,8 @@ public class ProjectPackager {
           if (!SKIPPED_LIFECYCLE_PHASES.contains(mojoExecution.getLifecyclePhase())) {
             maven.execute(mavenProject, mojoExecution, monitor);
 
-            checkExecutionResultExceptions(context);
+            M2EUtil.checkExecutionResultExceptions(context,
+                "Error during packaging project: " + mavenProjectFacade.getProject().getName());
           }
         }
       }, monitor);
@@ -309,7 +295,7 @@ public class ProjectPackager {
 
       mavenProjectFacade.getProject().refreshLocal(IProject.DEPTH_INFINITE, monitor1);
 
-      packagedArtifactContainer.putArtifactsOfMavenProject(mavenProjectFacade,
+      this.packagedArtifactContainer.putArtifactsOfMavenProject(mavenProjectFacade,
           new ProjectArtifacts(toAetherArtifact(mavenProject.getArtifact()),
               RepositoryUtils.toArtifacts(mavenProject.getAttachedArtifacts())));
       return null;
@@ -346,6 +332,13 @@ public class ProjectPackager {
 
     File attachedFilesDescriptionFile = resolveAttachedFilesDescriptionFile(mavenProject);
 
+    File descriptorFileFolder = attachedFilesDescriptionFile.getParentFile();
+
+    if (!descriptorFileFolder.exists() && !descriptorFileFolder.mkdirs()) {
+      throw new UncheckedIOException(new IOException(
+          "Cannot create directory of attachedDescriptorFile: " + descriptorFileFolder.toString()));
+    }
+
     Properties props =
         createEOSGiPackagingProps(mavenProject.getBasedir(), mavenProject.getArtifact(),
             mavenProject.getAttachedArtifacts());
@@ -363,7 +356,7 @@ public class ProjectPackager {
   public void setArtifactsOnMavenProject(final MavenProject mavenProject,
       final IProject eclipseProject) {
     ProjectArtifacts projectArtifacts =
-        packagedArtifactContainer.getProjectArtifacts(eclipseProject);
+        this.packagedArtifactContainer.getProjectArtifacts(eclipseProject);
     if (projectArtifacts == null) {
       return;
     }

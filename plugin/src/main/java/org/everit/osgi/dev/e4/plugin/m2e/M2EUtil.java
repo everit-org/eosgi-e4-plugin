@@ -28,13 +28,18 @@ import org.apache.maven.model.PluginExecution;
 import org.apache.maven.plugin.MojoExecution;
 import org.apache.maven.project.MavenProject;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.ICoreRunnable;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.MultiStatus;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.m2e.core.MavenPlugin;
 import org.eclipse.m2e.core.embedder.ICallable;
 import org.eclipse.m2e.core.embedder.IMavenExecutionContext;
 import org.eclipse.m2e.core.internal.MavenPluginActivator;
 import org.eclipse.m2e.core.internal.embedder.MavenProjectMutableState;
 import org.eclipse.m2e.core.project.IMavenProjectFacade;
+import org.everit.osgi.dev.e4.plugin.EOSGiEclipsePlugin;
 import org.osgi.framework.Version;
 import org.osgi.framework.VersionRange;
 
@@ -60,6 +65,42 @@ public final class M2EUtil {
     SKIPPED_LIFECYCLE_PHASES.add("test-compile");
     SKIPPED_LIFECYCLE_PHASES.add("process-test-classes");
     SKIPPED_LIFECYCLE_PHASES.add("test");
+  }
+
+  /**
+   * Throws a {@link CoreException} if there is any exception in the passed
+   * {@link IMavenExecutionContext} with all exceptions as statuses inside.
+   *
+   * @param context
+   *          The maven execution context.
+   * @param errorMessage
+   *          The error message that should be added to the statuses.
+   * @throws CoreException
+   *           if the {@link IMavenExecutionContext} contains any exception.
+   */
+  public static void checkExecutionResultExceptions(final IMavenExecutionContext context,
+      final String errorMessage) throws CoreException {
+
+    List<Throwable> exceptions = context.getSession().getResult().getExceptions();
+    if (exceptions.size() == 0) {
+      return;
+    }
+
+    if (exceptions.size() == 1) {
+      throw new CoreException(new Status(IStatus.ERROR, EOSGiEclipsePlugin.PLUGIN_ID,
+          errorMessage, exceptions.get(0)));
+    }
+
+    MultiStatus multiStatus =
+        new MultiStatus(EOSGiEclipsePlugin.PLUGIN_ID, IStatus.ERROR, errorMessage, null);
+
+    for (Throwable exception : exceptions) {
+      multiStatus
+          .add(new Status(IStatus.ERROR, EOSGiEclipsePlugin.PLUGIN_ID, exception.getMessage(),
+              exception));
+    }
+
+    throw new CoreException(multiStatus);
   }
 
   @SuppressWarnings("restriction")
@@ -100,7 +141,7 @@ public final class M2EUtil {
   /**
    * Runs an action within the scope of mutable state of a project. This is useful for example if
    * multiple mojo goals should be executed in the way that they share the same project state.
-   * 
+   *
    * @param project
    *          The project that should have the mutable state.
    * @param action

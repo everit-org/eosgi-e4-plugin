@@ -16,11 +16,84 @@
 package org.everit.osgi.dev.e4.plugin;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Objects;
 
 /**
  * Information about an EOSGi environment.
  */
-public class ExecutableEnvironment implements Comparable<ExecutableEnvironment> {
+public final class ExecutableEnvironment implements Comparable<ExecutableEnvironment> {
+
+  /**
+   * Builder class for {@link ExecutableEnvironment}.
+   */
+  public static class Builder {
+
+    public Collection<GAV> additionalArtifactGAVs = Collections.emptyList();
+
+    public Boolean defaultExecution;
+
+    public String environmentId;
+
+    public EOSGiProject eosgiProject;
+
+    public String executionId;
+
+    public File rootFolder;
+
+    public long shutdownTimeout;
+
+    public File testResultFolder;
+
+    public ExecutableEnvironment build() {
+      return new ExecutableEnvironment(this);
+    }
+
+    public Builder withAdditionalArtifactGAVs(
+        final Collection<GAV> additionalArtifactGAVs) {
+      this.additionalArtifactGAVs = additionalArtifactGAVs;
+      return this;
+    }
+
+    public Builder withDefaultExecution(final boolean defaultExecution) {
+      this.defaultExecution = defaultExecution;
+      return this;
+    }
+
+    public Builder withEnvironmentId(final String environmentId) {
+      this.environmentId = environmentId;
+      return this;
+    }
+
+    public Builder withEosgiProject(final EOSGiProject eosgiProject) {
+      this.eosgiProject = eosgiProject;
+      return this;
+    }
+
+    public Builder withExecutionId(final String executionId) {
+      this.executionId = executionId;
+      return this;
+    }
+
+    public Builder withRootFolder(final File rootFolder) {
+      this.rootFolder = rootFolder;
+      return this;
+    }
+
+    public Builder withShutdownTimeout(final long shutdownTimeout) {
+      this.shutdownTimeout = shutdownTimeout;
+      return this;
+    }
+
+    public Builder withTestResultFolder(final File testResultFolder) {
+      this.testResultFolder = testResultFolder;
+      return this;
+    }
+  }
+
+  private final Collection<GAV> additionalArtifactGAVs;
 
   private final boolean defaultExecution;
 
@@ -36,17 +109,16 @@ public class ExecutableEnvironment implements Comparable<ExecutableEnvironment> 
 
   private final File testResultFolder;
 
-  public ExecutableEnvironment(final String environmentId,
-      final String executionId, final boolean defaultExecution,
-      final EOSGiProject eosgiProject, final File rootFolder, final File testResultFolder,
-      final long shutdownTimeout) {
-    this.environmentId = environmentId;
-    this.executionId = executionId;
-    this.defaultExecution = defaultExecution;
-    this.eosgiProject = eosgiProject;
-    this.rootFolder = rootFolder;
-    this.testResultFolder = testResultFolder;
-    this.shutdownTimeout = shutdownTimeout;
+  private ExecutableEnvironment(final Builder builder) {
+    this.environmentId = Objects.requireNonNull(builder.environmentId);
+    this.executionId = Objects.requireNonNull(builder.executionId);
+    this.defaultExecution = Objects.requireNonNull(builder.defaultExecution);
+    this.eosgiProject = Objects.requireNonNull(builder.eosgiProject);
+    this.rootFolder = Objects.requireNonNull(builder.rootFolder);
+    this.testResultFolder = Objects.requireNonNull(builder.testResultFolder);
+    this.shutdownTimeout = Objects.requireNonNull(builder.shutdownTimeout);
+    this.additionalArtifactGAVs =
+        Collections.unmodifiableList(new ArrayList<>(builder.additionalArtifactGAVs));
   }
 
   @Override
@@ -73,6 +145,10 @@ public class ExecutableEnvironment implements Comparable<ExecutableEnvironment> 
 
     return eosgiProject.getMavenProjectFacade().getProject().getName()
         .compareTo(o.getEOSGiProject().getMavenProjectFacade().getProject().getName());
+  }
+
+  public Collection<GAV> getAdditionalArtifactGAVs() {
+    return additionalArtifactGAVs;
   }
 
   public String getEnvironmentId() {
@@ -102,4 +178,5 @@ public class ExecutableEnvironment implements Comparable<ExecutableEnvironment> 
   public boolean isDefaultExecution() {
     return defaultExecution;
   }
+
 }

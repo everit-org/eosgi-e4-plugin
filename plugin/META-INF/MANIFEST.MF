@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Everit OSGi Plugin
 Bundle-SymbolicName: org.everit.osgi.dev.e4.plugin;singleton:=true
-Bundle-Version: 4.1.0
+Bundle-Version: 4.1.1
 Bundle-Activator: org.everit.osgi.dev.e4.plugin.EOSGiEclipsePlugin
 Require-Bundle: org.eclipse.ui,
  org.eclipse.core.runtime;bundle-version="3.8.0",

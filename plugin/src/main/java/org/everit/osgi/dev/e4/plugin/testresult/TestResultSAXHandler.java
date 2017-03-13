@@ -53,9 +53,9 @@ public class TestResultSAXHandler extends DefaultHandler {
     }
   }
 
-  private boolean inErrorElement = false;
+  private boolean inErrorOrFailureElement = false;
 
-  private boolean testCaseHadError = false;
+  private boolean testCaseHadErrorOrFailure = false;
 
   private final TestResultSummarizer testResultSummarizer;
 
@@ -78,7 +78,7 @@ public class TestResultSAXHandler extends DefaultHandler {
 
   @Override
   public void characters(final char[] ch, final int start, final int length) throws SAXException {
-    if (inErrorElement) {
+    if (inErrorOrFailureElement) {
       testResultSummarizer.xmlBody.append(ch, start, length);
     }
 
@@ -90,13 +90,17 @@ public class TestResultSAXHandler extends DefaultHandler {
 
     switch (qName) {
       case "error":
+        testResultSummarizer.xmlBody.append("      </error>\n");
+        inErrorOrFailureElement = false;
+        break;
+      case "failure":
         testResultSummarizer.xmlBody.append("      </failure>\n");
-        inErrorElement = false;
+        inErrorOrFailureElement = false;
         break;
       case "testcase":
-        if (testCaseHadError) {
+        if (testCaseHadErrorOrFailure) {
           testResultSummarizer.xmlBody.append("    </testcase>\n");
-          testCaseHadError = false;
+          testCaseHadErrorOrFailure = false;
         } else {
           testResultSummarizer.xmlBody.append("/>\n");
         }
@@ -136,9 +140,14 @@ public class TestResultSAXHandler extends DefaultHandler {
         startTestCaseElement(attributes);
         break;
       case "error":
+        testResultSummarizer.xmlBody.append(">\n      <error>");
+        inErrorOrFailureElement = true;
+        testCaseHadErrorOrFailure = true;
+        break;
+      case "failure":
         testResultSummarizer.xmlBody.append(">\n      <failure>");
-        inErrorElement = true;
-        testCaseHadError = true;
+        inErrorOrFailureElement = true;
+        testCaseHadErrorOrFailure = true;
         break;
       default:
         break;
