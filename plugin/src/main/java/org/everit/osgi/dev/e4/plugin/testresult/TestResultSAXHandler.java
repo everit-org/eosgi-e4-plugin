@@ -15,6 +15,7 @@
  */
 package org.everit.osgi.dev.e4.plugin.testresult;
 
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
@@ -67,9 +68,12 @@ public class TestResultSAXHandler extends DefaultHandler {
 
   private void addEmptyTestSuite() {
 
-    testResultSummarizer.xmlBody.append("  <testcase name=\"").append(testSuiteAttributes.name)
-        .append("\" classname=\"").append(testSuiteAttributes.name).append("\" time=\"")
-        .append(testSuiteAttributes.time).append("\" ignored=\"true\"/>\n");
+    testResultSummarizer.xmlBody.append("  <testcase name=\"")
+        .append(StringEscapeUtils.escapeXml(testSuiteAttributes.name))
+        .append("\" classname=\"").append(StringEscapeUtils.escapeXml(testSuiteAttributes.name))
+        .append("\" time=\"")
+        .append(StringEscapeUtils.escapeXml(testSuiteAttributes.time))
+        .append("\" ignored=\"true\"/>\n");
 
     testResultSummarizer.ignored++;
     testResultSummarizer.tests++;
@@ -79,7 +83,8 @@ public class TestResultSAXHandler extends DefaultHandler {
   @Override
   public void characters(final char[] ch, final int start, final int length) throws SAXException {
     if (inErrorOrFailureElement) {
-      testResultSummarizer.xmlBody.append(ch, start, length);
+      testResultSummarizer.xmlBody
+          .append(StringEscapeUtils.escapeXml(String.valueOf(ch, start, length)));
     }
 
   }
@@ -159,8 +164,10 @@ public class TestResultSAXHandler extends DefaultHandler {
     String name = attributes.getValue("name");
     String classname = attributes.getValue("classname");
     String time = attributes.getValue("time");
-    testResultSummarizer.xmlBody.append("    <testcase name=\"").append(name)
-        .append("\" classname=\"").append(classname).append("\" time=\"").append(time).append("\"");
+    testResultSummarizer.xmlBody.append("    <testcase name=\"")
+        .append(StringEscapeUtils.escapeXml(name))
+        .append("\" classname=\"").append(StringEscapeUtils.escapeXml(classname))
+        .append("\" time=\"").append(StringEscapeUtils.escapeXml(time)).append("\"");
 
   }
 
@@ -171,8 +178,10 @@ public class TestResultSAXHandler extends DefaultHandler {
     testResultSummarizer.failures += testSuiteAttributes.failures;
     testResultSummarizer.ignored += testSuiteAttributes.skipped;
 
-    testResultSummarizer.xmlBody.append("  <testsuite name=\"").append(testSuiteAttributes.name)
-        .append("\" time=\"").append(testSuiteAttributes.time).append("\">\n");
+    testResultSummarizer.xmlBody.append("  <testsuite name=\"")
+        .append(StringEscapeUtils.escapeXml(testSuiteAttributes.name))
+        .append("\" time=\"").append(StringEscapeUtils.escapeXml(testSuiteAttributes.time))
+        .append("\">\n");
   }
 
 }
