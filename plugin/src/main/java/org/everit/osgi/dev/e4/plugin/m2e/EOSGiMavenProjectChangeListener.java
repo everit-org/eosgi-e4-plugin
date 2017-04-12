@@ -37,6 +37,11 @@ public class EOSGiMavenProjectChangeListener implements IMavenProjectChangedList
 
   private void addEosgiNature(final IProgressMonitor monitor, final IProject project)
       throws CoreException {
+
+    if (EOSGiEclipsePlugin.getDefault() == null) {
+      return;
+    }
+
     IProjectDescription projectDescription = project.getDescription();
     if (projectDescription != null) {
       String[] natureIds = projectDescription.getNatureIds();
@@ -51,6 +56,11 @@ public class EOSGiMavenProjectChangeListener implements IMavenProjectChangedList
   @Override
   public void mavenProjectChanged(final MavenProjectChangedEvent[] events,
       final IProgressMonitor monitor) {
+
+    if (EOSGiEclipsePlugin.getDefault() == null) {
+      return;
+    }
+
     for (MavenProjectChangedEvent event : events) {
       IMavenProjectFacade mavenProject = event.getMavenProject();
 
@@ -88,6 +98,11 @@ public class EOSGiMavenProjectChangeListener implements IMavenProjectChangedList
 
   private void removeProjectNature(final IProject project, final IProgressMonitor monitor)
       throws CoreException {
+
+    if (EOSGiEclipsePlugin.getDefault() == null) {
+      return;
+    }
+
     IProjectDescription projectDescription = project.getDescription();
     if (projectDescription != null) {
       String[] natureIds = projectDescription.getNatureIds();
