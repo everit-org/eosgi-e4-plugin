@@ -18,6 +18,9 @@ package org.everit.osgi.dev.e4.plugin.ui.command;
 import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
+import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Shell;
 
 /**
  * Synchronizes the syncback folder back to the source folders.
@@ -27,8 +30,14 @@ public class SyncbackCommandHandler extends AbstractHandler {
   @Override
   public Object execute(final ExecutionEvent event) throws ExecutionException {
     CommandUtil.executeInJobWithErrorHandling(event, "Launching OSGi Enviroment",
-        (executableEnvironment, monitor) -> executableEnvironment.getEOSGiProject()
-            .syncBack(executableEnvironment, monitor));
+        (executableEnvironment, monitor) -> {
+          executableEnvironment.getEOSGiProject().syncBack(executableEnvironment, monitor);
+          Display.getDefault()
+              .asyncExec(() -> MessageDialog.openInformation(new Shell(),
+                  "Synchronizing back OSGi environment",
+                  "Synchronizing configured directories back to source folder from distributed OSGi"
+                      + " environment was successful."));
+        });
 
     return null;
   }
