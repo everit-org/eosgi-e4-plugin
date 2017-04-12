@@ -33,7 +33,7 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <maven-compiler-plugin-version>3.2</maven-compiler-plugin-version>
-    <tycho-maven-plugin-version>1.0.0</tycho-maven-plugin-version>
+    <tycho-maven-plugin-version>0.26.0</tycho-maven-plugin-version>
     <eosgi-dist-util-version>5.1.0</eosgi-dist-util-version>
     <extension-attach-version>0.0.0-v20160911</extension-attach-version>
     <tycho.localArtifacts>default</tycho.localArtifacts>
