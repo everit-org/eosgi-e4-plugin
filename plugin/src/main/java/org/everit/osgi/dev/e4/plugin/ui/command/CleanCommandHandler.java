@@ -18,6 +18,9 @@ package org.everit.osgi.dev.e4.plugin.ui.command;
 import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
+import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Shell;
 
 /**
  * Handler for the clean context menu item.
@@ -28,8 +31,12 @@ public class CleanCommandHandler extends AbstractHandler {
   public Object execute(final ExecutionEvent event) throws ExecutionException {
     CommandUtil.executeInJobWithErrorHandling(event,
         "Cleaning distributed directory of OSGi environment",
-        (executableEnvironment, monitor) -> executableEnvironment.getEOSGiProject()
-            .clean(executableEnvironment, monitor));
+        (executableEnvironment, monitor) -> {
+          executableEnvironment.getEOSGiProject().clean(executableEnvironment, monitor);
+          Display.getDefault().asyncExec(
+              () -> MessageDialog.openInformation(new Shell(), "Cleaning OSGi environment",
+                  "Deleting environment distribution directory was successful."));
+        });
 
     return null;
   }

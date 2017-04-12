@@ -38,6 +38,10 @@ public class DistContentProvider extends TreeNodeContentProvider {
 
   @Override
   public Object[] getChildren(final Object parentElement) {
+    if (EOSGiEclipsePlugin.getDefault() == null) {
+      return new Object[0];
+    }
+
     if (parentElement instanceof IProject) {
       AtomicReference<EOSGiProject> eosgiProjectReference = new AtomicReference<>();
       IProject project = (IProject) parentElement;

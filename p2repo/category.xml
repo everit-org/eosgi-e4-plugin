@@ -17,7 +17,7 @@
 
 -->
 <site>
-   <feature url="features/org.everit.osgi.dev.e4.feature_4.1.2.jar" id="org.everit.osgi.dev.e4.feature" version="4.1.2" os="linux,macosx,win32" ws="cocoa,gtk,win32" arch="x86,x86_64">
+   <feature url="features/org.everit.osgi.dev.e4.feature_4.1.3.jar" id="org.everit.osgi.dev.e4.feature" version="4.1.3" os="linux,macosx,win32" ws="cocoa,gtk,win32" arch="x86,x86_64">
       <category name="org.everit.osgi.dev.e4.category"/>
    </feature>
    <category-def name="org.everit.osgi.dev.e4.category" label="Everit OSGi Support"/>

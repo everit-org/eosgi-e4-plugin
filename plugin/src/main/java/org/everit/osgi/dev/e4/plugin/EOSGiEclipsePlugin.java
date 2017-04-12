@@ -17,8 +17,14 @@ package org.everit.osgi.dev.e4.plugin;
 
 import java.util.UUID;
 
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
+import org.eclipse.jface.dialogs.ErrorDialog;
 import org.eclipse.jface.resource.ImageDescriptor;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
+import org.everit.osgi.dev.dist.util.attach.EOSGiVMManager;
 import org.everit.osgi.dev.e4.plugin.m2e.packaging.ProjectPackager;
 import org.osgi.framework.BundleContext;
 
@@ -55,34 +61,63 @@ public class EOSGiEclipsePlugin extends AbstractUIPlugin {
 
   private ProjectPackager projectPackageUtil;
 
+  private boolean checkAttachAPIAvailable() {
+    try {
+      EOSGiVMManager.class.getClassLoader().loadClass("com.sun.tools.attach.VirtualMachine");
+    } catch (ClassNotFoundException e) {
+      String message = "Can't start Everit OSGi Eclipse plugin due to the following reason: "
+          + "Sun Attach API is not available. This can happen if Eclipse is started with "
+          + "a JRE instead of a JDK. Make sure you start Eclipse with a JDK that contains the "
+          + "Sun Attach API! E.g.: OpenJDK or Oracle JDK";
+
+      IStatus status = new Status(IStatus.ERROR, EOSGiEclipsePlugin.PLUGIN_ID, message);
+      getLog().log(status);
+      Display.getDefault().asyncExec(() -> {
+        Shell shell = new Shell();
+        ErrorDialog.openError(shell, "Error", "Could not start Everit OSGi Eclipse plugin", status);
+      });
+      return false;
+    }
+    return true;
+  }
+
   public EOSGiLog getEOSGiLog() {
-    return log;
+    return this.log;
   }
 
   public synchronized EOSGiProjectManager getEOSGiManager() {
-    return eosgiProjectManager;
+    return this.eosgiProjectManager;
   }
 
   public ProjectPackager getProjectPackageUtil() {
-    return projectPackageUtil;
+    return this.projectPackageUtil;
   }
 
   @Override
   public void start(final BundleContext context) throws Exception {
     super.start(context);
+
+    if (!checkAttachAPIAvailable()) {
+      return;
+    }
+
     EOSGiEclipsePlugin.plugin = this;
-    log = new EOSGiLog(getLog());
-    projectPackageUtil = new ProjectPackager();
-    projectPackageUtil.open();
-    eosgiProjectManager = new EOSGiProjectManager();
+    this.log = new EOSGiLog(getLog());
+    this.projectPackageUtil = new ProjectPackager();
+    this.projectPackageUtil.open();
+    this.eosgiProjectManager = new EOSGiProjectManager();
   }
 
   @Override
   public void stop(final BundleContext context) throws Exception {
     EOSGiEclipsePlugin.plugin = null;
-    projectPackageUtil.close();
+    if (this.projectPackageUtil != null) {
+      this.projectPackageUtil.close();
+    }
     try {
-      eosgiProjectManager.close();
+      if (this.eosgiProjectManager != null) {
+        this.eosgiProjectManager.close();
+      }
     } finally {
       super.stop(context);
     }
