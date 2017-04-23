@@ -21,7 +21,7 @@
   <parent>
     <groupId>org.everit.osgi.dev.e4</groupId>
     <artifactId>org.everit.osgi.dev.e4.parent</artifactId>
-    <version>4.1.3</version>
+    <version>4.1.4</version>
   </parent>
 
   <artifactId>org.everit.osgi.dev.e4.feature</artifactId>

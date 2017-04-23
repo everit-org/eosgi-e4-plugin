@@ -18,14 +18,14 @@ package org.everit.osgi.dev.e4.plugin.ui.command;
 import java.util.Iterator;
 
 import org.eclipse.core.commands.ExecutionEvent;
-import org.eclipse.core.expressions.IEvaluationContext;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.dialogs.ErrorDialog;
+import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
-import org.eclipse.ui.ISources;
+import org.eclipse.ui.handlers.HandlerUtil;
 import org.everit.osgi.dev.e4.plugin.EOSGiEclipsePlugin;
 import org.everit.osgi.dev.e4.plugin.ExecutableEnvironment;
 
@@ -76,21 +76,17 @@ public final class CommandUtil {
    * Gets the single selection from an evaluation context. E.g.: The selected item in case of a
    * popup menu.
    *
-   * @param evaluationContext
-   *          The evaluation context.
+   * @param selection
+   *          the selection of the current workbench window.
    * @return The single selection or <code>null</code> if no or multiple items were selected.
    */
-  public static Object getSingleSelection(final IEvaluationContext evaluationContext) {
-    if (evaluationContext == null) {
+  public static Object getSingleSelection(final ISelection selection) {
+
+    if (selection == null || !(selection instanceof IStructuredSelection)) {
       return null;
     }
 
-    Object activeMenuSelection = evaluationContext.getVariable(ISources.ACTIVE_MENU_SELECTION_NAME);
-    if (!(activeMenuSelection instanceof IStructuredSelection)) {
-      return null;
-    }
-
-    IStructuredSelection structuredSelection = (IStructuredSelection) activeMenuSelection;
+    IStructuredSelection structuredSelection = (IStructuredSelection) selection;
 
     Iterator<?> iterator = structuredSelection.iterator();
 
@@ -114,15 +110,12 @@ public final class CommandUtil {
    * @return The EOSGi executable environment.
    */
   public static ExecutableEnvironment resolveExecutableEnvironment(final ExecutionEvent event) {
-    Object applicationContext = event.getApplicationContext();
-    if (!(applicationContext instanceof IEvaluationContext)) {
-      throw new IllegalArgumentException(
-          "Parameter should be instance of IEvaluationContext: " + applicationContext);
-    }
-    Object singleSelection =
-        CommandUtil.getSingleSelection((IEvaluationContext) applicationContext);
+    ISelection selection =
+        HandlerUtil.getActiveWorkbenchWindow(event).getActivePage().getSelection();
 
-    if (!(singleSelection instanceof ExecutableEnvironment)) {
+    Object singleSelection = CommandUtil.getSingleSelection(selection);
+
+    if (singleSelection == null || !(singleSelection instanceof ExecutableEnvironment)) {
       throw new IllegalArgumentException(
           "Selected item should be instance of EOSGiProject: " + singleSelection);
     }

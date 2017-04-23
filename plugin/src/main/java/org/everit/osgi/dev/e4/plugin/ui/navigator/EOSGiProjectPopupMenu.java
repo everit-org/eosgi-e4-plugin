@@ -19,13 +19,12 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-import org.eclipse.core.expressions.Expression;
-import org.eclipse.core.expressions.IEvaluationContext;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IConfigurationElement;
 import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.resource.ImageDescriptor;
-import org.eclipse.ui.handlers.IHandlerService;
+import org.eclipse.jface.viewers.ISelection;
+import org.eclipse.ui.ISelectionService;
 import org.eclipse.ui.menus.CommandContributionItem;
 import org.eclipse.ui.menus.CommandContributionItemParameter;
 import org.eclipse.ui.menus.ExtensionContributionFactory;
@@ -69,7 +68,7 @@ public class EOSGiProjectPopupMenu extends ExtensionContributionFactory {
       final boolean enabled) {
     CommandContributionItem menuItem =
         createMenuItem(label, commandId, icon, serviceLocator, parameters, enabled);
-    additions.addContributionItem(menuItem, Expression.TRUE);
+    additions.addContributionItem(menuItem, null);
   }
 
   private void addMenuItemsForEnvironment(final ExecutableEnvironment executableEnvironment,
@@ -128,7 +127,7 @@ public class EOSGiProjectPopupMenu extends ExtensionContributionFactory {
 
       }
 
-      additions.addContributionItem(stopMainMenu, Expression.TRUE);
+      additions.addContributionItem(stopMainMenu, null);
     }
   }
 
@@ -146,6 +145,11 @@ public class EOSGiProjectPopupMenu extends ExtensionContributionFactory {
       final IContributionRoot additions) {
 
     Object selectionObject = getSingleSelection(serviceLocator);
+
+    if (selectionObject == null) {
+      return;
+    }
+
     if (selectionObject instanceof ExecutableEnvironment) {
       addMenuItemsForEnvironment((ExecutableEnvironment) selectionObject, additions,
           serviceLocator);
@@ -174,15 +178,15 @@ public class EOSGiProjectPopupMenu extends ExtensionContributionFactory {
   }
 
   private Object getSingleSelection(final IServiceLocator serviceLocator) {
-    IHandlerService handlerService = serviceLocator.getService(IHandlerService.class);
+    ISelectionService selectionService = serviceLocator.getService(ISelectionService.class);
 
-    if (handlerService == null) {
+    if (selectionService == null) {
       return null;
     }
 
-    IEvaluationContext evaluationContext = handlerService.getCurrentState();
+    ISelection selection = selectionService.getSelection();
 
-    return CommandUtil.getSingleSelection(evaluationContext);
+    return CommandUtil.getSingleSelection(selection);
   }
 
   @Override
