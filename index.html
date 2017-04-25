@@ -1,31 +1,391 @@
+<!DOCTYPE HTML>
+<!-- Copyright (c) 2011, Everit Kft.
+
+    All rights reserved.
+
+    This library is free software; you can redistribute it and/or
+    modify it under the terms of the GNU Lesser General Public
+    License as published by the Free Software Foundation; either
+    version 3 of the License, or (at your option) any later version.
+
+    This library is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNUc
+    Lesser General Public License for more details.
+
+    You should have received a copy of the GNU Lesser General Public
+    License along with this library; if not, write to the Free Software
+    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+    MA 02110-1301  USA -->
 <html>
-<body>
-<h1>Everit OSGi Eclipse Plugin</h1>
+<head>
+<meta charset="utf-8" http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Everit OSGi Eclipse plugin</title>
+<link rel="icon" type="image/ico" href="http://www.everit.org/fonts/favicon.ico">
 
-<p style="color: red;">Please note that a complete user guide will come later</p>
+<!--    <link rel="stylesheet" type="text/css" href="common/css/base.css">-->
+<link href="http://www.everit.org/css/bootstrap.min.css" rel="stylesheet">
+<link href="http://www.everit.org/css/docs.min.css" rel="stylesheet">
+<link href="http://www.everit.org/css/everit.css" rel="stylesheet">
+<script id="twitter-wjs" src="https://platform.twitter.com/widgets.js"></script>
+<script type="text/javascript">
+  var _gaq = _gaq || [];
+  _gaq.push([ '_setAccount', 'UA-15041869-4' ]);
+  _gaq.push([ '_setDomainName', 'everit.org' ]);
+  _gaq.push([ '_trackPageview' ]);
+</script>
+<link rel="stylesheet" type="text/css" href="http://www.everit.org/js/prettify/prettify.css">
+<script type="text/javascript" charset="utf-8" async=""
+  src="https://platform.twitter.com/js/button.5b89bce04f133ec533459161985cf461.js"></script>
+</head>
 
-<h2>Introduction</h2>
+<body class="bs-docs-home" data-spy="scroll" data-target="#affix-nav">
+  <a class="sr-only" href="#content">Skip to main content</a>
+  <header class="navbar navbar-static-top bs-docs-nav" id="top" role="banner">
+    <div class="container">
+      <div class="navbar-header">
+        <button class="navbar-toggle" type="button" data-toggle="collapse"
+          data-target=".bs-navbar-collapse">
+          <span class="sr-only">Toggle navigation</span> <span class="icon-bar"></span> <span
+            class="icon-bar"></span> <span class="icon-bar"></span>
+        </button>
+        <a href="#" class="navbar-brand">Index</a>
+      </div>
+      <nav class="collapse navbar-collapse bs-navbar-collapse" role="navigation">
+        <ul class="nav navbar-nav">
+          <li><a href="https://github.com/everit-org/coding-conventions" target="_blank">Source</a></li>
+          <li><a href="http://www.everit.org/" target="_blank">Community</a></li>
+        </ul>
+        <ul class="nav navbar-nav navbar-right">
+          <li><a href="http://www.everit.biz" target="_blank">Enterprise</a></li>
+          <li><a href="http://everitorg.wordpress.com/" target="_blank">Blog</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
 
-<p>EOSGi Eclipse plugin displays OSGi environments specified with <a href="http://www.everit.org/eosgi-maven-plugin/">eosgi-maven-plugin</a> in the Project Explorer view of Eclipse and lets the user managing the environment by using a context menu. The user can:</p>
+  <div class="bs-docs-masthead everit-header" id="content" role="main">
+    <div class="container">
+      <span class="bs-docs-booticon bs-docs-booticon-lg bs-docs-booticon-outline"> <img
+        class="logo" src="http://www.everit.org/fonts/sbz_e.svg" alt="E">
+      </span>
+      <p class="lead">EOSGi Eclipse plugin</p>
+    </div>
+  </div>
+  <div class="container">
+    <div class="col-md-10">
+      <div id="introduction" class="bs-docs-featurette cookbook">
+        <h2>Introduction</h2>
 
-<ul>
-  <li>Start the OSGi environments specified in the pom file of the project</li>
-  <li>Debug the OSGi environments</li>
-  <li>Live upgrade of the OSGi environments</li>
-  <li>View the console of the OSGi environment within Eclipse</li>
-  <li>Stop the environments gracefully (even if the environment is stopped from console or debug view)</li>
-  <li>Call the <a href="http://www.everit.org/eosgi-maven-plugin/sync-back-mojo.html">sync-back</a> goal of the maven plugin on an environment</li>
-</ul>
+        <p>
+          EOSGi Eclipse plugin displays OSGi environments specified with <a
+            href="http://www.everit.org/eosgi-maven-plugin/">eosgi-maven-plugin</a> in the Project
+          Explorer view of Eclipse and lets the user managing the environment by using a context
+          menu. The user can:
+        </p>
 
-<p>If an OSGi environment is managed with the Eclipse plugin, dependencies are resolved from the workspace with the following algorithm: If a dependency is imported as a maven project into the workspace, the plugin executes <i>mvn package</i> on that dependency and installs the result JAR file to the OSGi container.</p>
+        <ul>
+          <li>Start the OSGi environments specified in the pom file of the project</li>
+          <li>Debug the OSGi environments</li>
+          <li>Live upgrade of the OSGi environments</li>
+          <li>View the console of the OSGi environment within Eclipse</li>
+          <li>See test results created by <a href="http://www.everit.org/osgi-testrunner/">Everit
+              OSGi TestRunner</a> in the JUnit view of Eclipse.
+          </li>
+          <li>Stop the environments gracefully (even if the environment is stopped from console
+            or debug view)</li>
+          <li>Call the <a href="http://www.everit.org/eosgi-maven-plugin/sync-back-mojo.html">sync-back</a>
+            goal of the maven plugin on an environment
+          </li>
+        </ul>
 
-<p>When an OSGi environment is started in debug mode by the plugin, the sources are resolved by the dependency manager of maven. If a dependency is available on the workspace as a project, the source is picked up from there.</p>
+        <p>
+          If an OSGi environment is managed with the Eclipse plugin, dependencies are resolved from
+          the workspace with the following algorithm: If a dependency is imported as a maven project
+          into the workspace, the plugin executes <i>mvn package</i> on that dependency and installs
+          the result JAR file to the OSGi container.
+        </p>
 
-<h2>Download and install</h2>
+        <p>When an OSGi environment is started in debug mode by the plugin, the sources are
+          resolved by the dependency manager of maven. If a dependency is available on the workspace
+          as a project, the source is picked up from there.</p>
+      </div>
 
-<ul>
-  <li><strong>Update site:</strong> <a href="http://everit.org/eosgi-e4-plugin/p2/latest">http://everit.org/eosgi-e4-plugin/p2/latest</a></li>
-  <li><strong>Source code:</strong> <a href="https://github.com/everit-org/eosgi-e4-plugin">https://github.com/everit-org/eosgi-e4-plugin</a></li>
-</ul>
+      <div id="download_and_install" class="bs-docs-featurette cookbook">
+        <h2>Download and install</h2>
+        <div class="text-center">
+          <iframe width="420" height="315" src="https://www.youtube.com/embed/wCrWqY4BZk8"
+            allowfullscreen></iframe>
+        </div>
+        <ul style="padding-top: 1em;">
+          <li><strong>Eclipse marketplace:</strong> <a
+            href="https://marketplace.eclipse.org/content/everit-osgi-eclipse-plugin">https://marketplace.eclipse.org/content/everit-osgi-eclipse-plugin</a></li>
+          <li><strong>Update site:</strong> <a
+            href="http://everit.org/eosgi-e4-plugin/p2/latest">http://everit.org/eosgi-e4-plugin/p2/latest</a></li>
+          <li><strong>Source code:</strong> <a
+            href="https://github.com/everit-org/eosgi-e4-plugin">https://github.com/everit-org/eosgi-e4-plugin</a></li>
+        </ul>
+      </div>
+
+      <div id="creating_osgi_env_with_hot_deployment" class="bs-docs-featurette cookbook">
+        <h2>Creating an OSGi environment with hot deployment support</h2>
+        <div class="text-center">
+          <iframe width="420" height="315" src="https://www.youtube.com/embed/2ODqG8Kc52g"
+            allowfullscreen></iframe>
+        </div>
+
+        <ol style="padding-top: 1em;">
+          <li>Add <a href="http://www.everit.org/eosgi-maven-plugin">eosgi-maven-plugin</a> to
+            your project.
+          </li>
+          <li>Open project explorer in Eclipse</li>
+          <li>Right click on the OSGi environment and push start.</li>
+          <li>Add the following dependencies to your pom.xml file to support hot deployment: <pre
+              class="prettyprint lang-xml">
+&lt;dependency&gt;
+    &lt;groupId&gt;org.apache.aries.jmx&lt;/groupId&gt;
+    &lt;artifactId&gt;org.apache.aries.jmx.core&lt;/artifactId&gt;
+    &lt;version&gt;1.1.7&lt;/version&gt;
+&lt;/dependency&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;org.everit.osgi.jmx&lt;/groupId&gt;
+    &lt;artifactId&gt;org.everit.osgi.jmx.activator&lt;/artifactId&gt;
+    &lt;version&gt;1.0.0&lt;/version&gt;
+&lt;/dependency&gt;
+            </pre>
+          </li>
+          <li>Aries JMX Core needs <i>org.osgi.service.cm</i> package to be present, so either
+            add the dependency that contains the API or an implementation. Most common is that the
+            felix implementation is used: <pre class="prettyprint lang-xml">
+&lt;dependency&gt;
+    &lt;groupId&gt;org.apache.felix&lt;/groupId&gt;
+    &lt;artifactId&gt;org.apache.felix.configadmin&lt;/artifactId&gt;
+    &lt;version&gt;1.8.14&lt;/version&gt;
+&lt;/dependency&gt;
+            </pre>
+          </li>
+          <li>Start the OSGi environment by selecting <i>Start</i> from the context menu of the
+            OSGi environment.
+          </li>
+          <li>Stop the OSGi environment gracefully by selecting <i>Stop</i> from the context
+            menu of the environment or pushing the stop button on the console view. If the framework
+            does not stop (e.g.: due to a deadlocked thread) push the stop button on the console
+            view twice.
+          </li>
+        </ol>
+      </div>
+
+
+      <div id="distribution_of_osgi_environments" class="bs-docs-featurette cookbook">
+        <h2>Distribution of OSGi environments</h2>
+        <p>
+          The <a href="http://www.everit.org/eosgi-maven-plugin">eosgi-maven-plugin</a> creates
+          portable OSGi environments by default. The generated environments are placed to the <i>target/eosgi/dist/ENVIRONMENT_ID/</i>
+          directory of the maven project.
+        </p>
+        <div class="text-center">
+          <iframe width="420" height="315" src="https://www.youtube.com/embed/MCyW8q5JHAQ"
+            allowfullscreen></iframe>
+        </div>
+        <p></p>
+      </div>
+
+
+      <div id="osgi_environment_configuration" class="bs-docs-featurette cookbook">
+        <h2>Advanced OSGi Environment configuration</h2>
+        <p>
+          It is possible to add one or more specific OSGi environment configuration, just as it is
+          described in the <a href="http://www.everit.org/eosgi-maven-plugin/">documentation of
+            eosgi-maven-plugin</a>. The developer can specify multiple environments with different OSGi
+          frameworks, slightly different set of bundles and different launch configurations.
+        </p>
+        <div class="text-center">
+          <iframe width="420" height="315" src="https://www.youtube.com/embed/H_L8DZuB6nA"
+            allowfullscreen></iframe>
+        </div>
+        <ol style="padding-top: 1em;">
+          <li><p>
+              Add the following configuration to <a href="http://www.everit.org/eosgi-maven-plugin/">eosgi-maven-plugin</a>
+              to create a felix and an equinox environment:
+            </p> <pre class="prettyprint lang-xml">
+&lt;plugin&gt;
+    &lt;groupId&gt;org.everit.osgi.dev&lt;/groupId&gt;
+    &lt;artifactId&gt;eosgi-maven-plugin&lt;/artifactId&gt;
+    &lt;version&gt;4.0.0&lt;/version&gt;
+    &lt;configuration&gt;
+        &lt;environments&gt;
+            &lt;environment&gt;
+                &lt;id&gt;test_equinox&lt;/id&gt;
+                &lt;framework&gt;equinox&lt;/framework&gt;
+            &lt;/environment&gt;
+            &lt;environment&gt;
+                &lt;id&gt;test_felix&lt;/id&gt;
+                &lt;framework&gt;felix&lt;/framework&gt;
+            &lt;/environment&gt;
+        &lt;/environments&gt;
+    &lt;/configuration&gt;
+&lt;/plugin&gt;
+</pre>
+            <p>Note that the list of environments changed in the project explorer of Eclipse.</p></li>
+          <li><p>
+              In equinox there is a built-in <a
+                href="https://osgi.org/javadoc/r4v42/org/osgi/service/log/LogService.html">LogService</a>
+              implementation that is necessary to satisfy the <i>aries.jmx.core</i> bundle (that is
+              necessary to support hot deployment). There is no built-in <i>LogService</i> in case
+              of Apache Felix Framework, therefore add it to the felix framework separately:
+            <pre class="prettyprint lang-xml">
+&lt;environment&gt;
+  &lt;id&gt;test_felix&lt;/id&gt;
+  &lt;framework&gt;felix&lt;/framework&gt;
+  <strong>&lt;artifacts&gt;
+    &lt;artifact&gt;
+      &lt;coordinates&gt;org.apache.felix:org.apache.felix.log:1.0.1&lt;/coordinates&gt;
+    &lt;/artifact&gt;
+  &lt;/artifacts&gt;</strong>
+&lt;/environment&gt;
+              </pre>
+            </p></li>
+          <li><p>It is possible to specify any kind of VM arguments for the specific
+              environments. Modify the configuration to add some environment specific system
+              properties:</p> <pre class="prettyprint lang-xml">
+&lt;plugin&gt;
+  &lt;groupId&gt;org.everit.osgi.dev&lt;/groupId&gt;
+  &lt;artifactId&gt;eosgi-maven-plugin&lt;/artifactId&gt;
+  &lt;version&gt;4.0.0&lt;/version&gt;
+  &lt;configuration&gt;
+    &lt;environments&gt;
+      &lt;environment&gt;
+        &lt;id&gt;test_equinox&lt;/id&gt;
+        &lt;framework&gt;equinox&lt;/framework&gt;
+        <strong>&lt;launchConfig&gt;
+          &lt;vmArguments&gt;
+            &lt;helloMessage&gt;-Dhello.message="I am an equinox environment"&lt;/helloMessage&gt;
+          &lt;/vmArguments&gt;
+        &lt;/launchConfig&gt;</strong>
+      &lt;/environment&gt;
+      &lt;environment&gt;
+        &lt;id&gt;test_felix&lt;/id&gt;
+        &lt;framework&gt;felix&lt;/framework&gt;
+        <strong>&lt;launchConfig&gt;
+          &lt;vmArguments&gt;
+            &lt;helloMessage&gt;-Dhello.message="I am a felix environment"&lt;/helloMessage&gt;
+          &lt;/vmArguments&gt;
+        &lt;/launchConfig&gt;</strong>
+        &lt;artifacts&gt;
+          &lt;artifact&gt;
+            &lt;coordinates&gt;org.apache.felix:org.apache.felix.log:1.0.1&lt;/coordinates&gt;
+          &lt;/artifact&gt;
+        &lt;/artifacts&gt;
+      &lt;/environment&gt;
+    &lt;/environments&gt;
+  &lt;/configuration&gt;
+&lt;/plugin&gt;
+</pre>
+            <p>Test the availability of the system property anywhere (e.g.: in the start method
+              of the bundle activator) with the following line:</p> <pre class="prettyprint lang-java">
+System.out.println(System.getProperty("hello.message"));</pre></li>
+          <li><p>
+              It is possible to override arguments in the launch configuration based on their keys
+              (the tag name) depending on the launch environment. E.g.: Override the value <i>hello.message</i>
+              system property if it is launched from the IDE:
+            </p> <pre class="prettyprint lang-xml">
+&lt;launchConfig&gt;
+  &lt;vmArguments&gt;
+    &lt;helloMessage&gt;-Dhello.message=&quot;I am an equinox environment&quot;&lt;/helloMessage&gt;
+  &lt;/vmArguments&gt;
+  <strong>&lt;overrides&gt;
+    &lt;override&gt;
+      &lt;useBy&gt;IDE&lt;/useBy&gt;
+      &lt;vmArguments&gt;
+        &lt;helloMessage&gt;-Dhello.message=&quot;I am an equinox environment started from IDE&quot;&lt;/helloMessage&gt;
+      &lt;/vmArguments&gt;
+    &lt;/override&gt;
+  &lt;/overrides&gt;</strong>
+&lt;/launchConfig&gt;</pre></li>
+
+        </ol>
+      </div>
+
+      <div id="executing_tests" class="bs-docs-featurette cookbook">
+        <h2>Executing tests on OSGi environment</h2>
+        <div class="alert alert-warning" role="alert">Coming within days</div>
+      </div>
+
+
+      <div id="test_coverage" class="bs-docs-featurette cookbook">
+        <h2>Show test coverage in Eclipse</h2>
+        <div class="alert alert-warning" role="alert">Coming within days</div>
+      </div>
+
+
+      <div id="additional_documentation" class="bs-docs-featurette cookbook">
+        <h2>Additional documentation</h2>
+        <div class="alert alert-warning" role="alert">Coming within days</div>
+      </div>
+    </div>
+
+    <!--        Affix-->
+    <div class="col-md-2 col-sm-0 col-xs-0">
+      <nav id="affix-nav">
+        <ul class="nav nav-pills nav-stacked everit-affix affix" data-spy="affix"
+          data-offset-top="350" data-offset-bottom="140">
+          <li><a href="#introduction">Introduction</a></li>
+          <li><a href="#download_and_install">Download and install</a></li>
+          <li><a href="#creating_osgi_env_with_hot_deployment">Creating an OSGi environment
+              with hot deployment support</a></li>
+          <li><a href="#distribution_of_osgi_environments">Distribution of OSGi
+              environments</a></li>
+          <li><a href="#basic_usage">OSGi environment configuration</a></li>
+          <li><a href="#executing_tests">Executing tests on OSGi environment</a></li>
+          <li><a href="#test_coverage">Show test coverage</a>
+          <li><a href="#additional_documentation">Additional documentation</a>
+        </ul>
+      </nav>
+    </div>
+  </div>
+
+  <footer class="bs-docs-footer" role="contentinfo">
+    <div class="container">
+      <div class="bs-docs-social">
+        <ul class="bs-docs-social-buttons">
+          <li class="follow-btn "><iframe id="twitter-widget-0" scrolling="no" frameborder="0"
+              allowtransparency="true" class="twitter-follow-button twitter-follow-button-rendered"
+              title="Twitter Follow Button"
+              src="https://platform.twitter.com/widgets/follow_button.a0ec3119d8db2bc5422f2144c89ad7a9.en.html#dnt=false&amp;id=twitter-widget-0&amp;lang=en&amp;screen_name=EveritOrg&amp;show_count=true&amp;show_screen_name=true&amp;size=m&amp;time=1489522859773"
+              style="position: static; visibility: visible; width: 203px; height: 20px;"
+              data-screen-name="EveritOrg"></iframe></li>
+          <li class="tweet-btn"><iframe id="twitter-widget-1" scrolling="no" frameborder="0"
+              allowtransparency="true"
+              class="twitter-share-button twitter-share-button-rendered twitter-tweet-button"
+              title="Twitter Tweet Button"
+              src="https://platform.twitter.com/widgets/tweet_button.a0ec3119d8db2bc5422f2144c89ad7a9.en.html#dnt=false&amp;id=twitter-widget-1&amp;lang=en&amp;original_referer=file%3A%2F%2F%2FC%3A%2FUsers%2FBalazs%2Fgit%2Feosgi-e4-plugin-gh%2Findex.html&amp;size=m&amp;text=Coding%20Conventions&amp;time=1489522859775&amp;type=share&amp;url=http%3A%2F%2Fwww.everit.org%2F"
+              style="position: static; visibility: visible; width: 61px; height: 20px;"
+              data-url="http://www.everit.org/"></iframe></li>
+        </ul>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Bootstrap core JavaScript
+================================================== -->
+  <!-- Placed at the end of the document so the pages load faster -->
+  <script src="http://www.everit.org/js/jquery-2.1.1.min.js"></script>
+  <script src="http://www.everit.org/js/bootstrap.min.js"></script>
+  <script src="http://www.everit.org/js/everit.js "></script>
+  <script src="http://www.everit.org/js/prettify/run_prettify.js"></script>
+  <script type="text/javascript">
+      (function() {
+        var ga = document.createElement('script');
+        ga.type = 'text/javascript';
+        ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www')
+            + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0];
+        s.parentNode.insertBefore(ga, s);
+      })();
+    </script>
+
+
 </body>
 </html>
