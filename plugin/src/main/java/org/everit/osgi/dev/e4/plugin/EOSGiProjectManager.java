@@ -15,6 +15,7 @@
  */
 package org.everit.osgi.dev.e4.plugin;
 
+import java.io.Closeable;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -35,7 +36,7 @@ import org.everit.osgi.dev.e4.plugin.ui.navigator.DistLabelProvider;
 /**
  * Storing and managing {@link EOSGiProject} instances.
  */
-public class EOSGiProjectManager {
+public class EOSGiProjectManager implements Closeable {
 
   private static final long EOSGI_VM_MANAGER_UPDATE_PERIOD = 1000;
 
@@ -53,6 +54,9 @@ public class EOSGiProjectManager {
 
   private final Runnable vmStateChangeHandler;
 
+  /**
+   * Constructor.
+   */
   public EOSGiProjectManager() {
 
     EOSGiVMManagerParameter vmManagerParam = new EOSGiVMManagerParameter();
@@ -83,7 +87,67 @@ public class EOSGiProjectManager {
     eosgiVMManager.addStateChangeListener(vmStateChangeHandler);
 
     this.testResultTracker = new TestResultTracker(eosgiVMManager);
+  }
 
+  public void addLabelProvider(final DistLabelProvider labelProvider) {
+    labelProviders.put(labelProvider, Boolean.TRUE);
+  }
+
+  private void checkEOSGiVMManagerUpToDate() {
+    long currentTimeMillis = System.currentTimeMillis();
+    long lastUpdateTime = eosgiVMManagerLastUpdateTime.get();
+    if (currentTimeMillis - lastUpdateTime > EOSGI_VM_MANAGER_UPDATE_PERIOD) {
+      eosgiVMManager.refresh();
+    }
+  }
+
+  @Override
+  public void close() {
+    closed.set(true);
+    eosgiVMManager.removeStateChangeListener(vmStateChangeHandler);
+    testResultTracker.close();
+  }
+
+  /**
+   * Returns the eosgi project that is managed by this plugin.
+   *
+   * @param project
+   *          The eclipse plugin that has eosgi configuration.
+   * @param monitor
+   *          The monitor to show progress.
+   * @return The eosgi project if exists, otherwise <code>null</code>.
+   * @throws CoreException
+   *           if something happens.
+   */
+  public synchronized EOSGiProject get(final IProject project, final IProgressMonitor monitor)
+      throws CoreException {
+
+    EOSGiProject eosgiProject = eosgiProjects.get(project);
+    if (eosgiProject == null && project.getNature(EOSGiNature.NATURE_ID) != null) {
+      putOrOverride(MavenPlugin.getMavenProjectRegistry().getProject(project), monitor);
+      eosgiProject = eosgiProjects.get(project);
+    }
+    return eosgiProject;
+  }
+
+  /**
+   * Get the vm manager of this project manager.
+   *
+   * @return the VM manager.
+   */
+  public EOSGiVMManager getEosgiVMManager() {
+    return eosgiVMManager;
+  }
+
+  public TestResultTracker getTestResultTracker() {
+    return testResultTracker;
+  }
+
+  /**
+   * Starts tracking results and JVMs.
+   */
+  public void open() {
+    this.testResultTracker.open();
     new Thread(() -> {
       boolean interrupted = false;
       while (!interrupted && !closed.get()) {
@@ -101,43 +165,16 @@ public class EOSGiProjectManager {
     }).start();
   }
 
-  public void addLabelProvider(final DistLabelProvider labelProvider) {
-    labelProviders.put(labelProvider, Boolean.TRUE);
-  }
-
-  private void checkEOSGiVMManagerUpToDate() {
-    long currentTimeMillis = System.currentTimeMillis();
-    long lastUpdateTime = eosgiVMManagerLastUpdateTime.get();
-    if (currentTimeMillis - lastUpdateTime > EOSGI_VM_MANAGER_UPDATE_PERIOD) {
-      eosgiVMManager.refresh();
-    }
-  }
-
-  public void close() {
-    closed.set(true);
-    eosgiVMManager.removeStateChangeListener(vmStateChangeHandler);
-    testResultTracker.close();
-  }
-
-  public synchronized EOSGiProject get(final IProject project, final IProgressMonitor monitor)
-      throws CoreException {
-
-    EOSGiProject eosgiProject = eosgiProjects.get(project);
-    if (eosgiProject == null && project.getNature(EOSGiNature.NATURE_ID) != null) {
-      putOrOverride(MavenPlugin.getMavenProjectRegistry().getProject(project), monitor);
-      eosgiProject = eosgiProjects.get(project);
-    }
-    return eosgiProject;
-  }
-
-  public EOSGiVMManager getEosgiVMManager() {
-    return eosgiVMManager;
-  }
-
-  public TestResultTracker getTestResultTracker() {
-    return testResultTracker;
-  }
-
+  /**
+   * Adds an eosgi project to this manager or overrides if it is already managed.
+   *
+   * @param mavenProject
+   *          The m2e project.
+   * @param monitor
+   *          The monitor to show progress.
+   * @throws CoreException
+   *           if anything happens.
+   */
   public synchronized void putOrOverride(final IMavenProjectFacade mavenProject,
       final IProgressMonitor monitor) throws CoreException {
     EOSGiProject eosgiProject = eosgiProjects.get(mavenProject.getProject());

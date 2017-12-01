@@ -26,6 +26,9 @@ import org.eclipse.debug.core.model.ILaunchConfigurationDelegate;
 import org.eclipse.debug.core.sourcelookup.ISourcePathComputer;
 import org.eclipse.m2e.jdt.internal.launch.MavenRuntimeClasspathProvider;
 
+/**
+ * Helper class that resolves classes from the classpath of the project.
+ */
 @SuppressWarnings("restriction")
 public class CustomizedLaunchConfigurationType implements ILaunchConfigurationType {
 

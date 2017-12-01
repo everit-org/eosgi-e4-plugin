@@ -48,7 +48,9 @@ public class DeleteOnCloseTempFileWrapper implements Closeable {
    */
   @Override
   public void close() {
-    tempFile.delete();
+    if (tempFile.exists() && !tempFile.delete()) {
+      throw new RuntimeException("Cannot delete temporary file: " + tempFile);
+    }
   }
 
   public File getTempFile() {

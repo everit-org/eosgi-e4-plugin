@@ -103,6 +103,17 @@ public final class M2EUtil {
     throw new CoreException(multiStatus);
   }
 
+  /**
+   * Creates an execution context based on the internal api of M2e.
+   *
+   * @param facade
+   *          The maven project facade of the project.
+   * @param monitor
+   *          The monitor to show progress.
+   * @return A maven execution context.
+   * @throws CoreException
+   *           if something happens.
+   */
   @SuppressWarnings("restriction")
   public static IMavenExecutionContext createExecutionContext(final IMavenProjectFacade facade,
       final IProgressMonitor monitor) throws CoreException {
@@ -110,6 +121,22 @@ public final class M2EUtil {
         .createExecutionContext(facade.getPom(), facade.getResolverConfiguration());
   }
 
+  /**
+   * Executes a function in a special context where artifacts are read from the eclipse workspace if
+   * they are the result files of any projects.
+   *
+   * @param facade
+   *          The maven facade.
+   * @param modifications
+   *          Possible modifications on the execution context.
+   * @param callable
+   *          The function to execute in the created maven execution context.
+   * @param monitor
+   *          The monitor to show progress.
+   * @return The result of the executed function.
+   * @throws CoreException
+   *           if something happens.
+   */
   public static <V> V executeInContext(final IMavenProjectFacade facade,
       final MavenExecutionContextModifiers modifications,
       final ICallable<V> callable, final IProgressMonitor monitor) throws CoreException {
@@ -190,6 +217,13 @@ public final class M2EUtil {
         mojoExecution.getPlugin(), execution, mojoExecution.getGoal(), monitor);
   }
 
+  /**
+   * Checks whether the eclipse maven project has eosgi-maven-plugin configured.
+   *
+   * @param mavenProject
+   *          The maven project to check.
+   * @return true if eosgi-maven-plugin is present, false otherwise.
+   */
   public static boolean hasEOSGiMavenPlugin(final MavenProject mavenProject) {
     List<Plugin> plugins = mavenProject.getBuild().getPlugins();
 
@@ -205,6 +239,14 @@ public final class M2EUtil {
     return false;
   }
 
+  /**
+   * Checks whether the version of the eosgi-maven-plugin is supported by this version of eclipse
+   * plugin.
+   *
+   * @param mojoVersion
+   *          The version of the eosgi-maven-plugin.
+   * @return true if the version of eosgi-maven-plugin is supported, false otherwise.
+   */
   public static boolean isEOSGiMojoVersionSupported(final String mojoVersion) {
     String semanticVersion = mojoVersion.replace('-', '.');
     Version version = new Version(semanticVersion);

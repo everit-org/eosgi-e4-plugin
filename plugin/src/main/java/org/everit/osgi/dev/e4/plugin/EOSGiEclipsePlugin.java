@@ -106,6 +106,7 @@ public class EOSGiEclipsePlugin extends AbstractUIPlugin {
     this.projectPackageUtil = new ProjectPackager();
     this.projectPackageUtil.open();
     this.eosgiProjectManager = new EOSGiProjectManager();
+    this.eosgiProjectManager.open();
   }
 
   @Override

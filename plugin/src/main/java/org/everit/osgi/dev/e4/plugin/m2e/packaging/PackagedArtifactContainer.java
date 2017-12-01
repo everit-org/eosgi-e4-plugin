@@ -29,15 +29,21 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.m2e.core.embedder.ArtifactKey;
 import org.eclipse.m2e.core.project.IMavenProjectFacade;
 
+/**
+ * Helper class to track project artifacts that are on the workspace and compiled by this plugin.
+ */
 public class PackagedArtifactContainer {
 
+  /**
+   * DTO.
+   */
   private static class ClassifierAndExtension {
 
     String classifier;
 
     String extension;
 
-    public ClassifierAndExtension(final String classifier, final String extension) {
+    ClassifierAndExtension(final String classifier, final String extension) {
       this.classifier = ((classifier != null) ? classifier : "").trim();
       this.extension = ((extension != null) ? extension : "").trim();
     }
@@ -83,6 +89,17 @@ public class PackagedArtifactContainer {
     }
   }
 
+  /**
+   * Creates a unique key for an artifact.
+   *
+   * @param groupId
+   *          The group id of the maven artifact.
+   * @param artifactId
+   *          The artifact id of the maven artifact.
+   * @param version
+   *          The version of the maven artifact.
+   * @return A unique key of the maven artifact.
+   */
   private static String createArtifactKey(final String groupId, final String artifactId,
       final String version) {
     return groupId + ':' + artifactId + ':' + version;
@@ -90,19 +107,26 @@ public class PackagedArtifactContainer {
 
   private final Map<IProject, String> artifactKeyByEclipseProject = new HashMap<>();
 
-  private final Map<String, Map<ClassifierAndExtension, File>> gavAndFileByClassifierAndExtensionMap =
+  private final Map<String, Map<ClassifierAndExtension, File>> gavAndFileByClassifierAndExtMap =
       new HashMap<>();
 
   private final Map<IProject, ProjectArtifacts> projectArtifactsByEclipseProject = new HashMap<>();
 
   private final ReadWriteLock readWriteLock = new ReentrantReadWriteLock();
 
+  /**
+   * Finds an artifact file if exists.
+   *
+   * @param artifact
+   *          The maven artifact.
+   * @return The file of the maven artifact.
+   */
   public File findArtifact(final Artifact artifact) {
     Lock readLock = readWriteLock.readLock();
     readLock.lock();
     try {
       Map<ClassifierAndExtension, File> fileByClassifierAndExtensionMap =
-          gavAndFileByClassifierAndExtensionMap.get(createArtifactKey(artifact.getGroupId(),
+          gavAndFileByClassifierAndExtMap.get(createArtifactKey(artifact.getGroupId(),
               artifact.getArtifactId(), artifact.getBaseVersion()));
 
       if (fileByClassifierAndExtensionMap != null) {
@@ -120,6 +144,13 @@ public class PackagedArtifactContainer {
     }
   }
 
+  /**
+   * Provides all of the maven artifacts that belong to an eclipse project.
+   *
+   * @param eclipseProject
+   *          The maven-eclipse project.
+   * @return The artifacts that are created with maven after running mvn package.
+   */
   public ProjectArtifacts getProjectArtifacts(final IProject eclipseProject) {
     Lock readLock = readWriteLock.readLock();
     readLock.lock();
@@ -147,6 +178,14 @@ public class PackagedArtifactContainer {
     fileByClassifierAndExtensionMap.put(classifierAndExtension, artifactFile);
   }
 
+  /**
+   * Add artifact files of a maven project.
+   *
+   * @param mavenProjectFacade
+   *          The eclipse-maven project.
+   * @param projectArtifacts
+   *          The artifacts of the eclipse-maven-project.
+   */
   public void putArtifactsOfMavenProject(final IMavenProjectFacade mavenProjectFacade,
       final ProjectArtifacts projectArtifacts) {
 
@@ -172,20 +211,26 @@ public class PackagedArtifactContainer {
       for (Artifact artifact : projectArtifacts.attachedArtifacts) {
         putArtifact(artifact, fileByClassifierAndExtensionMap);
       }
-      gavAndFileByClassifierAndExtensionMap.put(artifactKey, fileByClassifierAndExtensionMap);
+      gavAndFileByClassifierAndExtMap.put(artifactKey, fileByClassifierAndExtensionMap);
       projectArtifactsByEclipseProject.put(eclipseProject, projectArtifacts);
     } finally {
       writeLock.unlock();
     }
   }
 
+  /**
+   * Remove maven artifact files of an eclipse project.
+   *
+   * @param eclipseProject
+   *          The eclipse project that the artifact files belonged to.
+   */
   public void removeArtifactFiles(final IProject eclipseProject) {
     Lock writeLock = readWriteLock.writeLock();
     writeLock.lock();
     try {
       String artifactKey = artifactKeyByEclipseProject.remove(eclipseProject);
       if (artifactKey != null) {
-        gavAndFileByClassifierAndExtensionMap.remove(artifactKey);
+        gavAndFileByClassifierAndExtMap.remove(artifactKey);
       }
       projectArtifactsByEclipseProject.remove(eclipseProject);
     } finally {

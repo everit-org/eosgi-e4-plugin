@@ -28,7 +28,7 @@ import org.apache.commons.collections.list.TreeList;
 /**
  * Helper class to flatten a DAG to an ordered list. Every element that is over another one in the
  * DAG will be in front of the other in the result list.
- * 
+ *
  * @param <K>
  *          The key of the nodes.
  * @param <T>
@@ -36,6 +36,14 @@ import org.apache.commons.collections.list.TreeList;
  */
 public final class DAGFlattener<K, T> {
 
+  /**
+   * DTO.
+   *
+   * @param <K>
+   *          Key.
+   * @param <N>
+   *          Node type.
+   */
   public static final class KeyWithNodes<K, N> {
     public final K key;
 
@@ -57,6 +65,14 @@ public final class DAGFlattener<K, T> {
     this.childResolver = childResolver;
   }
 
+  /**
+   * Flattens a direct acyclic graph in a way that child nodes will be before parent ones for sure,
+   * even if the same nodes appear multiple times in the graph.
+   *
+   * @param root
+   *          The root node of the DAG.
+   * @return The flattened DAG.
+   */
   public List<KeyWithNodes<K, T>> flatten(final T root) {
     Map<K, KeyWithNodes<K, T>> visited = new HashMap<>();
 

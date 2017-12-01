@@ -105,8 +105,6 @@ public class TestResultTracker implements Closeable {
 
     eosgiVMManager.addStateChangeListener(vmStateChangeListener);
     checkJVMRunningChanges();
-
-    new Thread(this::watchTestResultFolders).start();
   }
 
   private void addContentOfTestResultFileToSummary(final File testResultFile,
@@ -262,6 +260,10 @@ public class TestResultTracker implements Closeable {
       eosgiLog.error("Cannot import test results from sum file '" + sumFile + "' with content:\n"
           + sumFileContent, e);
     }
+  }
+
+  public void open() {
+    new Thread(this::watchTestResultFolders).start();
   }
 
   private List<File> resolveNewerNonEmptyXMLFilesThanLastDist(final TrackedJVMInfo trackedJVMInfo) {

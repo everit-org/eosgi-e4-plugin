@@ -20,6 +20,10 @@ import java.util.function.Function;
 
 import org.eclipse.aether.graph.DependencyNode;
 
+/**
+ * Helper class that implements a functional interface to get the child of a dependency node. See
+ * usage.
+ */
 public class DependencyNodeChildResolver
     implements Function<DependencyNode, List<DependencyNode>> {
 

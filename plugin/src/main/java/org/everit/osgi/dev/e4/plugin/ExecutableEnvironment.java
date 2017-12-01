@@ -21,6 +21,8 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Objects;
 
+import javax.annotation.Generated;
+
 /**
  * Information about an EOSGi environment.
  */
@@ -147,6 +149,36 @@ public final class ExecutableEnvironment implements Comparable<ExecutableEnviron
         .compareTo(o.getEOSGiProject().getMavenProjectFacade().getProject().getName());
   }
 
+  @Override
+  @Generated("eclipse")
+  public boolean equals(final Object obj) {
+    if (this == obj)
+      return true;
+    if (obj == null)
+      return false;
+    if (getClass() != obj.getClass())
+      return false;
+    ExecutableEnvironment other = (ExecutableEnvironment) obj;
+    if (defaultExecution != other.defaultExecution)
+      return false;
+    if (environmentId == null) {
+      if (other.environmentId != null)
+        return false;
+    } else if (!environmentId.equals(other.environmentId))
+      return false;
+    if (eosgiProject == null) {
+      if (other.eosgiProject != null)
+        return false;
+    } else if (!eosgiProject.equals(other.eosgiProject))
+      return false;
+    if (executionId == null) {
+      if (other.executionId != null)
+        return false;
+    } else if (!executionId.equals(other.executionId))
+      return false;
+    return true;
+  }
+
   public Collection<GAV> getAdditionalArtifactGAVs() {
     return additionalArtifactGAVs;
   }
@@ -173,6 +205,18 @@ public final class ExecutableEnvironment implements Comparable<ExecutableEnviron
 
   public File getTestResultFolder() {
     return testResultFolder;
+  }
+
+  @Override
+  @Generated("eclipse")
+  public int hashCode() {
+    final int prime = 31;
+    int result = 1;
+    result = prime * result + (defaultExecution ? 1231 : 1237);
+    result = prime * result + ((environmentId == null) ? 0 : environmentId.hashCode());
+    result = prime * result + ((eosgiProject == null) ? 0 : eosgiProject.hashCode());
+    result = prime * result + ((executionId == null) ? 0 : executionId.hashCode());
+    return result;
   }
 
   public boolean isDefaultExecution() {

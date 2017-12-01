@@ -22,6 +22,9 @@ import java.util.function.Function;
 
 import org.eclipse.aether.repository.WorkspaceReader;
 
+/**
+ * DTO, see usage.
+ */
 public class MavenExecutionContextModifiers {
 
   public Consumer<Map<String, Object>> executionRequestDataModifier;

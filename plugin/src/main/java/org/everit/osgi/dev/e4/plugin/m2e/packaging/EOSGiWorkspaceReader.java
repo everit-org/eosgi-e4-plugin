@@ -22,6 +22,11 @@ import org.eclipse.aether.artifact.Artifact;
 import org.eclipse.aether.repository.WorkspaceReader;
 import org.eclipse.aether.repository.WorkspaceRepository;
 
+/**
+ * Reads maven artifacts from the eclipse workspace instead of the local maven repository during
+ * running a maven command by m2e.
+ *
+ */
 public class EOSGiWorkspaceReader implements WorkspaceReader {
 
   private final PackagedArtifactContainer packagedArtifactContainer;

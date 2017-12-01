@@ -2,10 +2,9 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Everit OSGi Plugin
 Bundle-SymbolicName: org.everit.osgi.dev.e4.plugin;singleton:=true
-Bundle-Version: 4.1.4
+Bundle-Version: 4.1.5.qualifier
 Bundle-Activator: org.everit.osgi.dev.e4.plugin.EOSGiEclipsePlugin
-Require-Bundle: org.eclipse.ui,
- org.eclipse.core.runtime;bundle-version="3.8.0",
+Require-Bundle: org.eclipse.core.runtime;bundle-version="3.8.0",
  org.eclipse.m2e.jdt,
  org.eclipse.m2e.core,
  org.eclipse.m2e.maven.runtime,
@@ -15,7 +14,9 @@ Require-Bundle: org.eclipse.ui,
  org.apache.commons.lang3;bundle-version="3.1.0",
  org.everit.osgi.dev.dist.util;bundle-version="5.1.0",
  org.apache.commons.collections;bundle-version="3.2.2",
- org.eclipse.jdt.junit.core;bundle-version="3.8.0"
+ org.eclipse.jdt.junit.core;bundle-version="3.8.0",
+ org.eclipse.ui,
+ org.eclipse.core.expressions;bundle-version="3.4.600"
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Bundle-Vendor: Everit Kft.
 Bundle-ActivationPolicy: lazy

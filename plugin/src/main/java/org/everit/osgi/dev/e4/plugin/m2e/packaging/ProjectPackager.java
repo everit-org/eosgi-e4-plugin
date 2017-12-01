@@ -15,6 +15,7 @@
  */
 package org.everit.osgi.dev.e4.plugin.m2e.packaging;
 
+import java.io.Closeable;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -48,11 +49,16 @@ import org.eclipse.m2e.core.project.IMavenProjectFacade;
 import org.everit.osgi.dev.e4.plugin.m2e.M2EUtil;
 import org.everit.osgi.dev.e4.plugin.m2e.MavenExecutionContextModifiers;
 
-public class ProjectPackager {
+/**
+ * Helper class to package a project with m2e maven.
+ */
+public class ProjectPackager implements Closeable {
 
   private static final Set<String> SKIPPED_LIFECYCLE_PHASES;
+
   static {
     SKIPPED_LIFECYCLE_PHASES = new HashSet<>();
+
     SKIPPED_LIFECYCLE_PHASES.add("test");
   }
 
@@ -102,7 +108,7 @@ public class ProjectPackager {
     if (projectArtifact != null) {
       File projectArtifactFile = projectArtifact.getFile();
       if (!projectArtifactFile.exists()) {
-        descriptionFile.delete();
+        deleteFile(descriptionFile);
         return;
       }
 
@@ -122,7 +128,7 @@ public class ProjectPackager {
 
       File attachedArtifactFile = attachedArtifact.getFile();
       if (!attachedArtifactFile.exists()) {
-        descriptionFile.delete();
+        deleteFile(descriptionFile);
         return;
       }
 
@@ -140,20 +146,21 @@ public class ProjectPackager {
     if (nonTargetFileExistThatIsChangedLater(baseDir,
         new File(mavenProject.getBuild().getDirectory()),
         oldestLastModified)) {
-      descriptionFile.delete();
+      deleteFile(descriptionFile);
     } else {
       this.packagedArtifactContainer.putArtifactsOfMavenProject(mavenProjectFacade,
           new ProjectArtifacts(projectArtifact, attachedArtifacts));
     }
   }
 
+  @Override
   public void close() {
     ResourcesPlugin.getWorkspace().removeResourceChangeListener(this.changedProjectTracker);
 
   }
 
   private String convertMavenArtifactToCoordinates(final Artifact artifact) {
-    StringBuilder sb = new StringBuilder(128);
+    StringBuilder sb = new StringBuilder();
     sb.append(artifact.getGroupId());
     sb.append(':').append(artifact.getArtifactId());
     sb.append(':').append(artifact.getArtifactHandler().getExtension());
@@ -211,10 +218,36 @@ public class ProjectPackager {
     return props;
   }
 
+  /**
+   * Creates a workspace reader for m2e that resolves maven modules that are eclipse projects on the
+   * current workspace and resolves artifact files from the workspace instead of local maven
+   * repository.
+   *
+   * @param original
+   *          The original workspace reader of the maven execution context.
+   * @return A workspace reader that searches artifact files first in the eclipse workspace.
+   */
   public WorkspaceReader createWorkspaceReader(final WorkspaceReader original) {
     return new EOSGiWorkspaceReader(original, this.packagedArtifactContainer);
   }
 
+  private void deleteFile(final File file) {
+    if (file.exists() && !file.delete()) {
+      throw new RuntimeException("Cannot delete file: " + file);
+    }
+  }
+
+  /**
+   * Checks whether the project has any modifications since last successful m2e package.
+   *
+   * @param mavenProjectFacade
+   *          The m2e project facade.
+   * @param monitor
+   *          The monitor to show progress.
+   * @return true if there was no file changed in the project since last build.
+   * @throws CoreException
+   *           if something happens.
+   */
   public boolean isProjectPackagedAndUpToDate(final IMavenProjectFacade mavenProjectFacade,
       final IProgressMonitor monitor) throws CoreException {
 
@@ -253,6 +286,9 @@ public class ProjectPackager {
     return false;
   }
 
+  /**
+   * Starts tracking of the eclipse projects.
+   */
   public void open() {
     this.changedProjectTracker = new ChangedProjectTracker(
         (eclipseProject) -> {
@@ -263,6 +299,17 @@ public class ProjectPackager {
     ResourcesPlugin.getWorkspace().addResourceChangeListener(this.changedProjectTracker);
   }
 
+  /**
+   * Packages a maven project that is on the eclipse workspace and adds its artifact files to the
+   * workspace reader.
+   *
+   * @param mavenProjectFacade
+   *          The m2e project.
+   * @param monitor
+   *          The monitor to show progress.
+   * @throws CoreException
+   *           if anything happens.
+   */
   public void packageProject(final IMavenProjectFacade mavenProjectFacade,
       final IProgressMonitor monitor) throws CoreException {
 
@@ -312,12 +359,9 @@ public class ProjectPackager {
     return props;
   }
 
-  private long refreshOldestLastModified(long oldestLastModified, final File artifactFile) {
+  private long refreshOldestLastModified(final long oldestLastModified, final File artifactFile) {
     long lastModified = artifactFile.lastModified();
-    if (lastModified < oldestLastModified) {
-      oldestLastModified = lastModified;
-    }
-    return oldestLastModified;
+    return (lastModified < oldestLastModified) ? lastModified : oldestLastModified;
   }
 
   private File resolveAttachedFilesDescriptionFile(final MavenProject mavenProject) {
@@ -353,6 +397,14 @@ public class ProjectPackager {
 
   }
 
+  /**
+   * Sets artifact files to a m2e project. So all created workspace readers will now about them.
+   *
+   * @param mavenProject
+   *          The m2e project.
+   * @param eclipseProject
+   *          The eclipse project.
+   */
   public void setArtifactsOnMavenProject(final MavenProject mavenProject,
       final IProject eclipseProject) {
     ProjectArtifacts projectArtifacts =

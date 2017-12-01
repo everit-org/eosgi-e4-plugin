@@ -20,6 +20,9 @@ import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.jdt.launching.IRuntimeClasspathEntry;
 import org.eclipse.m2e.jdt.internal.launch.MavenSourcePathProvider;
 
+/**
+ * Provides the source files paths for an eosgi project during debugging.
+ */
 @SuppressWarnings("restriction")
 public class EOSGiSourcePathProvider extends MavenSourcePathProvider {
 

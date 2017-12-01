@@ -61,7 +61,7 @@ public class ChangedProjectTracker implements IResourceChangeListener {
 
   /**
    * The function returns whether the a resource is changed.
-   * 
+   *
    * @param delta
    *          The delta of the resource.
    * @return True if the resource is affected, but false if the resource is a folder that has some

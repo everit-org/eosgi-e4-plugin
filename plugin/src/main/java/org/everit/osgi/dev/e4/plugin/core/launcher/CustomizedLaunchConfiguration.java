@@ -31,6 +31,10 @@ import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
 import org.eclipse.debug.core.ILaunchDelegate;
 import org.eclipse.jdt.launching.IJavaLaunchConfigurationConstants;
 
+/**
+ * Helper class that returns a {@link CustomizedLaunchConfigurationType} and always says that
+ * default classpath is used.
+ */
 public class CustomizedLaunchConfiguration implements ILaunchConfiguration {
 
   private final ILaunchConfiguration wrapped;

@@ -18,6 +18,9 @@ package org.everit.osgi.dev.e4.plugin.ui.navigator;
 import org.eclipse.ui.menus.CommandContributionItem;
 import org.eclipse.ui.menus.CommandContributionItemParameter;
 
+/**
+ * A context menu item for a disabled eosgi command.
+ */
 public class DisabledCommandContributionItem extends CommandContributionItem {
 
   public DisabledCommandContributionItem(

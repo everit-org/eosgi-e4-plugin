@@ -36,6 +36,9 @@ import org.everit.osgi.dev.e4.plugin.EOSGiEclipsePlugin;
 import org.everit.osgi.dev.e4.plugin.ExecutableEnvironment;
 import org.everit.osgi.dev.e4.plugin.ui.command.CommandUtil;
 
+/**
+ * Context menu of an eosgi project.
+ */
 public class EOSGiProjectPopupMenu extends ExtensionContributionFactory {
 
   public static final String COMMAND_ID_PREFIX = "org.everit.osgi.dev.e4.plugin.command.";

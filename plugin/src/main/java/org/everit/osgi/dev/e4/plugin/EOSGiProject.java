@@ -78,8 +78,9 @@ public class EOSGiProject {
       new DAGFlattener<>((dependencyNode) -> new GAV(dependencyNode),
           new DependencyNodeChildResolver());
 
-  public static final String[] EOSGI_SORTED_ACCEPTED_GOAL_ARRAY =
-      new String[] { "dist", "integration-test" };
+  public static final Collection<String> EOSGI_ACCEPTED_GOALS =
+      Collections.unmodifiableSet(
+          new HashSet<>(Arrays.asList(new String[] { "dist", "integration-test" })));
 
   private static final int WORK_TICK_SIZE = 10;
 
@@ -371,7 +372,7 @@ public class EOSGiProject {
 
     if (M2EUtil.EOSGI_GROUP_ID.equals(mojoExecutionKey.getGroupId())
         && M2EUtil.EOSGI_ARTIFACT_ID.equals(mojoExecutionKey.getArtifactId())
-        && Arrays.binarySearch(EOSGI_SORTED_ACCEPTED_GOAL_ARRAY, mojoExecutionKey.getGoal()) >= 0) {
+        && EOSGI_ACCEPTED_GOALS.contains(mojoExecutionKey.getGoal())) {
 
       String mojoVersion = mojoExecutionKey.getVersion();
       return M2EUtil.isEOSGiMojoVersionSupported(mojoVersion);
@@ -383,6 +384,18 @@ public class EOSGiProject {
     return launchInProgress.get();
   }
 
+  /**
+   * Launches an OSGi container in debug or run mode using the launcher of eclipse.
+   *
+   * @param executableEnvironment
+   *          The eosgi environment that should be launched.
+   * @param mode
+   *          Either debug or run.
+   * @param monitor
+   *          The monitor that is used to show progress.
+   * @throws CoreException
+   *           if something happens.
+   */
   public void launch(final ExecutableEnvironment executableEnvironment, final String mode,
       final IProgressMonitor monitor) throws CoreException {
 
@@ -413,6 +426,16 @@ public class EOSGiProject {
     }
   }
 
+  /**
+   * Reloads the eosgi information of the project.
+   *
+   * @param newMavenProjectFacade
+   *          The new maven project facade of the project.
+   * @param monitor
+   *          The monitor to show progress.
+   * @throws CoreException
+   *           if something happens.
+   */
   public synchronized void refresh(final IMavenProjectFacade newMavenProjectFacade,
       final IProgressMonitor monitor) throws CoreException {
 
@@ -640,6 +663,16 @@ public class EOSGiProject {
         "integrationTestTargetFolder", String.class, mojoExecution, monitor);
   }
 
+  /**
+   * Called when the user initiates a back synchronization to the source directories.
+   *
+   * @param executableEnvironment
+   *          The environment that should be synchronized back.
+   * @param monitor
+   *          The monitor to show progress.
+   * @throws CoreException
+   *           if something happens.
+   */
   public void syncBack(final ExecutableEnvironment executableEnvironment,
       final IProgressMonitor monitor) throws CoreException {
 

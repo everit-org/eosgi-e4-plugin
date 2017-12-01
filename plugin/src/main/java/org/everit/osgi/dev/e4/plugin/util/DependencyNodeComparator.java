@@ -15,12 +15,18 @@
  */
 package org.everit.osgi.dev.e4.plugin.util;
 
+import java.io.Serializable;
 import java.util.Comparator;
 
 import org.eclipse.aether.artifact.Artifact;
 import org.eclipse.aether.graph.DependencyNode;
 
-public class DependencyNodeComparator implements Comparator<DependencyNode> {
+/**
+ * Compares two dependency nodes based on its artifact groupid, artifactid and version.
+ */
+public class DependencyNodeComparator implements Comparator<DependencyNode>, Serializable {
+
+  private static final long serialVersionUID = -5888905762258747468L;
 
   @Override
   public int compare(final DependencyNode o1, final DependencyNode o2) {
