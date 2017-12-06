@@ -15,6 +15,7 @@
  */
 package org.everit.osgi.dev.e4.plugin;
 
+import java.util.Collection;
 import java.util.UUID;
 
 import org.eclipse.core.runtime.IStatus;
@@ -81,6 +82,29 @@ public class EOSGiEclipsePlugin extends AbstractUIPlugin {
     return true;
   }
 
+  private boolean checkNoSharedMemBetweenVms() {
+    Collection<String> availableVMIds =
+        EOSGiVMManager.getAvailableVMIds(EOSGiVMManager.class.getClassLoader());
+
+    if (!availableVMIds.isEmpty()) {
+      return false;
+    }
+
+    String message = "Cannot access JVMs on the current machine. It might be possible that your "
+        + "$TMPDIR/hsperfdata_USERNAME folder is corrupt. Try deleting this folder and restart "
+        + "all running JVMs on the computer! Another possibility is that your Eclipse is the "
+        + "only started VM and it is started with the -XX:+PerfDisableSharedMem option. If that "
+        + "is the case, please remove this option from your Eclipse configuration.";
+
+    IStatus status = new Status(IStatus.ERROR, EOSGiEclipsePlugin.PLUGIN_ID, message);
+    getLog().log(status);
+    Display.getDefault().asyncExec(() -> {
+      Shell shell = new Shell();
+      ErrorDialog.openError(shell, "Error", "Could not start Everit OSGi Eclipse plugin", status);
+    });
+    return true;
+  }
+
   public EOSGiLog getEOSGiLog() {
     return this.log;
   }
@@ -97,7 +121,7 @@ public class EOSGiEclipsePlugin extends AbstractUIPlugin {
   public void start(final BundleContext context) throws Exception {
     super.start(context);
 
-    if (!checkAttachAPIAvailable()) {
+    if (!checkAttachAPIAvailable() || checkNoSharedMemBetweenVms()) {
       return;
     }
 
