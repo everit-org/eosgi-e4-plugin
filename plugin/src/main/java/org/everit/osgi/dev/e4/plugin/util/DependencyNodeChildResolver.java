@@ -15,10 +15,12 @@
  */
 package org.everit.osgi.dev.e4.plugin.util;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
 
 import org.eclipse.aether.graph.DependencyNode;
+import org.eclipse.aether.util.graph.transformer.ConflictResolver;
 
 /**
  * Helper class that implements a functional interface to get the child of a dependency node. See
@@ -29,7 +31,16 @@ public class DependencyNodeChildResolver
 
   @Override
   public List<DependencyNode> apply(final DependencyNode dependencyNode) {
-    return dependencyNode.getChildren();
+    List<DependencyNode> children = dependencyNode.getChildren();
+    List<DependencyNode> result = new ArrayList<>();
+    for (DependencyNode child : children) {
+      // Only add if this node does not lose in conflicting with other node in the graph.
+      if (!child.getData().containsKey(ConflictResolver.NODE_DATA_WINNER)) {
+        result.add(child);
+      }
+    }
+
+    return result;
   }
 
 }
