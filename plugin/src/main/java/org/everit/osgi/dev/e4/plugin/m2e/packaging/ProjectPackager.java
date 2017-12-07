@@ -40,6 +40,7 @@ import org.eclipse.aether.artifact.ArtifactProperties;
 import org.eclipse.aether.artifact.DefaultArtifact;
 import org.eclipse.aether.repository.WorkspaceReader;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -312,6 +313,8 @@ public class ProjectPackager implements Closeable {
    */
   public void packageProject(final IMavenProjectFacade mavenProjectFacade,
       final IProgressMonitor monitor) throws CoreException {
+
+    mavenProjectFacade.getProject().build(IncrementalProjectBuilder.INCREMENTAL_BUILD, monitor);
 
     MavenExecutionContextModifiers modifiers = new MavenExecutionContextModifiers();
     modifiers.workspaceReaderReplacer = (original) -> createWorkspaceReader(original);
