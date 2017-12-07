@@ -24,7 +24,7 @@ import org.eclipse.core.runtime.Status;
  */
 public class EOSGiLog {
 
-  private ILog log;
+  private final ILog log;
 
   public EOSGiLog(final ILog log) {
     super();
@@ -45,6 +45,10 @@ public class EOSGiLog {
 
   public void warning(final String message) {
     log.log(new Status(IStatus.WARNING, EOSGiEclipsePlugin.PLUGIN_ID, message));
+  }
+
+  public void warning(final String message, final Throwable throwable) {
+    log.log(new Status(IStatus.WARNING, EOSGiEclipsePlugin.PLUGIN_ID, message, throwable));
   }
 
 }

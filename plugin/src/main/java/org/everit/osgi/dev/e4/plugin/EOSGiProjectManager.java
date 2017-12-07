@@ -61,10 +61,10 @@ public class EOSGiProjectManager implements Closeable {
 
     EOSGiVMManagerParameter vmManagerParam = new EOSGiVMManagerParameter();
     vmManagerParam.classLoader = EOSGiVMManager.class.getClassLoader();
-    vmManagerParam.attachNotSupportedExceptionDuringRefreshEventHandler = (eventData) -> {
+    vmManagerParam.exceptionDuringAttachVMHandler = (eventData) -> {
       EOSGiEclipsePlugin.getDefault().getEOSGiLog()
-          .warning("Attaching VM with id '" + eventData.virtualMachineId + "' is not supported: "
-              + eventData.cause.getMessage());
+          .warning("Error during attaching VM: " + eventData.virtualMachineId, eventData.cause);
+      return true;
     };
     vmManagerParam.deadlockEventHandler = (eventData) -> {
       EOSGiEclipsePlugin.getDefault().getEOSGiLog().warning("Deadlock in Attach API during getting"
