@@ -105,4 +105,8 @@ public class GAV {
     return result;
   }
 
+  @Override
+  public String toString() {
+    return groupId + ":" + artifactId + ":" + version;
+  }
 }

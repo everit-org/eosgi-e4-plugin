@@ -229,7 +229,7 @@ public class ProjectPackager implements Closeable {
    * @return A workspace reader that searches artifact files first in the eclipse workspace.
    */
   public WorkspaceReader createWorkspaceReader(final WorkspaceReader original) {
-    return new EOSGiWorkspaceReader(original, this.packagedArtifactContainer);
+    return new EOSGiWorkspaceReader(original, this.packagedArtifactContainer, this);
   }
 
   private void deleteFile(final File file) {
