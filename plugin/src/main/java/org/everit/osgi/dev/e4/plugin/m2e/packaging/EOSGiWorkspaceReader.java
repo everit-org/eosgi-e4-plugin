@@ -79,26 +79,29 @@ public class EOSGiWorkspaceReader implements WorkspaceReader {
         MavenPlugin.getMavenProjectRegistry().getMavenProject(gav.groupId, gav.artifactId,
             gav.version);
 
-    if (mavenProject != null) {
-      try {
-
-        if (!currentlyBuildingDependencies.add(gav)) {
-          throw new RuntimeException("Cyclic building of projects. Requested the build of "
-              + gav.toString() + " while the currently building project stack contains "
-              + currentlyBuildingDependencies.toString());
-        }
-
-        projectPackager.packageProject(mavenProject, new NullProgressMonitor());
-
-        result = packagedArtifactContainer.findArtifact(artifact);
-        if (result != null) {
-          return result;
-        }
-      } catch (CoreException e) {
-        throw new RuntimeException(e);
-      } finally {
-        currentlyBuildingDependencies.remove(gav);
+    try {
+      if (!currentlyBuildingDependencies.add(gav)) {
+        throw new RuntimeException("Cyclic building of projects. Requested the build of "
+            + gav.toString() + " while the currently building project stack contains "
+            + currentlyBuildingDependencies.toString());
       }
+
+      if (mavenProject == null || projectPackager.isProjectPackagedAndUpToDate(mavenProject,
+          new NullProgressMonitor())) {
+
+        return wrapped.findArtifact(artifact);
+      }
+
+      projectPackager.packageProject(mavenProject, new NullProgressMonitor());
+
+      result = packagedArtifactContainer.findArtifact(artifact);
+      if (result != null) {
+        return result;
+      }
+    } catch (CoreException e) {
+      throw new RuntimeException(e);
+    } finally {
+      currentlyBuildingDependencies.remove(gav);
     }
 
     // Return original if project is not on workspace
