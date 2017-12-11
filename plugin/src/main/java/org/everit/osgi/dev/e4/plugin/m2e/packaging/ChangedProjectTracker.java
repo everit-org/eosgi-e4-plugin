@@ -177,7 +177,11 @@ public class ChangedProjectTracker implements IResourceChangeListener {
 
   private Set<File> toArtifactFileSet(final ProjectArtifacts projectArtifacts) {
     Set<File> result = new HashSet<>();
-    result.add(projectArtifacts.artifact.getFile());
+    if (projectArtifacts.artifact != null) {
+      // Happens if no file is generated from packaging (e.g.: pom) but a plugin generates an
+      // attached artifact
+      result.add(projectArtifacts.artifact.getFile());
+    }
 
     for (Artifact artifact : projectArtifacts.attachedArtifacts) {
       result.add(artifact.getFile());
