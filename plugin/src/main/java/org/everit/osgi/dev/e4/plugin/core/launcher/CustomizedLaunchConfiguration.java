@@ -15,6 +15,7 @@
  */
 package org.everit.osgi.dev.e4.plugin.core.launcher;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -56,6 +57,11 @@ public class CustomizedLaunchConfiguration implements ILaunchConfiguration {
   @Override
   public void delete() throws CoreException {
     wrapped.delete();
+  }
+
+  @Override
+  public void delete(final int flag) throws CoreException {
+    wrapped.delete(flag);
   }
 
   @Override
@@ -125,6 +131,11 @@ public class CustomizedLaunchConfiguration implements ILaunchConfiguration {
   }
 
   @Override
+  public int getKind() throws CoreException {
+    return wrapped.getKind();
+  }
+
+  @Override
   public IPath getLocation() {
     return wrapped.getLocation();
   }
@@ -155,6 +166,21 @@ public class CustomizedLaunchConfiguration implements ILaunchConfiguration {
   }
 
   @Override
+  public ILaunchConfiguration getPrototype() throws CoreException {
+    return wrapped.getPrototype();
+  }
+
+  @Override
+  public Collection<ILaunchConfiguration> getPrototypeChildren() throws CoreException {
+    return wrapped.getPrototypeChildren();
+  }
+
+  @Override
+  public Set<String> getPrototypeVisibleAttributes() throws CoreException {
+    return wrapped.getPrototypeVisibleAttributes();
+  }
+
+  @Override
   public ILaunchConfigurationType getType() throws CoreException {
     return new CustomizedLaunchConfigurationType(wrapped.getType());
   }
@@ -170,6 +196,11 @@ public class CustomizedLaunchConfiguration implements ILaunchConfiguration {
   }
 
   @Override
+  public boolean isAttributeModified(final String attribute) throws CoreException {
+    return wrapped.isAttributeModified(attribute);
+  }
+
+  @Override
   public boolean isLocal() {
     return wrapped.isLocal();
   }
@@ -177,6 +208,11 @@ public class CustomizedLaunchConfiguration implements ILaunchConfiguration {
   @Override
   public boolean isMigrationCandidate() throws CoreException {
     return wrapped.isMigrationCandidate();
+  }
+
+  @Override
+  public boolean isPrototype() {
+    return wrapped.isPrototype();
   }
 
   @Override
@@ -210,6 +246,12 @@ public class CustomizedLaunchConfiguration implements ILaunchConfiguration {
   @Override
   public void migrate() throws CoreException {
     wrapped.migrate();
+  }
+
+  @Override
+  public void setPrototypeAttributeVisibility(final String attribute, final boolean visible)
+      throws CoreException {
+    wrapped.setPrototypeAttributeVisibility(attribute, visible);
   }
 
   @Override

@@ -26,7 +26,7 @@
 
   <groupId>org.everit.osgi.dev.e4</groupId>
   <artifactId>org.everit.osgi.dev.e4.parent</artifactId>
-  <version>4.1.5-SNAPSHOT</version>
+  <version>4.1.6-SNAPSHOT</version>
   <packaging>pom</packaging>
 
 
@@ -68,17 +68,7 @@
             <environment>
               <os>linux</os>
               <ws>gtk</ws>
-              <arch>x86</arch>
-            </environment>
-            <environment>
-              <os>linux</os>
-              <ws>gtk</ws>
               <arch>x86_64</arch>
-            </environment>
-            <environment>
-              <os>win32</os>
-              <ws>win32</ws>
-              <arch>x86</arch>
             </environment>
             <environment>
               <os>win32</os>
@@ -100,7 +90,7 @@
     <repository>
       <id>mars</id>
       <layout>p2</layout>
-      <url>http://download.eclipse.org/releases/neon</url>
+      <url>http://download.eclipse.org/releases/2018-12</url>
     </repository>
   </repositories>
 

@@ -19,11 +19,11 @@
 <feature
       id="org.everit.osgi.dev.e4.feature"
       label="EOSGi Eclipse Plugin"
-      version="4.1.5.qualifier"
+      version="4.1.6.qualifier"
       provider-name="Everit Kft."
       os="linux,macosx,win32"
       ws="cocoa,gtk,win32"
-      arch="x86,x86_64">
+      arch="x86_64">
 
    <description url="http://everit.org/eosgi-e4-plugin">
       EOSGi Eclipse plugin displays OSGi environments specified with
@@ -247,7 +247,6 @@ lets the user managing the environment by using a context menu.
       <import plugin="org.eclipse.osgi"/>
       <import plugin="org.eclipse.core.runtime" version="3.8.0" match="greaterOrEqual"/>
       <import plugin="org.everit.osgi.dev.dist.util" version="5.1.0" match="greaterOrEqual"/>
-      <import plugin="org.apache.commons.collections" version="3.2.2" match="greaterOrEqual"/>
       <import plugin="org.eclipse.jdt.junit.core" version="3.8.0" match="greaterOrEqual"/>
    </requires>
 

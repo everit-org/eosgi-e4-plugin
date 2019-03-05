@@ -40,7 +40,7 @@ public class EOSGILaunchConfigurationDelegate extends JavaLaunchDelegate {
   public EOSGILaunchConfigurationDelegate() {
     super();
     ILog iLog = EOSGiEclipsePlugin.getDefault().getLog();
-    this.log = new EOSGiLog(iLog);
+    log = new EOSGiLog(iLog);
     log.info("launch configuration created");
   }
 

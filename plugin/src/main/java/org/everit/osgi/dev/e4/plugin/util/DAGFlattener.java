@@ -17,13 +17,12 @@ package org.everit.osgi.dev.e4.plugin.util;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
-
-import org.apache.commons.collections.list.TreeList;
 
 /**
  * Helper class to flatten a DAG to an ordered list. Every element that is over another one in the
@@ -76,8 +75,7 @@ public final class DAGFlattener<K, T> {
   public List<KeyWithNodes<K, T>> flatten(final T root) {
     Map<K, KeyWithNodes<K, T>> visited = new HashMap<>();
 
-    @SuppressWarnings("unchecked")
-    List<KeyWithNodes<K, T>> result = new TreeList();
+    List<KeyWithNodes<K, T>> result = new LinkedList<>();
 
     ListIterator<KeyWithNodes<K, T>> resultIterator = result.listIterator();
     flattenRecurse(keyGenerator.apply(root), root, resultIterator, visited);

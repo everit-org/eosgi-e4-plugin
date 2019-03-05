@@ -18,6 +18,7 @@ package org.everit.osgi.dev.e4.plugin;
 import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -41,7 +42,7 @@ import org.apache.maven.plugin.MojoExecution;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.eclipse.aether.graph.DependencyNode;
-import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -124,7 +125,7 @@ public class EOSGiProject {
         IMavenProjectFacade mavenProject =
             mavenProjectRegistry.getMavenProject(gav.groupId, gav.artifactId, gav.version);
 
-        if (mavenProject != null
+        if ((mavenProject != null)
             && !projectPackageUtil.isProjectPackagedAndUpToDate(mavenProject, monitor)) {
 
           dependenciesToPackage.add(mavenProject);
@@ -136,6 +137,9 @@ public class EOSGiProject {
 
   private void atomicDist(final ExecutableEnvironment executableEnvironment,
       final SubMonitor monitor) throws CoreException {
+
+    flushMavenProjectArtifactsCacheIfAvailable();
+
     EOSGiEclipsePlugin.getDefault().getEOSGiManager().getTestResultTracker()
         .updateDistTimestampOfEnvironment(executableEnvironment);
 
@@ -330,9 +334,48 @@ public class EOSGiProject {
     IMaven maven = MavenPlugin.getMaven();
     for (MojoExecution mojoExecution : mojoExecutions) {
       maven.execute(mavenProject, mojoExecution, monitor);
-      mavenProjectFacade.getProject().refreshLocal(IProject.DEPTH_INFINITE, monitor);
+      mavenProjectFacade.getProject().refreshLocal(IResource.DEPTH_INFINITE, monitor);
 
       M2EUtil.checkExecutionResultExceptions(context, errorMessage);
+    }
+  }
+
+  /**
+   * This is a hack as maven caches the project artifacts so the dependency tree is not refreshed
+   * after changing poms or snapshot dependency changes.
+   */
+  private void flushMavenProjectArtifactsCacheIfAvailable() {
+    IMaven iMaven = MavenPlugin.getMaven();
+
+    Class<?> projectArtifactsCacheClass;
+    try {
+      projectArtifactsCacheClass = iMaven.getClass().getClassLoader()
+          .loadClass("org.apache.maven.project.artifact.ProjectArtifactsCache");
+    } catch (ClassNotFoundException e) {
+      // no such class in this maven version
+      return;
+    }
+
+    Object projectArtifactsCache;
+    try {
+      projectArtifactsCache = iMaven.lookup(projectArtifactsCacheClass);
+    } catch (CoreException e) {
+      EOSGiEclipsePlugin.getDefault().getEOSGiLog()
+          .warning("Could not flush Maven ProjectArtifactsCache", e);
+      return;
+    }
+
+    if (projectArtifactsCache == null) {
+      return;
+    }
+
+    try {
+      projectArtifactsCacheClass.getMethod("flush").invoke(projectArtifactsCache);
+    } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException
+        | NoSuchMethodException | SecurityException e) {
+
+      EOSGiEclipsePlugin.getDefault().getEOSGiLog()
+          .warning("Could not flush Maven ProjectArtifactsCache", e);
     }
   }
 
@@ -441,7 +484,7 @@ public class EOSGiProject {
 
     monitor.subTask("Resolving OSGi environments");
 
-    this.mavenProjectFacade = newMavenProjectFacade;
+    mavenProjectFacade = newMavenProjectFacade;
     Set<ExecutableEnvironment> executableEnvironments = new TreeSet<>();
 
     MojoExecution defaultMojoExecution = resolvePlainPluginConfigMojoExecution(monitor);
@@ -454,13 +497,13 @@ public class EOSGiProject {
 
     Set<MojoExecution> executions = resolveEOSGiExecutions(monitor);
     for (MojoExecution mojoExecution : executions) {
-      if (defaultMojoExecutionConfiguration == null
+      if ((defaultMojoExecutionConfiguration == null)
           || !defaultMojoExecutionConfiguration.equals(mojoExecution.getConfiguration())) {
         executableEnvironments.addAll(resolveExecutableEnvironments(mojoExecution, false, monitor));
       }
     }
 
-    this.executableEnvironmentContainer =
+    executableEnvironmentContainer =
         new ExecutableEnvironmentContainer(executableEnvironments);
   }
 
@@ -600,7 +643,7 @@ public class EOSGiProject {
           IMavenProjectFacade dependencyMavenProject =
               mavenProjectRegistry.getMavenProject(gav.groupId, gav.artifactId, gav.version);
 
-          if (dependencyMavenProject != null
+          if ((dependencyMavenProject != null)
               && !projectPackageUtil.isProjectPackagedAndUpToDate(dependencyMavenProject,
                   monitor)) {
 
@@ -630,7 +673,7 @@ public class EOSGiProject {
   private MojoExecution resolvePlainPluginConfigMojoExecution(final IProgressMonitor monitor)
       throws CoreException {
 
-    MavenProject mavenProject = this.mavenProjectFacade.getMavenProject(monitor);
+    MavenProject mavenProject = mavenProjectFacade.getMavenProject(monitor);
     if (!M2EUtil.hasEOSGiMavenPlugin(mavenProject)) {
       return null;
     }
@@ -710,7 +753,7 @@ public class EOSGiProject {
       executeExecutionPlan(mavenProject, executionPlan, monitor1, context,
           "Error during executing " + message);
 
-      mavenProjectFacade.getProject().refreshLocal(IProject.DEPTH_INFINITE, monitor1);
+      mavenProjectFacade.getProject().refreshLocal(IResource.DEPTH_INFINITE, monitor1);
 
       return null;
     }, monitor);

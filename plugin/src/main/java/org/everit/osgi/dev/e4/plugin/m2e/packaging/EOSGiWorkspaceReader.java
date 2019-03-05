@@ -79,6 +79,10 @@ public class EOSGiWorkspaceReader implements WorkspaceReader {
         MavenPlugin.getMavenProjectRegistry().getMavenProject(gav.groupId, gav.artifactId,
             gav.version);
 
+    if (mavenProject == null) {
+      return wrapped.findArtifact(artifact);
+    }
+
     try {
       if (!currentlyBuildingDependencies.add(gav)) {
         throw new RuntimeException("Cyclic building of projects. Requested the build of "
@@ -86,15 +90,14 @@ public class EOSGiWorkspaceReader implements WorkspaceReader {
             + currentlyBuildingDependencies.toString());
       }
 
-      if (mavenProject == null || projectPackager.isProjectPackagedAndUpToDate(mavenProject,
+      if (!projectPackager.isProjectPackagedAndUpToDate(mavenProject,
           new NullProgressMonitor())) {
 
-        return wrapped.findArtifact(artifact);
+        projectPackager.packageProject(mavenProject, new NullProgressMonitor());
       }
 
-      projectPackager.packageProject(mavenProject, new NullProgressMonitor());
-
       result = packagedArtifactContainer.findArtifact(artifact);
+
       if (result != null) {
         return result;
       }

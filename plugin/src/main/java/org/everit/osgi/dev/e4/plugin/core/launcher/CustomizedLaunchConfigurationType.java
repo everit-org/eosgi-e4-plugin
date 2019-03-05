@@ -19,6 +19,7 @@ import java.util.Set;
 
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchConfigurationType;
 import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
 import org.eclipse.debug.core.ILaunchDelegate;
@@ -97,6 +98,11 @@ public class CustomizedLaunchConfigurationType implements ILaunchConfigurationTy
   }
 
   @Override
+  public ILaunchConfiguration[] getPrototypes() throws CoreException {
+    return wrapped.getPrototypes();
+  }
+
+  @Override
   public String getSourceLocatorId() {
     return wrapped.getSourceLocatorId();
   }
@@ -128,9 +134,21 @@ public class CustomizedLaunchConfigurationType implements ILaunchConfigurationTy
   }
 
   @Override
+  public ILaunchConfigurationWorkingCopy newPrototypeInstance(final IContainer container,
+      final String name)
+      throws CoreException {
+    return wrapped.newPrototypeInstance(container, name);
+  }
+
+  @Override
   public void setPreferredDelegate(final Set<String> modes, final ILaunchDelegate delegate)
       throws CoreException {
     wrapped.setPreferredDelegate(modes, delegate);
+  }
+
+  @Override
+  public boolean supportsCommandLine() {
+    return wrapped.supportsCommandLine();
   }
 
   @Override
@@ -141,6 +159,11 @@ public class CustomizedLaunchConfigurationType implements ILaunchConfigurationTy
   @Override
   public boolean supportsModeCombination(final Set<String> modes) {
     return wrapped.supportsModeCombination(modes);
+  }
+
+  @Override
+  public boolean supportsPrototypes() {
+    return wrapped.supportsPrototypes();
   }
 
 }
